@@ -13,4 +13,20 @@ UCLASS()
 class PUZZLESTAY3_API APS3GameModeS5 : public APS3GameModeBase
 {
 	GENERATED_BODY()
+	
+	virtual void BeginPlay() override;
+	
+public:
+	
+	void OnReduceGameTime();
+	
+	
+private:
+	
+	UPROPERTY(EditAnywhere, Category = "GameRule")
+	float GameLimitTime = 60.0f;
+	
+	
+	FTimerHandle GameLimitTimeHandle;
+	
 };
