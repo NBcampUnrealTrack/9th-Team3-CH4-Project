@@ -10,7 +10,7 @@
  * 
  */
 UCLASS()
-class PUZZLESTAY3_API APS3GameModeS5 : public APS3GamemodeBase
+class PUZZLESTAY3_API APS3GameModeS5 : public APS3GameModeBase
 {
 	GENERATED_BODY()
 };
