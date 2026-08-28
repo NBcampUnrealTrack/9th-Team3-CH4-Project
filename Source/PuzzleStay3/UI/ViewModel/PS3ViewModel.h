@@ -17,28 +17,52 @@ public:
 	void SetDisplayText(const FText& InDisplayText);
 
 	UFUNCTION(BlueprintPure, FieldNotify, Category = "UI|ViewModel")
-	float GetDisplayDuration() const;
+	float GetFontSize() const;
 
 	UFUNCTION(BlueprintCallable, Category = "UI|ViewModel")
-	void SetDisplayDuration(float InDisplayDuration);
+	void SetFontSize(float InFontSize);
 
 	UFUNCTION(BlueprintPure, FieldNotify, Category = "UI|ViewModel")
-	int32 GetCurrentRemainingLife() const;
+	bool GetIsTextNotifyVisible() const;
 
 	UFUNCTION(BlueprintCallable, Category = "UI|ViewModel")
-	void SetCurrentRemainingLife(int32 InCurrentRemainingLife);
+	void SetIsTextNotifyVisible(bool bInIsTextNotifyVisible);
 
 	UFUNCTION(BlueprintPure, FieldNotify, Category = "UI|ViewModel")
-	FText GetKeyName() const;
+	int32 GetCurrentLifeCount() const;
 
 	UFUNCTION(BlueprintCallable, Category = "UI|ViewModel")
-	void SetKeyName(const FText& InKeyName);
+	void SetCurrentLifeCount(int32 InCurrentLifeCount);
 
 	UFUNCTION(BlueprintPure, FieldNotify, Category = "UI|ViewModel")
-	FText GetActionName() const;
+	int32 GetMaxLifeCount() const;
 
 	UFUNCTION(BlueprintCallable, Category = "UI|ViewModel")
-	void SetActionName(const FText& InActionName);
+	void SetMaxLifeCount(int32 InMaxLifeCount);
+
+	UFUNCTION(BlueprintPure, FieldNotify, Category = "UI|ViewModel")
+	TArray<FText> GetInteractionKeyNames() const;
+
+	UFUNCTION(BlueprintCallable, Category = "UI|ViewModel")
+	void SetInteractionKeyNames(const TArray<FText>& InInteractionKeyNames);
+
+	UFUNCTION(BlueprintPure, FieldNotify, Category = "UI|ViewModel")
+	bool GetIsInteractionNotifyVisible() const;
+
+	UFUNCTION(BlueprintCallable, Category = "UI|ViewModel")
+	void SetIsInteractionNotifyVisible(bool bInIsInteractionNotifyVisible);
+
+	UFUNCTION(BlueprintPure, FieldNotify, Category = "UI|ViewModel")
+	float GetTimerNotifyProgress() const;
+
+	UFUNCTION(BlueprintCallable, Category = "UI|ViewModel")
+	void SetTimerNotifyProgress(float InTimerNotifyProgress);
+
+	UFUNCTION(BlueprintPure, FieldNotify, Category = "UI|ViewModel")
+	bool GetIsTimerNotifyVisible() const;
+
+	UFUNCTION(BlueprintCallable, Category = "UI|ViewModel")
+	void SetIsTimerNotifyVisible(bool bInIsTimerNotifyVisible);
 
 	UFUNCTION(BlueprintPure, FieldNotify, Category = "UI|ViewModel")
 	int32 GetTokenID() const;
@@ -69,16 +93,28 @@ private:
 	FText DisplayText;
 
 	UPROPERTY(BlueprintReadWrite, FieldNotify, Getter, Setter, Category = "UI|ViewModel", meta = (AllowPrivateAccess = "true"))
-	float DisplayDuration = 0.0f;
+	float FontSize = 0.0f;
+
+	UPROPERTY(BlueprintReadWrite, FieldNotify, Getter = "GetIsTextNotifyVisible", Setter = "SetIsTextNotifyVisible", Category = "UI|ViewModel", meta = (AllowPrivateAccess = "true"))
+	bool bIsTextNotifyVisible = false;
 
 	UPROPERTY(BlueprintReadWrite, FieldNotify, Getter, Setter, Category = "UI|ViewModel", meta = (AllowPrivateAccess = "true"))
-	int32 CurrentRemainingLife = 0;
+	int32 CurrentLifeCount = 0;
 
 	UPROPERTY(BlueprintReadWrite, FieldNotify, Getter, Setter, Category = "UI|ViewModel", meta = (AllowPrivateAccess = "true"))
-	FText KeyName;
+	int32 MaxLifeCount = 0;
 
 	UPROPERTY(BlueprintReadWrite, FieldNotify, Getter, Setter, Category = "UI|ViewModel", meta = (AllowPrivateAccess = "true"))
-	FText ActionName;
+	TArray<FText> InteractionKeyNames;
+
+	UPROPERTY(BlueprintReadWrite, FieldNotify, Getter = "GetIsInteractionNotifyVisible", Setter = "SetIsInteractionNotifyVisible", Category = "UI|ViewModel", meta = (AllowPrivateAccess = "true"))
+	bool bIsInteractionNotifyVisible = false;
+
+	UPROPERTY(BlueprintReadWrite, FieldNotify, Getter, Setter, Category = "UI|ViewModel", meta = (AllowPrivateAccess = "true"))
+	float TimerNotifyProgress = 0.0f;
+
+	UPROPERTY(BlueprintReadWrite, FieldNotify, Getter = "GetIsTimerNotifyVisible", Setter = "SetIsTimerNotifyVisible", Category = "UI|ViewModel", meta = (AllowPrivateAccess = "true"))
+	bool bIsTimerNotifyVisible = false;
 
 	UPROPERTY(BlueprintReadWrite, FieldNotify, Getter, Setter, Category = "UI|ViewModel", meta = (AllowPrivateAccess = "true"))
 	int32 TokenID = 0;

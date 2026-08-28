@@ -10,44 +10,84 @@ void UPS3ViewModel::SetDisplayText(const FText& InDisplayText)
 	UE_MVVM_SET_PROPERTY_VALUE(DisplayText, InDisplayText);
 }
 
-float UPS3ViewModel::GetDisplayDuration() const
+float UPS3ViewModel::GetFontSize() const
 {
-	return DisplayDuration;
+	return FontSize;
 }
 
-void UPS3ViewModel::SetDisplayDuration(float InDisplayDuration)
+void UPS3ViewModel::SetFontSize(float InFontSize)
 {
-	UE_MVVM_SET_PROPERTY_VALUE(DisplayDuration, InDisplayDuration);
+	UE_MVVM_SET_PROPERTY_VALUE(FontSize, InFontSize);
 }
 
-int32 UPS3ViewModel::GetCurrentRemainingLife() const
+bool UPS3ViewModel::GetIsTextNotifyVisible() const
 {
-	return CurrentRemainingLife;
+	return bIsTextNotifyVisible;
 }
 
-void UPS3ViewModel::SetCurrentRemainingLife(int32 InCurrentRemainingLife)
+void UPS3ViewModel::SetIsTextNotifyVisible(bool bInIsTextNotifyVisible)
 {
-	UE_MVVM_SET_PROPERTY_VALUE(CurrentRemainingLife, InCurrentRemainingLife);
+	UE_MVVM_SET_PROPERTY_VALUE(bIsTextNotifyVisible, bInIsTextNotifyVisible);
 }
 
-FText UPS3ViewModel::GetKeyName() const
+int32 UPS3ViewModel::GetCurrentLifeCount() const
 {
-	return KeyName;
+	return CurrentLifeCount;
 }
 
-void UPS3ViewModel::SetKeyName(const FText& InKeyName)
+void UPS3ViewModel::SetCurrentLifeCount(int32 InCurrentLifeCount)
 {
-	UE_MVVM_SET_PROPERTY_VALUE(KeyName, InKeyName);
+	UE_MVVM_SET_PROPERTY_VALUE(CurrentLifeCount, InCurrentLifeCount);
 }
 
-FText UPS3ViewModel::GetActionName() const
+int32 UPS3ViewModel::GetMaxLifeCount() const
 {
-	return ActionName;
+	return MaxLifeCount;
 }
 
-void UPS3ViewModel::SetActionName(const FText& InActionName)
+void UPS3ViewModel::SetMaxLifeCount(int32 InMaxLifeCount)
 {
-	UE_MVVM_SET_PROPERTY_VALUE(ActionName, InActionName);
+	UE_MVVM_SET_PROPERTY_VALUE(MaxLifeCount, InMaxLifeCount);
+}
+
+TArray<FText> UPS3ViewModel::GetInteractionKeyNames() const
+{
+	return InteractionKeyNames;
+}
+
+void UPS3ViewModel::SetInteractionKeyNames(const TArray<FText>& InInteractionKeyNames)
+{
+	UE_MVVM_SET_PROPERTY_VALUE(InteractionKeyNames, InInteractionKeyNames);
+}
+
+bool UPS3ViewModel::GetIsInteractionNotifyVisible() const
+{
+	return bIsInteractionNotifyVisible;
+}
+
+void UPS3ViewModel::SetIsInteractionNotifyVisible(bool bInIsInteractionNotifyVisible)
+{
+	UE_MVVM_SET_PROPERTY_VALUE(bIsInteractionNotifyVisible, bInIsInteractionNotifyVisible);
+}
+
+float UPS3ViewModel::GetTimerNotifyProgress() const
+{
+	return TimerNotifyProgress;
+}
+
+void UPS3ViewModel::SetTimerNotifyProgress(float InTimerNotifyProgress)
+{
+	UE_MVVM_SET_PROPERTY_VALUE(TimerNotifyProgress, InTimerNotifyProgress);
+}
+
+bool UPS3ViewModel::GetIsTimerNotifyVisible() const
+{
+	return bIsTimerNotifyVisible;
+}
+
+void UPS3ViewModel::SetIsTimerNotifyVisible(bool bInIsTimerNotifyVisible)
+{
+	UE_MVVM_SET_PROPERTY_VALUE(bIsTimerNotifyVisible, bInIsTimerNotifyVisible);
 }
 
 int32 UPS3ViewModel::GetTokenID() const
