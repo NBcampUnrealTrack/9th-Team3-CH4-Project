@@ -4,13 +4,13 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameModeBase.h"
-#include "PS3GamemodeBase.generated.h"
+#include "PS3GameModeBase.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class PUZZLESTAY3_API APS3GamemodeBase : public AGameModeBase
+class PUZZLESTAY3_API APS3GameModeBase : public AGameModeBase
 {
 	GENERATED_BODY()
 };
