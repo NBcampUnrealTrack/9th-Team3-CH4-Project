@@ -4,7 +4,7 @@
 #include "Components/ActorComponent.h"
 #include "OverlapSwitchComponent.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnOverlapStateChanged, bool,bNewIsOverlapped)
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnOverlapStateChanged, bool, bNewIsOverlapped);
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class PUZZLESTAY3_API UOverlapSwitchComponent : public UActorComponent
@@ -27,7 +27,7 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Gimmick|Event")
 	FOnOverlapStateChanged OnOverlapStateChanged;
 	
-	//외부 Collision 트리거의 Overlap 이벤트에 바인딩할 함수
+	//Trigger/Collision의 Begin/End Overlap 이벤트와 바인딩할 함수
 	UFUNCTION(BlueprintCallable, Category = "Gimmick|Logic")
 	void HandleBeginOverlap(AActor* OverlappedActor, AActor* OtherActor);
 	
@@ -39,6 +39,9 @@ protected:
 	void OnRep_IsOverlapped();
 
 private:
+	// 감지 대상 액터인지 검증하는 헬퍼 함수
+	bool IsValidOverlapActor(AActor* TargetActor) const;
+	
 	// 현재 오버랩되어 있는 액터 개수 카운트 (서버 전용)
 	int32 OverlappedActorCount = 0;
 };
