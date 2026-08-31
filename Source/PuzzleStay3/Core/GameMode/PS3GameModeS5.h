@@ -19,6 +19,7 @@ class PUZZLESTAY3_API APS3GameModeS5 : public APS3GameModeBase
 public:
 	
 	void OnReduceGameTime();
+	void OnGameStart();
 	
 	
 private:
@@ -30,3 +31,4 @@ private:
 	FTimerHandle GameLimitTimeHandle;
 	
 };
+

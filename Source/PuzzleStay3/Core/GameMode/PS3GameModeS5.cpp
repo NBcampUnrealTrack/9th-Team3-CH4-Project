@@ -19,9 +19,15 @@ void APS3GameModeS5::OnReduceGameTime()
 	
 	if (CurrentGameLimitTime <= 0.0f)
 	{
-		//TODO 나중에 GameOver 함수 추가하기
+		//TODO 나중에 게임모드베이스에서 GameOver 함수 추가하기
 		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, 
 			FString::Printf(TEXT("GameOver 예정")));
 	}
+}
+
+void APS3GameModeS5::OnGameStart()
+{
+	
+	
 }
 
