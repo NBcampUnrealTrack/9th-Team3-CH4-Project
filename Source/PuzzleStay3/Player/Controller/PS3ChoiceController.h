@@ -13,4 +13,16 @@ UCLASS()
 class PUZZLESTAY3_API APS3ChoiceController : public APlayerController
 {
 	GENERATED_BODY()
+protected:
+	virtual void BeginPlay() override;
+	
+	void JoinServer(const FString& InIPAddress);
+
+public:
+	UPROPERTY(EditAnywhere, Category = "UI")
+	TSubclassOf<UUserWidget> UIWidgetClass;
+	
+	UPROPERTY(VisibleAnywhere, Category = "UI")
+	TObjectPtr<UUserWidget> UIWidgetInstance;
+	
 };
