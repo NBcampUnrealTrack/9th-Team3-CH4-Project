@@ -5,7 +5,7 @@
 #include "TimerManager.h"
 #include "TextNotifyWidget.generated.h"
 
-class UPS3ViewModel;
+class UTextBlock;
 
 UCLASS()
 class PUZZLESTAY3_API UTextNotifyWidget : public UUserWidget
@@ -13,9 +13,6 @@ class PUZZLESTAY3_API UTextNotifyWidget : public UUserWidget
 	GENERATED_BODY()
 
 public:
-	UFUNCTION(BlueprintCallable, Category = "UI|ViewModel")
-	void SetViewModel(UPS3ViewModel* InViewModel);
-
 	UFUNCTION(BlueprintCallable, Category = "UI|TextNotify")
 	void ShowTextNotify(const FText& InDisplayText, float InFontSize, float InDisplayDuration);
 
@@ -23,8 +20,8 @@ public:
 	void HideTextNotify();
 
 protected:
-	UPROPERTY(BlueprintReadOnly, Category = "UI|ViewModel")
-	TObjectPtr<UPS3ViewModel> ViewModel;
+	UPROPERTY(BlueprintReadOnly, meta = (BindWidget))
+	TObjectPtr<UTextBlock> TextNotifyText;
 
 private:
 	FTimerHandle TextNotifyTimerHandle;

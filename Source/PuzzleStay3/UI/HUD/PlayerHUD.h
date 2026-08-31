@@ -5,6 +5,7 @@
 #include "PlayerHUD.generated.h"
 
 class UTextNotifyWidget;
+class UPS3RootHUDWidget;
 class ULifeCountWidget;
 class UInteractionNotifyWidget;
 class UTimerNotifyWidget;
@@ -115,7 +116,10 @@ protected:
 	virtual void BeginPlay() override;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI|Widget")
-	TSubclassOf<UTextNotifyWidget> TextNotifyWidgetClass;
+	TSubclassOf<UPS3RootHUDWidget> RootHUDWidgetClass;
+
+	UPROPERTY(BlueprintReadOnly, Category = "UI|Widget")
+	TObjectPtr<UPS3RootHUDWidget> RootHUDWidget;
 
 	UPROPERTY(BlueprintReadOnly, Category = "UI|Widget")
 	FPS3HUDWidgets Widgets;

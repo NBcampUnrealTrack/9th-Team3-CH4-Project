@@ -9,6 +9,13 @@ void UPS3ViewModel::SetPlayerHUD(APlayerHUD* InPlayerHUD)
 
 void UPS3ViewModel::RequestTextNotify(const FText& InDisplayText, float InFontSize, float InDisplayDuration)
 {
+	UE_LOG(
+		LogTemp,
+		Log,
+		TEXT("RootHUDTest PS3ViewModel::RequestTextNotify Entry Text=%s"),
+		*InDisplayText.ToString()
+	);
+
 	if (PlayerHUD)
 	{
 		PlayerHUD->ShowTextNotify(InDisplayText, InFontSize, InDisplayDuration);
@@ -77,36 +84,6 @@ void UPS3ViewModel::RequestHideTutorialNotify()
 	{
 		PlayerHUD->HideTutorialNotify();
 	}
-}
-
-FText UPS3ViewModel::GetDisplayText() const
-{
-	return DisplayText;
-}
-
-void UPS3ViewModel::SetDisplayText(const FText& InDisplayText)
-{
-	UE_MVVM_SET_PROPERTY_VALUE(DisplayText, InDisplayText);
-}
-
-float UPS3ViewModel::GetFontSize() const
-{
-	return FontSize;
-}
-
-void UPS3ViewModel::SetFontSize(float InFontSize)
-{
-	UE_MVVM_SET_PROPERTY_VALUE(FontSize, InFontSize);
-}
-
-bool UPS3ViewModel::GetIsTextNotifyVisible() const
-{
-	return bIsTextNotifyVisible;
-}
-
-void UPS3ViewModel::SetIsTextNotifyVisible(bool bInIsTextNotifyVisible)
-{
-	UE_MVVM_SET_PROPERTY_VALUE(bIsTextNotifyVisible, bInIsTextNotifyVisible);
 }
 
 int32 UPS3ViewModel::GetCurrentLifeCount() const

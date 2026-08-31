@@ -45,24 +45,6 @@ public:
 	void RequestHideTutorialNotify();
 
 	UFUNCTION(BlueprintPure, FieldNotify, Category = "UI|ViewModel")
-	FText GetDisplayText() const;
-
-	UFUNCTION(BlueprintCallable, Category = "UI|ViewModel")
-	void SetDisplayText(const FText& InDisplayText);
-
-	UFUNCTION(BlueprintPure, FieldNotify, Category = "UI|ViewModel")
-	float GetFontSize() const;
-
-	UFUNCTION(BlueprintCallable, Category = "UI|ViewModel")
-	void SetFontSize(float InFontSize);
-
-	UFUNCTION(BlueprintPure, FieldNotify, Category = "UI|ViewModel")
-	bool GetIsTextNotifyVisible() const;
-
-	UFUNCTION(BlueprintCallable, Category = "UI|ViewModel")
-	void SetIsTextNotifyVisible(bool bInIsTextNotifyVisible);
-
-	UFUNCTION(BlueprintPure, FieldNotify, Category = "UI|ViewModel")
 	int32 GetCurrentLifeCount() const;
 
 	UFUNCTION(BlueprintCallable, Category = "UI|ViewModel")
@@ -149,15 +131,6 @@ public:
 private:
 	UPROPERTY(BlueprintReadOnly, Category = "UI|HUD", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<APlayerHUD> PlayerHUD;
-
-	UPROPERTY(BlueprintReadWrite, FieldNotify, Getter, Setter, Category = "UI|ViewModel", meta = (AllowPrivateAccess = "true"))
-	FText DisplayText;
-
-	UPROPERTY(BlueprintReadWrite, FieldNotify, Getter, Setter, Category = "UI|ViewModel", meta = (AllowPrivateAccess = "true"))
-	float FontSize = 0.0f;
-
-	UPROPERTY(BlueprintReadWrite, FieldNotify, Getter = "GetIsTextNotifyVisible", Setter = "SetIsTextNotifyVisible", Category = "UI|ViewModel", meta = (AllowPrivateAccess = "true"))
-	bool bIsTextNotifyVisible = false;
 
 	UPROPERTY(BlueprintReadWrite, FieldNotify, Getter, Setter, Category = "UI|ViewModel", meta = (AllowPrivateAccess = "true"))
 	int32 CurrentLifeCount = 0;

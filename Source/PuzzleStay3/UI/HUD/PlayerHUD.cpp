@@ -3,6 +3,7 @@
 #include "../Widget/DoorOpenButtonWidget.h"
 #include "../Widget/InteractionNotifyWidget.h"
 #include "../Widget/LifeCountWidget.h"
+#include "../Widget/PS3RootHUDWidget.h"
 #include "../Widget/TextNotifyWidget.h"
 #include "../Widget/TimerNotifyWidget.h"
 #include "../Widget/TutorialNotifyWidget.h"
@@ -17,25 +18,70 @@ void APlayerHUD::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (TextNotifyWidgetClass && !Widgets.TextNotifyWidget)
+	if (RootHUDWidgetClass && !RootHUDWidget)
 	{
-		FPS3HUDWidgets InitialWidgets = Widgets;
-		InitialWidgets.TextNotifyWidget = CreateWidget<UTextNotifyWidget>(GetOwningPlayerController(), TextNotifyWidgetClass);
+		RootHUDWidget = CreateWidget<UPS3RootHUDWidget>(GetOwningPlayerController(), RootHUDWidgetClass);
+		UE_LOG(
+			LogTemp,
+			Log,
+			TEXT("RootHUDTest PlayerHUD::BeginPlay RootHUDWidgetValid=%s"),
+			RootHUDWidget ? TEXT("true") : TEXT("false")
+		);
 
-		if (InitialWidgets.TextNotifyWidget)
+		if (RootHUDWidget)
 		{
-			InitialWidgets.TextNotifyWidget->AddToViewport();
+			RootHUDWidget->AddToViewport();
 
-			if (UMVVMView* MVVMView = InitialWidgets.TextNotifyWidget->GetExtension<UMVVMView>())
+			if (UMVVMView* MVVMView = RootHUDWidget->GetExtension<UMVVMView>())
 			{
 				const TScriptInterface<INotifyFieldValueChanged> MVVMViewModel = MVVMView->GetViewModel(TEXT("PS3ViewModel"));
-				UPS3ViewModel* TextNotifyViewModel = Cast<UPS3ViewModel>(MVVMViewModel.GetObject());
-
-				SetViewModel(TextNotifyViewModel);
+				UPS3ViewModel* RootViewModel = Cast<UPS3ViewModel>(MVVMViewModel.GetObject());
+				UE_LOG(
+					LogTemp,
+					Log,
+					TEXT("RootHUDTest PlayerHUD::BeginPlay MVVMViewValid=true MVVMSourceValid=%s PS3ViewModelCastValid=%s"),
+					MVVMViewModel.GetObject() ? TEXT("true") : TEXT("false"),
+					RootViewModel ? TEXT("true") : TEXT("false")
+				);
+				SetViewModel(RootViewModel);
+			}
+			else
+			{
+				UE_LOG(LogTemp, Log, TEXT("RootHUDTest PlayerHUD::BeginPlay MVVMViewValid=false"));
 			}
 
+			FPS3HUDWidgets InitialWidgets = Widgets;
+			InitialWidgets.TextNotifyWidget = RootHUDWidget->GetTextNotifyWidget();
+			UE_LOG(
+				LogTemp,
+				Log,
+				TEXT("RootHUDTest PlayerHUD::BeginPlay RootTextNotifyWidgetValid=%s RootTextNotifyWidgetClass=%s"),
+				InitialWidgets.TextNotifyWidget ? TEXT("true") : TEXT("false"),
+				*GetNameSafe(InitialWidgets.TextNotifyWidget ? InitialWidgets.TextNotifyWidget->GetClass() : nullptr)
+			);
 			SetWidgets(InitialWidgets);
+			UE_LOG(
+				LogTemp,
+				Log,
+				TEXT("RootHUDTest PlayerHUD::BeginPlay AfterSetWidgets PlayerHUDTextNotifyWidgetValid=%s"),
+				Widgets.TextNotifyWidget ? TEXT("true") : TEXT("false")
+			);
 		}
+	}
+
+	if (ViewModel)
+	{
+		UE_LOG(
+			LogTemp,
+			Log,
+			TEXT("RootHUDTest PlayerHUD::BeginPlay BeforeRequestTextNotify ViewModelValid=%s"),
+			ViewModel ? TEXT("true") : TEXT("false")
+		);
+		ViewModel->RequestTextNotify(
+			FText::FromString(TEXT("Root HUD TextNotify Test")),
+			60.0f,
+			3.0f
+		);
 	}
 }
 
@@ -70,6 +116,14 @@ UPS3ViewModel* APlayerHUD::GetViewModel() const
 
 void APlayerHUD::ShowTextNotify(const FText& InDisplayText, float InFontSize, float InDisplayDuration)
 {
+	UE_LOG(
+		LogTemp,
+		Log,
+		TEXT("RootHUDTest PlayerHUD::ShowTextNotify Entry Text=%s TextNotifyWidgetValid=%s"),
+		*InDisplayText.ToString(),
+		Widgets.TextNotifyWidget ? TEXT("true") : TEXT("false")
+	);
+
 	if (!Widgets.TextNotifyWidget)
 	{
 		return;
@@ -190,11 +244,6 @@ void APlayerHUD::RequestOpenDoor(int32 InDoorIndex)
 
 void APlayerHUD::ApplyViewModelToWidgets()
 {
-	if (Widgets.TextNotifyWidget)
-	{
-		Widgets.TextNotifyWidget->SetViewModel(ViewModel);
-	}
-
 	if (Widgets.LifeCountWidget)
 	{
 		Widgets.LifeCountWidget->SetViewModel(ViewModel);

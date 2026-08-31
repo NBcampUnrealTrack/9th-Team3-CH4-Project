@@ -1,23 +1,34 @@
 #include "TextNotifyWidget.h"
 
+#include "Components/TextBlock.h"
 #include "Engine/World.h"
-#include "../ViewModel/PS3ViewModel.h"
-
-void UTextNotifyWidget::SetViewModel(UPS3ViewModel* InViewModel)
-{
-	ViewModel = InViewModel;
-}
 
 void UTextNotifyWidget::ShowTextNotify(const FText& InDisplayText, float InFontSize, float InDisplayDuration)
 {
-	if (!ViewModel)
-	{
-		return;
-	}
+	UE_LOG(
+		LogTemp,
+		Log,
+		TEXT("RootHUDTest TextNotifyWidget::ShowTextNotify Entry Text=%s TextNotifyTextValid=%s"),
+		*InDisplayText.ToString(),
+		TextNotifyText ? TEXT("true") : TEXT("false")
+	);
 
-	ViewModel->SetDisplayText(InDisplayText);
-	ViewModel->SetFontSize(InFontSize);
-	ViewModel->SetIsTextNotifyVisible(true);
+	if (TextNotifyText)
+	{
+		TextNotifyText->SetText(InDisplayText);
+
+		FSlateFontInfo FontInfo = TextNotifyText->GetFont();
+		FontInfo.Size = static_cast<int32>(InFontSize);
+		TextNotifyText->SetFont(FontInfo);
+		TextNotifyText->SetVisibility(ESlateVisibility::Visible);
+		UE_LOG(
+			LogTemp,
+			Log,
+			TEXT("RootHUDTest TextNotifyWidget::ShowTextNotify AfterSetTextAndVisible Text=%s Visibility=%d"),
+			*TextNotifyText->GetText().ToString(),
+			static_cast<int32>(TextNotifyText->GetVisibility())
+		);
+	}
 
 	UWorld* World = GetWorld();
 	if (!World)
@@ -39,8 +50,8 @@ void UTextNotifyWidget::ShowTextNotify(const FText& InDisplayText, float InFontS
 
 void UTextNotifyWidget::HideTextNotify()
 {
-	if (ViewModel)
+	if (TextNotifyText)
 	{
-		ViewModel->SetIsTextNotifyVisible(false);
+		TextNotifyText->SetVisibility(ESlateVisibility::Collapsed);
 	}
 }
