@@ -7,9 +7,36 @@
 #include "../Widget/TimerNotifyWidget.h"
 #include "../Widget/TutorialNotifyWidget.h"
 #include "../ViewModel/PS3ViewModel.h"
+#include "View/MVVMView.h"
 
 APlayerHUD::APlayerHUD()
 {
+}
+
+void APlayerHUD::BeginPlay()
+{
+	Super::BeginPlay();
+
+	if (TextNotifyWidgetClass && !Widgets.TextNotifyWidget)
+	{
+		FPS3HUDWidgets InitialWidgets = Widgets;
+		InitialWidgets.TextNotifyWidget = CreateWidget<UTextNotifyWidget>(GetOwningPlayerController(), TextNotifyWidgetClass);
+
+		if (InitialWidgets.TextNotifyWidget)
+		{
+			InitialWidgets.TextNotifyWidget->AddToViewport();
+
+			if (UMVVMView* MVVMView = InitialWidgets.TextNotifyWidget->GetExtension<UMVVMView>())
+			{
+				const TScriptInterface<INotifyFieldValueChanged> MVVMViewModel = MVVMView->GetViewModel(TEXT("PS3ViewModel"));
+				UPS3ViewModel* TextNotifyViewModel = Cast<UPS3ViewModel>(MVVMViewModel.GetObject());
+
+				SetViewModel(TextNotifyViewModel);
+			}
+
+			SetWidgets(InitialWidgets);
+		}
+	}
 }
 
 void APlayerHUD::SetWidgets(const FPS3HUDWidgets& InWidgets)

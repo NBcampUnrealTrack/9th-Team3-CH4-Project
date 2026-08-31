@@ -112,6 +112,11 @@ public:
 	void RequestOpenDoor(int32 InDoorIndex);
 
 protected:
+	virtual void BeginPlay() override;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI|Widget")
+	TSubclassOf<UTextNotifyWidget> TextNotifyWidgetClass;
+
 	UPROPERTY(BlueprintReadOnly, Category = "UI|Widget")
 	FPS3HUDWidgets Widgets;
 
