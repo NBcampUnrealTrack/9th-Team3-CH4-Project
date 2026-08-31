@@ -47,5 +47,6 @@ private:
 
 	UPROPERTY()
 	bool bEscapeDoorOpened = false;
-
+	
+	FDelegateHandle InteractionSwitchCompoHandle;
 };
