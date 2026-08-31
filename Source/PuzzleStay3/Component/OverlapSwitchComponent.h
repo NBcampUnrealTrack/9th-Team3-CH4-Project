@@ -4,7 +4,7 @@
 #include "Components/ActorComponent.h"
 #include "OverlapSwitchComponent.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnOverlapStateChanged, bool, bNewIsOverlapped);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnOverlapStateChanged, bool);
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class PUZZLESTAY3_API UOverlapSwitchComponent : public UActorComponent
@@ -16,25 +16,20 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
-public:	
 	//서버/클라이언트 동기화 변수
 	UPROPERTY(ReplicatedUsing=OnRep_IsOverlapped, VisibleAnywhere, BlueprintReadOnly, Category = "Gimmick|State")
-	bool bIsOverlapped;
+	bool bIsOverlapped = false;
 	
+public:		
 	//외부(GimmickBase 등)에서 바인딩할 델리게이트
-	UPROPERTY(BlueprintAssignable, Category = "Gimmick|Event")
 	FOnOverlapStateChanged OnOverlapStateChanged;
 	
-	
-	// 블루프린트 방식
-	// //Trigger/Collision의 Begin/End Overlap 이벤트와 바인딩할 함수
-	// UFUNCTION(BlueprintCallable, Category = "Gimmick|Logic")
-	// void HandleBeginOverlap(AActor* OverlappedActor, AActor* OtherActor);
-	//
-	// UFUNCTION(BlueprintCallable, Category = "Gimmick|Logic")
-	// void HandleEndOverlap(AActor* OverlappedActor, AActor* OtherActor);
+	// GameMode의 AllOverlapSwitchActivated() 등에서 사용할 Getter
+	UFUNCTION(BlueprintCallable, Category = "Gimmick")
+	bool IsOverlapped() const { return bIsOverlapped; }
 	
 protected:
 	// C++ 전용 Overlap 콜백 함수 (언리얼 델리게이트 시그니처에 맞춤)

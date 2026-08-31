@@ -1,4 +1,6 @@
 #include "OverlapSwitchComponent.h"
+
+#include "Core/GameMode/PS3GameModeBase.h"
 #include "GameFramework/Character.h"
 #include "Net/UnrealNetwork.h"
 
@@ -6,12 +8,23 @@ UOverlapSwitchComponent::UOverlapSwitchComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
 	SetIsReplicatedByDefault(true); //컴포넌트 리플리케이션 활성화
-	bIsOverlapped = false;
 }
 
 void UOverlapSwitchComponent::BeginPlay()
 {
 	Super::BeginPlay();
+
+	// 서버 권한일 때 GameMode에 자동 등록
+	// if (GetOwner() && GetOwner()->HasAuthority())
+	// {
+	// 	if (UWorld* World = GetWorld())
+	// 	{
+	// 		if (APS3GameModeBase* GM = Cast<APS3GameModeBase>(World->GetAuthGameMode()))
+	// 		{
+	// 			GM->RegisterOverlapSwitch(this); // GameMode에 이 함수를 만들어두어야 합니다.
+	// 		}
+	// 	}
+	// }
 
 	// C++로만 오버랩 이벤트를 자동으로 바인딩하는 핵심 로직
 	AActor* Owner = GetOwner();
@@ -33,6 +46,23 @@ void UOverlapSwitchComponent::BeginPlay()
 			PrimitiveComp->OnComponentEndOverlap.AddDynamic(this, &UOverlapSwitchComponent::OnOwnerEndOverlap);
 		}
 	}
+}
+
+void UOverlapSwitchComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	// 서버 권한일 때 GameMode에서 자동 해제
+	// if (GetOwner() && GetOwner()->HasAuthority())
+	// {
+	// 	if (UWorld* World = GetWorld())
+	// 	{
+	// 		if (APS3GameModeBase* GM = Cast<APS3GameModeBase>(World->GetAuthGameMode()))
+	// 		{
+	// 			GM->UnregisterOverlapSwitch(this);
+	// 		}
+	// 	}
+	// }
+
+	Super::EndPlay(EndPlayReason);
 }
 
 void UOverlapSwitchComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -62,36 +92,6 @@ bool UOverlapSwitchComponent::IsValidOverlapActor(AActor* TargetActor) const
 
 	return false;
 }
-
-// void UOverlapSwitchComponent::HandleBeginOverlap(AActor* OverlappedActor, AActor* OtherActor)
-// {
-// 	if (!GetOwner() || !GetOwner()->HasAuthority()) return;
-//
-// 	if (IsValidOverlapActor(OtherActor))
-// 	{
-// 		OverlappedActorCount++;
-// 		if (OverlappedActorCount > 0 && !bIsOverlapped)
-// 		{
-// 			bIsOverlapped = true;
-// 			OnRep_IsOverlapped();
-// 		}
-// 	}
-// }
-
-// void UOverlapSwitchComponent::HandleEndOverlap(AActor* OverlappedActor, AActor* OtherActor)
-// {
-// 	if (!GetOwner() || !GetOwner()->HasAuthority()) return;
-//
-// 	if (IsValidOverlapActor(OtherActor))
-// 	{
-// 		OverlappedActorCount = FMath::Max(0, OverlappedActorCount - 1);
-// 		if (OverlappedActorCount == 0 && bIsOverlapped)
-// 		{
-// 			bIsOverlapped = false;
-// 			OnRep_IsOverlapped(); 
-// 		}
-// 	}
-// }
 
 void UOverlapSwitchComponent::OnOwnerBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
                                                   UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
@@ -131,7 +131,7 @@ void UOverlapSwitchComponent::OnOwnerEndOverlap(UPrimitiveComponent* OverlappedC
 
 void UOverlapSwitchComponent::OnRep_IsOverlapped()
 {
-	//상태 변경 시 델리게이트 브로드캐스트 (블루프린트/소유 액터 반응)
+	//상태 변경 시 델리게이트 브로드캐스트 (GameMode 등이 들음)
 	OnOverlapStateChanged.Broadcast(bIsOverlapped);
 
 	if (GEngine)

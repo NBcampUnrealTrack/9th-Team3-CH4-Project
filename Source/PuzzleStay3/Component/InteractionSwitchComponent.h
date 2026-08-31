@@ -4,7 +4,7 @@
 #include "Components/ActorComponent.h"
 #include "InteractionSwitchComponent.generated.h"
 
-// GameModeBase에서 바인딩하는 델리게이트 (bool bActivated)
+// GameModeBase에서 바인딩하는 델리게이트 
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnSwitchActivatedChanged, bool);
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
