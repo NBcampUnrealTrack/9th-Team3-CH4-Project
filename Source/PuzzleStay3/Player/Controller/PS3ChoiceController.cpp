@@ -4,6 +4,8 @@
 #include "PS3ChoiceController.h"
 
 #include "Blueprint/UserWidget.h"
+#include "Core/GameMode/PS3GameModeS5.h"
+#include "Core/GameState/PS3GameState.h"
 #include "GameFramework/PlayerState.h"
 #include "Kismet/GameplayStatics.h"
 #include "PuzzleStay3/Core/GameInstance/PS3GameInstance.h"
@@ -34,51 +36,26 @@ void APS3ChoiceController::BeginPlay()
 
 void APS3ChoiceController::ServerRPC_SelectedControllerType_Implementation(EPS3PlayerRoleType SelectedPlayerRoleType)
 {
-	if (PlayerState == nullptr) return;
+	auto* PS3GameModeS5 = Cast<APS3GameModeS5>(GetWorld()->GetAuthGameMode());
+	if (IsValid(PS3GameModeS5) == false) return;
 	
-	auto* PS3GameInstance = Cast<UPS3GameInstance>(GetGameInstance());
-	if (PS3GameInstance == nullptr) return;
+	PS3GameModeS5->SetPlayerControllerRole(this, SelectedPlayerRoleType);
 	
-	const FUniqueNetIdRepl& PlayerID = PlayerState->GetUniqueId();
-	PS3GameInstance->SetControllerEType(PlayerID, SelectedPlayerRoleType);
 }
 
 void APS3ChoiceController::OnClickedThirdPersonTypeButton()
 {
-	if (PlayerState == nullptr) return;
+	if (bIsSelectedThirdPersonType == true) return;
+	bIsSelectedThirdPersonType = true;
 	
-	auto* PS3GameInstance = Cast<UPS3GameInstance>(GetGameInstance());
-	if (PS3GameInstance == nullptr) return;
-	
-	EPS3PlayerRoleType OnPlayerRoleType = EPS3PlayerRoleType::PlayerRole_ThirdPerson;
-	EPS3PlayerRoleType CurrentPlayerRoleType = PS3GameInstance->GetControllerEType(PlayerState->GetUniqueId());
-	
-	if (CurrentPlayerRoleType == OnPlayerRoleType) return;
-	ServerRPC_SelectedControllerType(OnPlayerRoleType);
-	
-	FString PlayerIdString = FString::FromInt(PlayerState->GetPlayerId());
-	FString EnumString = UEnum::GetValueAsString(CurrentPlayerRoleType);
-	GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Green,
-		FString::Printf(TEXT("Player ID: %s | Current Role: %s"), *PlayerIdString, *EnumString));
+	ServerRPC_SelectedControllerType(EPS3PlayerRoleType::PlayerRole_ThirdPerson);
 }
 
 void APS3ChoiceController::OnClickedScreenTypeButton()
 {
-	if (PlayerState == nullptr) return;
+	if (bIsSelectedScreenType == true) return;
+	bIsSelectedScreenType = true;
 	
-	auto* PS3GameInstance = Cast<UPS3GameInstance>(GetGameInstance());
-	if (PS3GameInstance == nullptr) return;
-	
-	EPS3PlayerRoleType OnPlayerRoleType = EPS3PlayerRoleType::PlayerRole_Screen;
-	EPS3PlayerRoleType CurrentPlayerRoleType = PS3GameInstance->GetControllerEType(PlayerState->GetUniqueId());
-	
-	if (CurrentPlayerRoleType == OnPlayerRoleType) return;
-	ServerRPC_SelectedControllerType(OnPlayerRoleType);
-	
-	
-	FString PlayerIdString = FString::FromInt(PlayerState->GetPlayerId());
-	FString EnumString = UEnum::GetValueAsString(CurrentPlayerRoleType);
-	GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Blue,
-		FString::Printf(TEXT("Player ID: %s | Current Role: %s"), *PlayerIdString, *EnumString));
+	ServerRPC_SelectedControllerType(EPS3PlayerRoleType::PlayerRole_Screen);
 }
 

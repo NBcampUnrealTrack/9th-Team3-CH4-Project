@@ -2,3 +2,21 @@
 
 
 #include "PS3GameState.h"
+#include "Data/Enum/PS3PlayerRoleType.h"
+
+
+/*void APS3GameState::SetControllerEType(const FUniqueNetIdRepl& SetPlayerID, EPS3PlayerRoleType SetControllerType)
+{
+	ControllerTypesMap.Add(SetPlayerID, SetControllerType);
+}
+
+
+EPS3PlayerRoleType APS3GameState::GetControllerEType(const FUniqueNetIdRepl& FindPlayerID)
+{
+	if (FindPlayerID.IsValid() == false) return EPS3PlayerRoleType::PlayerRole_None;
+	
+	EPS3PlayerRoleType* FoundedControllerType = ControllerTypesMap.Find(FindPlayerID);
+	if (FoundedControllerType == nullptr) return EPS3PlayerRoleType::PlayerRole_None;
+	
+	return *FoundedControllerType;
+}*/

@@ -17,7 +17,9 @@ class PUZZLESTAY3_API APS3ChoiceController : public APlayerController
 protected:
 	virtual void BeginPlay() override;
 	
-
+	bool bIsSelectedThirdPersonType = false;
+	bool bIsSelectedScreenType = false;
+	
 public:
 	UPROPERTY(EditAnywhere, Category = "UI")
 	TArray<TSubclassOf<UUserWidget>> UIWidgetClass;
@@ -33,5 +35,7 @@ public:
 	
 	UFUNCTION(BlueprintCallable, Category = "Test")
 	void OnClickedScreenTypeButton();
+	
+	
 };
 

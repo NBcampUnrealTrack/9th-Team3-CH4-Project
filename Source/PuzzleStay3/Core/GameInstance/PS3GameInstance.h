@@ -7,7 +7,7 @@
 #include "PuzzleStay3/Data/Enum/PS3PlayerRoleType.h"
 #include "PS3GameInstance.generated.h"
 
-enum class EPS3PlayerRoleType : uint8;
+
 /**
  * 
  */
@@ -20,9 +20,6 @@ public:
 	FUniqueNetIdRepl DeathPlayerID;
 	
 	
-	TMap<FUniqueNetIdRepl, EPS3PlayerRoleType> ControllerTypesMap;
-	
-	void SetControllerEType(const FUniqueNetIdRepl& SetPlayerID, EPS3PlayerRoleType SetControllerType);
-	EPS3PlayerRoleType GetControllerEType(const FUniqueNetIdRepl& FindPlayerID);	
+
 	
 };
