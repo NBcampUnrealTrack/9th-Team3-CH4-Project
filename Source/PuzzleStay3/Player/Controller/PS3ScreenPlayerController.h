@@ -17,8 +17,4 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
-	virtual void OnRep_PlayerState() override;
-
-private:
-	void RefreshPlayerHUD() const;
 };
