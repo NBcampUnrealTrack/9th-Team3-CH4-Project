@@ -8,9 +8,9 @@
 UENUM(BlueprintType)
 enum class EPlayerRole : uint8
 {
-	Any       UMETA(DisplayName = "누구나 가능"),
-	PlayerA   UMETA(DisplayName = "플레이어 1"),
-	PlayerB   UMETA(DisplayName = "플레이어 2")
+	Any      UMETA(DisplayName = "누구나 가능"),
+	PlayerA  UMETA(DisplayName = "플레이어 1"),
+	PlayerB  UMETA(DisplayName = "플레이어 2")
 };
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInteractionStateChanged, bool, bNewIsActivated);
@@ -34,29 +34,34 @@ public:
 	
 	// 램프/버튼의 활성화 상태 (서버-클라이언트 동기화)
 	UPROPERTY(ReplicatedUsing = OnRep_IsActivated, VisibleAnywhere, BlueprintReadOnly, Category = "Gimmick|State")
-	bool bIsActivated;
+	bool bIsActivated = false;
 
 	// 현재 이 스위치를 점유 중인 플레이어 (1명만 할당)
 	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, Category = "Gimmick|State")
-	TWeakObjectPtr<AActor> OccupyingPlayer;
+	TObjectPtr<AActor> OccupyingPlayer = nullptr;
 	
 	// 외부에서 바인딩할 델리게이트
 	UPROPERTY(BlueprintAssignable, Category = "Gimmick|Event")
 	FOnInteractionStateChanged OnInteractionStateChanged;
 	
 	// PlayerCharacter F키 라인트레이스 수신 인터페이스에서 호출할 함수
-#pragma region Toggle
 	
-public:
-	// 상호작용 토글 함수
-	UFUNCTION(BlueprintCallable, Category = "Gimmick|Logic")
-	void Interact(AActor* Requestor);
+	// 서버 권위 진입점. RPC가 아님 — 캐릭터 쪽에서 이미 검증된 서버 RPC를 통해
+	// 넘어온 뒤에만 호출되어야 함. 반환값은 실제로 토글이 일어났는지 여부.
+	bool TryInteract(AActor* Requestor);
 	
-protected:
-	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_Interact(AActor* Requestor);
-	
-#pragma endregion 
+// #pragma region Toggle
+// 	
+// public:
+// 	// 상호작용 토글 함수
+// 	UFUNCTION(BlueprintCallable, Category = "Gimmick|Logic")
+// 	void Interact(AActor* Requestor);
+// 	
+// protected:
+// 	UFUNCTION(Server, Reliable, WithValidation)
+// 	void Server_Interact(AActor* Requestor);
+// 	
+// #pragma endregion 
 	
 // #pragma region Hold
 // 	
@@ -84,4 +89,7 @@ protected:
 	
 	UFUNCTION()
 	void OnRep_IsActivated();
+	
+	UFUNCTION()
+	void HandleOccupantDestroyed(AActor* DestroyedActor);
 };

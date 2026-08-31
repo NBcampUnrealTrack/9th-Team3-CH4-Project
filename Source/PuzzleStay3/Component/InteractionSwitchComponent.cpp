@@ -9,8 +9,6 @@ UInteractionSwitchComponent::UInteractionSwitchComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
 	SetIsReplicated(true);
-	bIsActivated = false;
-	OccupyingPlayer = nullptr;
 }
 
 void UInteractionSwitchComponent::BeginPlay()
@@ -29,34 +27,23 @@ void UInteractionSwitchComponent::GetLifetimeReplicatedProps(TArray<FLifetimePro
 // 플레이어가 지정된 역할(Player A인지, Player B인지) 조건을 만족하는지 판별
 bool UInteractionSwitchComponent::IsRequestorAllowed(AActor* Requestor) const
 {
-	if (!Requestor) return false;
-
 	// Requestor(Pawn/Character)의 PlayerController 수신
 	APawn* Pawn = Cast<APawn>(Requestor);
 	if (!Pawn) return false;
 
 	APlayerController* PC = Cast<APlayerController>(Pawn->GetController());
-	if (!PC) return false;
+	if (!PC || !PC->PlayerState) return false;
 
 	// Any인 경우 누구나 허용
 	if (AllowedRole == EPlayerRole::Any) return true;
-	
-	// 데디케이티드 서버에서 접속 순서/ID 기반 구분 (예: 첫 번째 플레이어 = Player 1)
-	// GameState의 PlayerArray 인덱스 또는 PlayerState의 PlayerId/Index로 판단
+
+	// 주의: PlayerArray 인덱스는 접속자가 나갔다 들어오면 밀릴 수 있음.
+	// 안정성이 중요해지면 커스텀 PlayerState에 역할 필드를 두고
+	// GameMode::PostLogin에서 한 번만 고정 배정하는 방식으로 교체 권장.
 	int32 PlayerIndex = -1;
-	if (UWorld* World = GetWorld())
+	if (const AGameStateBase* GS = GetWorld() ? GetWorld()->GetGameState() : nullptr)
 	{
-		if (AGameStateBase* GS = World->GetGameState())
-		{
-			for (int32 i = 0; i < GS->PlayerArray.Num(); ++i)
-			{
-				if (GS->PlayerArray[i] == PC->PlayerState)
-				{
-					PlayerIndex = i; // 0번 = 첫 번째 접속자(Player 1), 1번 = 두 번째 접속자(Player 2)
-					break;
-				}
-			}
-		}
+		PlayerIndex = GS->PlayerArray.IndexOfByKey(PC->PlayerState);
 	}
 
 	if (AllowedRole == EPlayerRole::PlayerA) return PlayerIndex == 0;
@@ -65,74 +52,113 @@ bool UInteractionSwitchComponent::IsRequestorAllowed(AActor* Requestor) const
 	return true;
 }
 
-#pragma region Toggle
 
-void UInteractionSwitchComponent::Interact(AActor* Requestor)
+bool UInteractionSwitchComponent::TryInteract(AActor* Requestor)
 {
-	if (!Requestor) return;
-	Server_Interact(Requestor);
-}
+	// 서버 권위 함수. 클라이언트에서 실수로 직접 호출돼도 무시됨.
+	if (!Requestor || !GetOwner() || !GetOwner()->HasAuthority()) return false;
 
-bool UInteractionSwitchComponent::Server_Interact_Validate(AActor* Requestor)
-{
-	return Requestor != nullptr;
-}
+	if (!IsRequestorAllowed(Requestor)) return false;
 
-void UInteractionSwitchComponent::Server_Interact_Implementation(AActor* Requestor)
-{
-	APawn* RequestorPawn = Cast<APawn>(Requestor);
-	if (!RequestorPawn) return;
+	// 다른 플레이어가 이미 켜놓음
+	if (bIsActivated && OccupyingPlayer && OccupyingPlayer != Requestor) return false;
 
-	// 이 RPC를 실제로 호출한 Connection의 Controller가 맞는지 확인
-	// (이 컴포넌트/Owner 액터의 NetConnection 기준)
-	if (AController* SendingController = Cast<AController>(GetOwner()->GetOwner()))
-	{
-		if (SendingController->GetPawn() != RequestorPawn)
-		{
-			return; // 위조 시도
-		}
-	}
-	
-	// [1. 역할 검증] 지정된 플레이어 역할(PlayerA/B)이 맞는지 검사
-	if (!IsRequestorAllowed(Requestor))
-	{
-		if (GEngine)
-		{
-			GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red, TEXT("Rejected: Role Mismatch!"));
-		}
-		return;
-	}
-
-	// [2. 점유 검증] 이미 누군가 켜놓은(ON) 상태이고, 내가 점유자가 아니라면 다른 플레이어 차단
-	if (bIsActivated && OccupyingPlayer != nullptr && OccupyingPlayer != Requestor)
-	{
-		if (GEngine)
-		{
-			GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow,
-			                                 TEXT("Rejected: Already Occupied by another player!"));
-		}
-		return;
-	}
-
-	// [3. 토글 처리]
 	bIsActivated = !bIsActivated;
 
 	if (bIsActivated)
 	{
-		// 켜질 때: 요청자를 점유자로 등록
 		OccupyingPlayer = Requestor;
+		// 점유자가 접속 종료 등으로 파괴되면 자동으로 락 해제
+		Requestor->OnDestroyed.AddUniqueDynamic(this, &UInteractionSwitchComponent::HandleOccupantDestroyed);
 	}
-	else
+	else if (OccupyingPlayer)
 	{
-		// 꺼질 때: 점유 해제
+		OccupyingPlayer->OnDestroyed.RemoveDynamic(this, &UInteractionSwitchComponent::HandleOccupantDestroyed);
 		OccupyingPlayer = nullptr;
 	}
 
 	OnRep_IsActivated();
+	return true;
 }
 
+void UInteractionSwitchComponent::HandleOccupantDestroyed(AActor* DestroyedActor)
+{
+	if (OccupyingPlayer == DestroyedActor)
+	{
+		OccupyingPlayer = nullptr;
+		bIsActivated = false;
+		OnRep_IsActivated();
+	}
+}
 
-#pragma endregion
+// #pragma region Toggle
+//
+// void UInteractionSwitchComponent::Interact(AActor* Requestor)
+// {
+// 	if (!Requestor) return;
+// 	Server_Interact(Requestor);
+// }
+//
+// bool UInteractionSwitchComponent::Server_Interact_Validate(AActor* Requestor)
+// {
+// 	return Requestor != nullptr;
+// }
+//
+// void UInteractionSwitchComponent::Server_Interact_Implementation(AActor* Requestor)
+// {
+// 	APawn* RequestorPawn = Cast<APawn>(Requestor);
+// 	if (!RequestorPawn) return;
+//
+// 	// 이 RPC를 실제로 호출한 Connection의 Controller가 맞는지 확인
+// 	// (이 컴포넌트/Owner 액터의 NetConnection 기준)
+// 	if (AController* SendingController = Cast<AController>(GetOwner()->GetOwner()))
+// 	{
+// 		if (SendingController->GetPawn() != RequestorPawn)
+// 		{
+// 			return; // 위조 시도
+// 		}
+// 	}
+// 	
+// 	// [1. 역할 검증] 지정된 플레이어 역할(PlayerA/B)이 맞는지 검사
+// 	if (!IsRequestorAllowed(Requestor))
+// 	{
+// 		if (GEngine)
+// 		{
+// 			GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red, TEXT("Rejected: Role Mismatch!"));
+// 		}
+// 		return;
+// 	}
+//
+// 	// [2. 점유 검증] 이미 누군가 켜놓은(ON) 상태이고, 내가 점유자가 아니라면 다른 플레이어 차단
+// 	if (bIsActivated && OccupyingPlayer != nullptr && OccupyingPlayer != Requestor)
+// 	{
+// 		if (GEngine)
+// 		{
+// 			GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow,
+// 			                                 TEXT("Rejected: Already Occupied by another player!"));
+// 		}
+// 		return;
+// 	}
+//
+// 	// [3. 토글 처리]
+// 	bIsActivated = !bIsActivated;
+//
+// 	if (bIsActivated)
+// 	{
+// 		// 켜질 때: 요청자를 점유자로 등록
+// 		OccupyingPlayer = Requestor;
+// 	}
+// 	else
+// 	{
+// 		// 꺼질 때: 점유 해제
+// 		OccupyingPlayer = nullptr;
+// 	}
+//
+// 	OnRep_IsActivated();
+// }
+//
+//
+// #pragma endregion
 
 // #pragma region Hold
 // void UInteractionSwitchComponent::StartInteract(AActor* Requestor)
@@ -227,7 +253,7 @@ void UInteractionSwitchComponent::OnRep_IsActivated()
 				                  TEXT("Activated by [%s]"),
 				                  OccupyingPlayer ? *OccupyingPlayer->GetName() : TEXT("None"))
 			                  : TEXT("Deactivated (Free)");
-		
+
 		FColor Color = bIsActivated ? FColor::Blue : FColor::Red;
 		GEngine->AddOnScreenDebugMessage(-1, 2.0f, Color, Message);
 	}
