@@ -15,9 +15,10 @@ class PUZZLESTAY3_API APS3GameModeS5 : public APS3GameModeBase
 	GENERATED_BODY()
 	
 	virtual void BeginPlay() override;
+	virtual void PostLogin(APlayerController* NewPlayer) override;
 	
 public:
-	
+	void SetPlayerRole(const APlayerController* CurrentPlayer);
 	void OnReduceGameTime();
 	void OnGameStart();
 	

@@ -6,6 +6,7 @@
 #include "GameFramework/PlayerController.h"
 #include "PS3ChoiceController.generated.h"
 
+enum class EPS3PlayerRoleType : uint8;
 /**
  * 
  */
@@ -16,7 +17,6 @@ class PUZZLESTAY3_API APS3ChoiceController : public APlayerController
 protected:
 	virtual void BeginPlay() override;
 	
-	void JoinServer(const FString& InIPAddress);
 
 public:
 	UPROPERTY(EditAnywhere, Category = "UI")
@@ -24,5 +24,13 @@ public:
 	
 	UPROPERTY(VisibleAnywhere, Category = "UI")
 	TObjectPtr<UUserWidget> UIWidgetInstance;
+
+	UFUNCTION(Server, Reliable)
+	void ServerRPC_SelectedControllerType(EPS3PlayerRoleType SelectedControllerType);
 	
+	UFUNCTION(BlueprintCallable)
+	void OnClickedThirdPersonTypeButton();
+	
+	UFUNCTION(BlueprintCallable)
+	void OnClickedScreenTypeButton();
 };
