@@ -12,12 +12,33 @@ UOverlapSwitchComponent::UOverlapSwitchComponent()
 void UOverlapSwitchComponent::BeginPlay()
 {
 	Super::BeginPlay();
+
+	// C++로만 오버랩 이벤트를 자동으로 바인딩하는 핵심 로직
+	AActor* Owner = GetOwner();
+	if (Owner)
+	{
+		// Owner 액터에 붙어있는 RootComponent 또는 첫 번째 PrimitiveComponent(Collision, Box 등)를 찾음
+		UPrimitiveComponent* PrimitiveComp = Cast<UPrimitiveComponent>(Owner->GetRootComponent());
+		if (!PrimitiveComp)
+		{
+			PrimitiveComp = Owner->FindComponentByClass<UPrimitiveComponent>();
+		}
+		if (PrimitiveComp)
+		{
+			// test dnjsqls
+			PrimitiveComp->SetHiddenInGame(false);
+			
+			// C++ 이벤트 바인딩 (AddDynamic)
+			PrimitiveComp->OnComponentBeginOverlap.AddDynamic(this, &UOverlapSwitchComponent::OnOwnerBeginOverlap);
+			PrimitiveComp->OnComponentEndOverlap.AddDynamic(this, &UOverlapSwitchComponent::OnOwnerEndOverlap);
+		}
+	}
 }
 
 void UOverlapSwitchComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	
+
 	DOREPLIFETIME(UOverlapSwitchComponent, bIsOverlapped);
 }
 
@@ -42,7 +63,39 @@ bool UOverlapSwitchComponent::IsValidOverlapActor(AActor* TargetActor) const
 	return false;
 }
 
-void UOverlapSwitchComponent::HandleBeginOverlap(AActor* OverlappedActor, AActor* OtherActor)
+// void UOverlapSwitchComponent::HandleBeginOverlap(AActor* OverlappedActor, AActor* OtherActor)
+// {
+// 	if (!GetOwner() || !GetOwner()->HasAuthority()) return;
+//
+// 	if (IsValidOverlapActor(OtherActor))
+// 	{
+// 		OverlappedActorCount++;
+// 		if (OverlappedActorCount > 0 && !bIsOverlapped)
+// 		{
+// 			bIsOverlapped = true;
+// 			OnRep_IsOverlapped();
+// 		}
+// 	}
+// }
+
+// void UOverlapSwitchComponent::HandleEndOverlap(AActor* OverlappedActor, AActor* OtherActor)
+// {
+// 	if (!GetOwner() || !GetOwner()->HasAuthority()) return;
+//
+// 	if (IsValidOverlapActor(OtherActor))
+// 	{
+// 		OverlappedActorCount = FMath::Max(0, OverlappedActorCount - 1);
+// 		if (OverlappedActorCount == 0 && bIsOverlapped)
+// 		{
+// 			bIsOverlapped = false;
+// 			OnRep_IsOverlapped(); 
+// 		}
+// 	}
+// }
+
+void UOverlapSwitchComponent::OnOwnerBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
+                                                  UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
+                                                  const FHitResult& SweepResult)
 {
 	//서버 권한(Authority)에서만 상태 변경 수행
 	if (!GetOwner() || !GetOwner()->HasAuthority()) return;
@@ -59,7 +112,8 @@ void UOverlapSwitchComponent::HandleBeginOverlap(AActor* OverlappedActor, AActor
 	}
 }
 
-void UOverlapSwitchComponent::HandleEndOverlap(AActor* OverlappedActor, AActor* OtherActor)
+void UOverlapSwitchComponent::OnOwnerEndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
+                                                UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
 	if (!GetOwner() || !GetOwner()->HasAuthority()) return;
 
@@ -79,4 +133,11 @@ void UOverlapSwitchComponent::OnRep_IsOverlapped()
 {
 	//상태 변경 시 델리게이트 브로드캐스트 (블루프린트/소유 액터 반응)
 	OnOverlapStateChanged.Broadcast(bIsOverlapped);
+
+	if (GEngine)
+	{
+		FString Message = bIsOverlapped ? TEXT("Press On (C++)") : TEXT("Press Off (C++)");
+		FColor Color = bIsOverlapped ? FColor::Green : FColor::Red;
+		GEngine->AddOnScreenDebugMessage(-1, 2.0f, Color, Message);
+	}
 }
