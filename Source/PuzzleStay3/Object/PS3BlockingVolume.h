@@ -6,10 +6,15 @@
 #include "Engine/BlockingVolume.h"
 #include "PS3BlockingVolume.generated.h"
 
+class UBoxComponent;
+
 UCLASS()
-class PUZZLESTAY3_API APS3BlockingVolume : public ABlockingVolume
+class PUZZLESTAY3_API APS3BlockingVolume : public AActor
 {
 	GENERATED_BODY()
+	
+	public:
+	APS3BlockingVolume();
 
 protected:
 	virtual void BeginPlay() override;
@@ -17,6 +22,9 @@ protected:
 
 	UFUNCTION()
 	void BlockingVolumeDisabled();
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Collision")
+	TObjectPtr<UBoxComponent> BoxCompo;
 	
 	FDelegateHandle BlockingVolumeDisabledHandle;
 };

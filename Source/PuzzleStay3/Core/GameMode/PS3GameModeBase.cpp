@@ -3,6 +3,8 @@
 
 #include "PS3GameModeBase.h"
 
+#include "PuzzleStay3/Component/InteractionSwitchComponent.h"
+
 //bgimmick enum final,normal 
 //if (bgimmick - normal) {APS3GameModeBase::RegisterInteractionSwitch 등록하렴}
 //else(bgimmick - final) {finalRegisterInteractionSwitch 등록하렴
@@ -25,15 +27,17 @@ void APS3GameModeBase::RegisterInteractionSwitch(UInteractionSwitchComponent* Sw
 
 	InteractionSwitches.Add(SwitchComp);
 
-	SwitchComp->OnSwitchActivatedChanged.AddUObject(this,&APS3GameModeBase::HandleSwitchActivatedChanged);
+	InteractionSwitchCompoHandle =
+		SwitchComp->OnSwitchActivatedChanged.AddUObject(this,&APS3GameModeBase::HandleSwitchActivatedChanged);
 }
 
 void APS3GameModeBase::UnregisterInteractionSwitch(UInteractionSwitchComponent* SwitchComp)
 {
 	if (!IsValid(SwitchComp)) return;
 
-	SwitchComp->OnSwitchActivatedChanged.RemoveAll(this,&APS3GameModeBase::HandleSwitchActivatedChanged);
-
+	SwitchComp->OnSwitchActivatedChanged.Remove(InteractionSwitchCompoHandle);
+	InteractionSwitchCompoHandle.Reset();
+	
 	InteractionSwitches.Remove(SwitchComp);
 }
 

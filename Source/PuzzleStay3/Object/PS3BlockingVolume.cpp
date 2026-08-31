@@ -3,9 +3,21 @@
 
 #include "PS3BlockingVolume.h"
 
-#include "Components/BrushComponent.h"
+#include "Components/BoxComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "PuzzleStay3/Core/GameMode/PS3GameModeBase.h"
+
+
+APS3BlockingVolume::APS3BlockingVolume()
+{
+	PrimaryActorTick.bCanEverTick = false;
+	
+	BoxCompo = CreateDefaultSubobject<UBoxComponent>(TEXT("BoxCollision"));
+	SetRootComponent(BoxCompo);
+	
+	BoxCompo->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	BoxCompo->SetCollisionProfileName(TEXT("BlockAll"));
+}
 
 void APS3BlockingVolume::BeginPlay()
 {
@@ -34,8 +46,8 @@ void APS3BlockingVolume::BlockingVolumeDisabled()
 {
 	SetActorEnableCollision(false);
 
-	if (UBrushComponent* BrushComp = GetBrushComponent())
+	if (IsValid(BoxCompo))
 	{
-		BrushComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		BoxCompo->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	}
 }
