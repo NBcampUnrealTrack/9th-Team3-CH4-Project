@@ -3,9 +3,21 @@
 
 #include "PS3BlockingVolume.h"
 
-#include "Components/BrushComponent.h"
+#include "Components/BoxComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "PuzzleStay3/Core/GameMode/PS3GameModeBase.h"
+
+
+APS3BlockingVolume::APS3BlockingVolume()
+{
+	PrimaryActorTick.bCanEverTick = false;
+	
+	BoxCompo = CreateDefaultSubobject<UBoxComponent>(TEXT("BoxCollision"));
+	SetRootComponent(BoxCompo);
+	
+	BoxCompo->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	BoxCompo->SetCollisionProfileName(TEXT("BlockAll"));
+}
 
 void APS3BlockingVolume::BeginPlay()
 {
@@ -14,7 +26,8 @@ void APS3BlockingVolume::BeginPlay()
 	APS3GameModeBase* GameMode = Cast<APS3GameModeBase>(UGameplayStatics::GetGameMode(this));
 	if (!IsValid(GameMode)) return;
 
-	GameMode->OnBlockingVolumeDisabled.AddDynamic(this,&APS3BlockingVolume::BlockingVolumeDisabled);
+	BlockingVolumeDisabledHandle = 
+		GameMode->OnBlockingVolumeDisabled.AddUObject(this,&APS3BlockingVolume::BlockingVolumeDisabled);
 }
 
 void APS3BlockingVolume::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -22,8 +35,9 @@ void APS3BlockingVolume::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	APS3GameModeBase* GameMode = Cast<APS3GameModeBase>(UGameplayStatics::GetGameMode(this));
 	if (IsValid(GameMode))
 	{
-		GameMode->OnBlockingVolumeDisabled.RemoveDynamic(this,&APS3BlockingVolume::BlockingVolumeDisabled);
+		GameMode->OnBlockingVolumeDisabled.Remove(BlockingVolumeDisabledHandle);
 	}
+	BlockingVolumeDisabledHandle.Reset();
 
 	Super::EndPlay(EndPlayReason);
 }
@@ -32,8 +46,8 @@ void APS3BlockingVolume::BlockingVolumeDisabled()
 {
 	SetActorEnableCollision(false);
 
-	if (UBrushComponent* BrushComp = GetBrushComponent())
+	if (IsValid(BoxCompo))
 	{
-		BrushComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		BoxCompo->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	}
 }

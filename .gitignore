@@ -638,6 +638,9 @@ FodyWeavers.xsd
 # JetBrains Rider
 *.sln.iml
 
+# RiderLink plugin installed locally by JetBrains Rider
+/Plugins/Developer/RiderLink/
+
 ### VisualStudio Patch ###
 # Additional files built by Visual Studio
 

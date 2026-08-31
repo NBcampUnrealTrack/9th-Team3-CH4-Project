@@ -25,13 +25,16 @@ public:
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 
 	virtual void BeginPlay() override;
+
+	UFUNCTION(BlueprintPure, Category = "PS3|Character")
+	bool CanUseFieldControls() const;
 	
 
 protected:
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "DXPlayerCharacter|Components")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "PS3|Character|Components")
 	TObjectPtr<USpringArmComponent> SpringArm;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "DXPlayerCharacter|Components")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "PS3|Character|Components")
 	TObjectPtr<UCameraComponent> Camera;
 
 
@@ -40,19 +43,23 @@ private:
 
 	void HandleLookInput(const FInputActionValue& InValue);
 
+	void HandleJumpStarted();
+
+	void HandleJumpCompleted();
+
 
 
 protected:
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "DXPlayerCharacter|Input")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PS3|Character|Input")
 	TObjectPtr<UInputMappingContext> InputMappingContext;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "DXPlayerCharacter|Input")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PS3|Character|Input")
 	TObjectPtr<UInputAction> MoveAction;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "DXPlayerCharacter|Input")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PS3|Character|Input")
 	TObjectPtr<UInputAction> LookAction;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "DXPlayerCharacter|Input")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PS3|Character|Input")
 	TObjectPtr<UInputAction> JumpAction;
 
 
