@@ -2,10 +2,10 @@
 
 #include "CoreMinimal.h"
 
-#include "ControllerState.generated.h"
+#include "PS3ControllerType.generated.h"
 
 UENUM(BlueprintType)
-enum class EControllerState : uint8
+enum class EPS3ControllerType : uint8
 {
 	ChoiceController UMETA(DisplayName = "ChoiceController"),
 	PlayerController UMETA(DisplayName = "PlayerController"),
