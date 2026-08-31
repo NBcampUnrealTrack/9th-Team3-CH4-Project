@@ -17,4 +17,6 @@ protected:
 
 	UFUNCTION()
 	void BlockingVolumeDisabled();
+	
+	FDelegateHandle BlockingVolumeDisabledHandle;
 };
