@@ -25,10 +25,6 @@ protected:
 	bool bIsActivated = false;
 
 public:
-	// 현재 이 스위치를 점유 중인 플레이어 (1명만 할당)
-	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, Category = "Gimmick|State")
-	TObjectPtr<AActor> OccupyingPlayer = nullptr;
-
 	// GameMode가 바인딩할 델리게이트
 	FOnSwitchActivatedChanged OnSwitchActivatedChanged;
 
