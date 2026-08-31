@@ -23,4 +23,5 @@ public:
 	
 	void SetControllerEType(const FUniqueNetIdRepl& SetPlayerID, EPS3PlayerRoleType SetControllerType);
 	EPS3PlayerRoleType GetControllerEType(const FUniqueNetIdRepl& FindPlayerID);	
+	
 };

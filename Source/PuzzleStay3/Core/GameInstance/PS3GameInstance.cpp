@@ -3,6 +3,8 @@
 
 #include "PS3GameInstance.h"
 
+#include "Kismet/KismetSystemLibrary.h"
+
 void UPS3GameInstance::SetControllerEType(const FUniqueNetIdRepl& SetPlayerID, EPS3PlayerRoleType SetControllerType)
 {
 	ControllerTypesMap.Add(SetPlayerID, SetControllerType);
@@ -17,3 +19,6 @@ EPS3PlayerRoleType UPS3GameInstance::GetControllerEType(const FUniqueNetIdRepl& 
 	
 	return *FoundedControllerType;
 }
+
+
+
