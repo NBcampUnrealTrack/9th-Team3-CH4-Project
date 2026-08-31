@@ -63,7 +63,7 @@ void APS3GameModeS5::SetPlayerControllerRole(APlayerController* CurrentControlle
 	if (CurrentPlayerRoleType == EPS3PlayerRoleType::PlayerRole_ThirdPerson)
 	{
 		bIsTakeThirdPersonControllerType = true;
-		UE_LOG(LogTemp, Warning, TEXT("3인칭 플레이어 생성"));
+		UE_LOG(LogTemp, Warning, TEXT("3인칭조작 플레이어 생성"));
 		PossessedControllerAndSpawn(CurrentController, ThirdPersonControllerClass, ThirdPersonCharacterClass);
 		
 	}
@@ -71,7 +71,7 @@ void APS3GameModeS5::SetPlayerControllerRole(APlayerController* CurrentControlle
 	if (CurrentPlayerRoleType == EPS3PlayerRoleType::PlayerRole_Screen)
 	{
 		bIsTakeScreenControllerType = true;
-		UE_LOG(LogTemp, Warning, TEXT("스크린 플레이어 생성"));
+		UE_LOG(LogTemp, Warning, TEXT("스크린조작 플레이어 생성"));
 		PossessedControllerAndSpawn(CurrentController, ScreenControllerClass, ScreenCharacterClass);
 		
 	}	
@@ -91,6 +91,18 @@ void APS3GameModeS5::PossessedControllerAndSpawn(APlayerController* OldControlle
 	if (NewCharacterClass == nullptr) return;
 	UE_LOG(LogTemp, Warning, TEXT("컨트롤러 클래스 삽입 완료... 다음 로직 수행 가능..."));
 	
+	FString TargetTag = TEXT("");
+	
+	if (NewControllerClass == ThirdPersonControllerClass)
+	{
+		TargetTag = ThirdPersonString;
+		
+	}
+	
+	else if (NewControllerClass == ScreenControllerClass)
+	{
+		TargetTag = ScreenString;
+	}
 	
 	APawn* OldPawn = OldController->GetPawn();
 	if (IsValid(OldPawn) == true)
@@ -99,6 +111,7 @@ void APS3GameModeS5::PossessedControllerAndSpawn(APlayerController* OldControlle
 		OldPawn->Destroy();
 	}
 	
+	
 	FActorSpawnParameters ControllerSpawnParams;
 	auto* NewController = GetWorld()->SpawnActor<APlayerController>(NewControllerClass, ControllerSpawnParams);
 	if (IsValid(NewController) == false) return;
@@ -106,46 +119,25 @@ void APS3GameModeS5::PossessedControllerAndSpawn(APlayerController* OldControlle
 	SwapPlayerControllers(OldController, NewController);
 	OldController->Destroy();
 	
-	AActor* GameStartPoint = FindPlayerStart(NewController);
-	if (IsValid(GameStartPoint) == false) return;
 	
-	auto* PlayerStartPoint = Cast<APlayerStart>(GameStartPoint);
-	if (IsValid(PlayerStartPoint) == false)
+	AActor* GameStartPoint = FindPlayerStart(NewController, TargetTag);
+	if (IsValid(GameStartPoint) == false)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("스타트지점 액터를 배치 후 다시 시도하세요. (총 2개입니다.)"));
-		UE_LOG(LogTemp, Warning, TEXT("Tag종류: ThirdPerson / Screen"));
+		UE_LOG(LogTemp, Warning, TEXT("스타트지점 액터가 배치되어있지 않거나 Tag가 비어있습니다."));
+		UE_LOG(LogTemp, Warning, TEXT("현재 비어있는 PlayerStartTag: %s"), *TargetTag);
 		return;
-	}
-	
-	if (NewControllerClass == ThirdPersonControllerClass)
-	{
-		if (PlayerStartPoint->PlayerStartTag.ToString() != ThirdPersonString)
-		{
-			UE_LOG(LogTemp, Warning, TEXT("스타트지점 액터의 Tag가 비어있습니다. (ThirdPersonPlayer)"));
-			return;
-		}
-		
-		GameStartPoint = FindPlayerStart(NewController, ThirdPersonString);
-	}
-	
-	if (NewControllerClass == ScreenControllerClass)
-	{
-		if (PlayerStartPoint->PlayerStartTag.ToString() != ThirdPersonString)
-		{
-			UE_LOG(LogTemp, Warning, TEXT("스타트지점 액터의 Tag가 비어있습니다. (ScreenPlayer)"));
-			return;
-		}
-		
-		GameStartPoint = FindPlayerStart(NewController, ScreenString);
 	}
 	
 	
 	FTransform SpawnTransform = FTransform::Identity;
-	if (IsValid(GameStartPoint) == true)
+	
+	auto* PlayerStartPoint = Cast<APlayerStart>(GameStartPoint);
+	if (IsValid(PlayerStartPoint) == true)
 	{
-		SpawnTransform = GameStartPoint->GetActorTransform(); 
+		SpawnTransform = PlayerStartPoint->GetActorTransform(); 
 	}
-		
+	
+	
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.Owner = NewController;
 		
@@ -157,6 +149,8 @@ void APS3GameModeS5::PossessedControllerAndSpawn(APlayerController* OldControlle
 		
 		
 	NewController->Possess(NewCharacter);
+	
+	UE_LOG(LogTemp, Warning, TEXT("플레이어 스폰 완료"));
 	
 }
 
