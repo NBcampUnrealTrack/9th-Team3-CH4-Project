@@ -18,6 +18,9 @@ public:
 	bool bCanInteract(const APawn* InteractingPawn) const;
 	
 	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category = "Gimmick")
+	virtual void ResetGimmick();
+	
+	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category = "Gimmick")
 	void HandleInteraction(APawn* InteractingPawn);
 	
 	UFUNCTION(BlueprintPure, Category = "Gimmick")

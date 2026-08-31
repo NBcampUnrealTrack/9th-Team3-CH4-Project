@@ -33,6 +33,20 @@ void AGimmickBase::HandleInteraction(APawn* InteractingPawn)
 	BP_OnInteraction(InteractingPawn);
 }
 
+void AGimmickBase::ResetGimmick()
+{
+	if (!HasAuthority())
+	{
+		return;
+	}
+
+	bIsActive = true;
+	bIsCompleted = false;
+
+	OnRep_IsActive();
+	OnRep_IsCompleted();
+}
+
 void AGimmickBase::OnRep_IsActive()
 {
 	BP_OnActiveStateChanged(bIsActive);
