@@ -15,6 +15,7 @@ class UTitleWidget;
 class UTutorialNotifyWidget;
 class UGameOverWidget;
 class UStage5RoleSelectWidget;
+class UPS3ViewModel;
 
 USTRUCT(BlueprintType)
 struct FPS3HUDWidgets
@@ -66,6 +67,12 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "UI|Widget")
 	void SetWidgets(const FPS3HUDWidgets& InWidgets);
 
+	UFUNCTION(BlueprintCallable, Category = "UI|ViewModel")
+	void SetViewModel(UPS3ViewModel* InViewModel);
+
+	UFUNCTION(BlueprintPure, Category = "UI")
+	UPS3ViewModel* GetViewModel() const;
+
 	UFUNCTION(BlueprintCallable, Category = "UI|TextNotify")
 	void ShowTextNotify(const FText& InDisplayText, float InFontSize, float InDisplayDuration);
 
@@ -93,7 +100,24 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "UI|TutorialNotify")
 	void HideTutorialNotify();
 
+	UFUNCTION(BlueprintCallable, Category = "UI|DoorOpenButton")
+	void UpdateDoorOpenButtons(
+		bool bInDoor1Unlocked,
+		bool bInDoor2Unlocked,
+		bool bInDoor3Unlocked,
+		bool bInDoor4Unlocked
+	);
+
+	UFUNCTION(BlueprintCallable, Category = "UI|DoorOpenButton")
+	void RequestOpenDoor(int32 InDoorIndex);
+
 protected:
 	UPROPERTY(BlueprintReadOnly, Category = "UI|Widget")
 	FPS3HUDWidgets Widgets;
+
+	UPROPERTY(BlueprintReadOnly, Category = "UI|ViewModel")
+	TObjectPtr<UPS3ViewModel> ViewModel;
+
+private:
+	void ApplyViewModelToWidgets();
 };

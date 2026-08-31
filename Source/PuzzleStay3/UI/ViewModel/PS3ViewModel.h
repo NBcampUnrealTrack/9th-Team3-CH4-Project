@@ -4,12 +4,46 @@
 #include "MVVMViewModelBase.h"
 #include "PS3ViewModel.generated.h"
 
+class APlayerHUD;
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnDoorOpenRequested, int32, DoorIndex);
+
 UCLASS(BlueprintType)
 class PUZZLESTAY3_API UPS3ViewModel : public UMVVMViewModelBase
 {
 	GENERATED_BODY()
 
 public:
+	UFUNCTION(BlueprintCallable, Category = "UI|HUD")
+	void SetPlayerHUD(APlayerHUD* InPlayerHUD);
+
+	UFUNCTION(BlueprintCallable, Category = "UI|TextNotify")
+	void RequestTextNotify(const FText& InDisplayText, float InFontSize, float InDisplayDuration);
+
+	UFUNCTION(BlueprintCallable, Category = "UI|LifeCount")
+	void RequestUpdateLifeCount(int32 InCurrentLifeCount, int32 InMaxLifeCount);
+
+	UFUNCTION(BlueprintCallable, Category = "UI|InteractionNotify")
+	void RequestShowInteractionNotify(FName InNotifyId, const FText& InKeyName);
+
+	UFUNCTION(BlueprintCallable, Category = "UI|InteractionNotify")
+	void RequestHideInteractionNotify(FName InNotifyId);
+
+	UFUNCTION(BlueprintCallable, Category = "UI|InteractionNotify")
+	void RequestHideAllInteractionNotifies();
+
+	UFUNCTION(BlueprintCallable, Category = "UI|TimerNotify")
+	void RequestTimerNotify(float InRemainingTime, float InTotalTime);
+
+	UFUNCTION(BlueprintCallable, Category = "UI|TimerNotify")
+	void RequestHideTimerNotify();
+
+	UFUNCTION(BlueprintCallable, Category = "UI|TutorialNotify")
+	void RequestShowTutorialNotify();
+
+	UFUNCTION(BlueprintCallable, Category = "UI|TutorialNotify")
+	void RequestHideTutorialNotify();
+
 	UFUNCTION(BlueprintPure, FieldNotify, Category = "UI|ViewModel")
 	FText GetDisplayText() const;
 
@@ -71,16 +105,34 @@ public:
 	void SetIsTutorialNotifyVisible(bool bInIsTutorialNotifyVisible);
 
 	UFUNCTION(BlueprintPure, FieldNotify, Category = "UI|ViewModel")
-	int32 GetTokenID() const;
+	bool GetIsDoor1Unlocked() const;
 
 	UFUNCTION(BlueprintCallable, Category = "UI|ViewModel")
-	void SetTokenID(int32 InTokenID);
+	void SetIsDoor1Unlocked(bool bInIsDoor1Unlocked);
 
 	UFUNCTION(BlueprintPure, FieldNotify, Category = "UI|ViewModel")
-	bool GetIsUnlocked() const;
+	bool GetIsDoor2Unlocked() const;
 
 	UFUNCTION(BlueprintCallable, Category = "UI|ViewModel")
-	void SetIsUnlocked(bool bInIsUnlocked);
+	void SetIsDoor2Unlocked(bool bInIsDoor2Unlocked);
+
+	UFUNCTION(BlueprintPure, FieldNotify, Category = "UI|ViewModel")
+	bool GetIsDoor3Unlocked() const;
+
+	UFUNCTION(BlueprintCallable, Category = "UI|ViewModel")
+	void SetIsDoor3Unlocked(bool bInIsDoor3Unlocked);
+
+	UFUNCTION(BlueprintPure, FieldNotify, Category = "UI|ViewModel")
+	bool GetIsDoor4Unlocked() const;
+
+	UFUNCTION(BlueprintCallable, Category = "UI|ViewModel")
+	void SetIsDoor4Unlocked(bool bInIsDoor4Unlocked);
+
+	UFUNCTION(BlueprintCallable, Category = "UI|DoorOpenButton")
+	void RequestOpenDoor(int32 InDoorIndex);
+
+	UPROPERTY(BlueprintAssignable, Category = "UI|DoorOpenButton")
+	FOnDoorOpenRequested OnDoorOpenRequested;
 
 	UFUNCTION(BlueprintPure, FieldNotify, Category = "UI|ViewModel")
 	bool GetIsSpeaking() const;
@@ -95,6 +147,9 @@ public:
 	void SetIsOpen(bool bInIsOpen);
 
 private:
+	UPROPERTY(BlueprintReadOnly, Category = "UI|HUD", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<APlayerHUD> PlayerHUD;
+
 	UPROPERTY(BlueprintReadWrite, FieldNotify, Getter, Setter, Category = "UI|ViewModel", meta = (AllowPrivateAccess = "true"))
 	FText DisplayText;
 
@@ -125,11 +180,17 @@ private:
 	UPROPERTY(BlueprintReadWrite, FieldNotify, Getter = "GetIsTutorialNotifyVisible", Setter = "SetIsTutorialNotifyVisible", Category = "UI|ViewModel", meta = (AllowPrivateAccess = "true"))
 	bool bIsTutorialNotifyVisible = false;
 
-	UPROPERTY(BlueprintReadWrite, FieldNotify, Getter, Setter, Category = "UI|ViewModel", meta = (AllowPrivateAccess = "true"))
-	int32 TokenID = 0;
+	UPROPERTY(BlueprintReadWrite, FieldNotify, Getter = "GetIsDoor1Unlocked", Setter = "SetIsDoor1Unlocked", Category = "UI|ViewModel", meta = (AllowPrivateAccess = "true"))
+	bool bIsDoor1Unlocked = false;
 
-	UPROPERTY(BlueprintReadWrite, FieldNotify, Getter = "GetIsUnlocked", Setter = "SetIsUnlocked", Category = "UI|ViewModel", meta = (AllowPrivateAccess = "true"))
-	bool bIsUnlocked = false;
+	UPROPERTY(BlueprintReadWrite, FieldNotify, Getter = "GetIsDoor2Unlocked", Setter = "SetIsDoor2Unlocked", Category = "UI|ViewModel", meta = (AllowPrivateAccess = "true"))
+	bool bIsDoor2Unlocked = false;
+
+	UPROPERTY(BlueprintReadWrite, FieldNotify, Getter = "GetIsDoor3Unlocked", Setter = "SetIsDoor3Unlocked", Category = "UI|ViewModel", meta = (AllowPrivateAccess = "true"))
+	bool bIsDoor3Unlocked = false;
+
+	UPROPERTY(BlueprintReadWrite, FieldNotify, Getter = "GetIsDoor4Unlocked", Setter = "SetIsDoor4Unlocked", Category = "UI|ViewModel", meta = (AllowPrivateAccess = "true"))
+	bool bIsDoor4Unlocked = false;
 
 	UPROPERTY(BlueprintReadWrite, FieldNotify, Getter = "GetIsSpeaking", Setter = "SetIsSpeaking", Category = "UI|ViewModel", meta = (AllowPrivateAccess = "true"))
 	bool bIsSpeaking = false;
