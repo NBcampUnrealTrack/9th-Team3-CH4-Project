@@ -90,6 +90,16 @@ void UPS3ViewModel::SetIsTimerNotifyVisible(bool bInIsTimerNotifyVisible)
 	UE_MVVM_SET_PROPERTY_VALUE(bIsTimerNotifyVisible, bInIsTimerNotifyVisible);
 }
 
+bool UPS3ViewModel::GetIsTutorialNotifyVisible() const
+{
+	return bIsTutorialNotifyVisible;
+}
+
+void UPS3ViewModel::SetIsTutorialNotifyVisible(bool bInIsTutorialNotifyVisible)
+{
+	UE_MVVM_SET_PROPERTY_VALUE(bIsTutorialNotifyVisible, bInIsTutorialNotifyVisible);
+}
+
 int32 UPS3ViewModel::GetTokenID() const
 {
 	return TokenID;

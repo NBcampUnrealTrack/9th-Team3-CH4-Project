@@ -4,6 +4,7 @@
 #include "../Widget/LifeCountWidget.h"
 #include "../Widget/TextNotifyWidget.h"
 #include "../Widget/TimerNotifyWidget.h"
+#include "../Widget/TutorialNotifyWidget.h"
 
 APlayerHUD::APlayerHUD()
 {
@@ -82,4 +83,24 @@ void APlayerHUD::HideTimerNotify()
 	}
 
 	Widgets.TimerNotifyWidget->HideTimerNotify();
+}
+
+void APlayerHUD::ShowTutorialNotify()
+{
+	if (!Widgets.TutorialNotifyWidget)
+	{
+		return;
+	}
+
+	Widgets.TutorialNotifyWidget->ShowTutorialNotify();
+}
+
+void APlayerHUD::HideTutorialNotify()
+{
+	if (!Widgets.TutorialNotifyWidget)
+	{
+		return;
+	}
+
+	Widgets.TutorialNotifyWidget->HideTutorialNotify();
 }

@@ -87,6 +87,12 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "UI|TimerNotify")
 	void HideTimerNotify();
 
+	UFUNCTION(BlueprintCallable, Category = "UI|TutorialNotify")
+	void ShowTutorialNotify();
+
+	UFUNCTION(BlueprintCallable, Category = "UI|TutorialNotify")
+	void HideTutorialNotify();
+
 protected:
 	UPROPERTY(BlueprintReadOnly, Category = "UI|Widget")
 	FPS3HUDWidgets Widgets;

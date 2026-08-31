@@ -65,6 +65,12 @@ public:
 	void SetIsTimerNotifyVisible(bool bInIsTimerNotifyVisible);
 
 	UFUNCTION(BlueprintPure, FieldNotify, Category = "UI|ViewModel")
+	bool GetIsTutorialNotifyVisible() const;
+
+	UFUNCTION(BlueprintCallable, Category = "UI|ViewModel")
+	void SetIsTutorialNotifyVisible(bool bInIsTutorialNotifyVisible);
+
+	UFUNCTION(BlueprintPure, FieldNotify, Category = "UI|ViewModel")
 	int32 GetTokenID() const;
 
 	UFUNCTION(BlueprintCallable, Category = "UI|ViewModel")
@@ -115,6 +121,9 @@ private:
 
 	UPROPERTY(BlueprintReadWrite, FieldNotify, Getter = "GetIsTimerNotifyVisible", Setter = "SetIsTimerNotifyVisible", Category = "UI|ViewModel", meta = (AllowPrivateAccess = "true"))
 	bool bIsTimerNotifyVisible = false;
+
+	UPROPERTY(BlueprintReadWrite, FieldNotify, Getter = "GetIsTutorialNotifyVisible", Setter = "SetIsTutorialNotifyVisible", Category = "UI|ViewModel", meta = (AllowPrivateAccess = "true"))
+	bool bIsTutorialNotifyVisible = false;
 
 	UPROPERTY(BlueprintReadWrite, FieldNotify, Getter, Setter, Category = "UI|ViewModel", meta = (AllowPrivateAccess = "true"))
 	int32 TokenID = 0;
