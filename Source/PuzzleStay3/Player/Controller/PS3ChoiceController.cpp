@@ -11,20 +11,22 @@ void APS3ChoiceController::BeginPlay()
 	Super::BeginPlay();
 	
 	if (IsLocalController() == false) return;
-
-	if (IsValid(UIWidgetClass) == true)
-	{
-		UIWidgetInstance = CreateWidget<UUserWidget>(this, UIWidgetClass);
-		if (IsValid(UIWidgetInstance) == false) return;
+	
+	if (UIWidgetClass.IsValidIndex(0) == false) return;
+	
+	if (UIWidgetClass[0] == nullptr) return;
+	
+	UIWidgetInstance = CreateWidget<UUserWidget>(this, UIWidgetClass[0]);
+	if (IsValid(UIWidgetInstance) == false) return;
 		
-		UIWidgetInstance->AddToViewport();
+	UIWidgetInstance->AddToViewport();
 
-		FInputModeUIOnly Mode;
-		Mode.SetWidgetToFocus(UIWidgetInstance->GetCachedWidget());
-		SetInputMode(Mode);
+	FInputModeUIOnly Mode;
+	Mode.SetWidgetToFocus(UIWidgetInstance->GetCachedWidget());
+	SetInputMode(Mode);
 
-		bShowMouseCursor = true;
-	}
+	bShowMouseCursor = true;
+	
 }
 
 void APS3ChoiceController::JoinServer(const FString& InIPAddress)
