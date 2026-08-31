@@ -4,7 +4,11 @@
 #include "PS3ChoiceController.h"
 
 #include "Blueprint/UserWidget.h"
+#include "GameFramework/PlayerState.h"
 #include "Kismet/GameplayStatics.h"
+#include "PuzzleStay3/Core/GameInstance/PS3GameInstance.h"
+
+
 
 void APS3ChoiceController::BeginPlay()
 {
@@ -26,11 +30,44 @@ void APS3ChoiceController::BeginPlay()
 	SetInputMode(Mode);
 
 	bShowMouseCursor = true;
-	
 }
 
-void APS3ChoiceController::JoinServer(const FString& InIPAddress)
+void APS3ChoiceController::ServerRPC_SelectedControllerType_Implementation(EPS3PlayerRoleType SelectedControllerType)
 {
-	FName NextLevelName = FName(*InIPAddress);
-	UGameplayStatics::OpenLevel(GetWorld(), NextLevelName, true);
+	if (PlayerState == nullptr) return;
+	
+	auto* PS3GameInstance = Cast<UPS3GameInstance>(GetGameInstance());
+	if (PS3GameInstance == nullptr) return;
+	
+	const FUniqueNetIdRepl& PlayerID = PlayerState->GetUniqueId();
+	PS3GameInstance->SetControllerEType(PlayerID, SelectedControllerType);
+}
+
+void APS3ChoiceController::OnClickedThirdPersonTypeButton()
+{
+	/*if (bIsAlreadySelected == true) return;
+	bIsAlreadySelected = false;
+	
+	if (bIsAlreadySelected == false)
+	{
+		ServerRPC_SelectedControllerType(EPS3PlayerRoleType::PlayerRole_ThirdPerson);
+		bIsAlreadySelected = true;
+		
+		return;
+	}*/
+}
+
+void APS3ChoiceController::OnClickedScreenTypeButton()
+{
+	
+	auto* PS3GameInstance = Cast<UPS3GameInstance>(GetGameInstance());
+	if (PS3GameInstance == nullptr) return;
+	
+	EPS3PlayerRoleType OnPlayerRoleType = EPS3PlayerRoleType::PlayerRole_Screen;
+	EPS3PlayerRoleType CurrentPlayerRoleType = PS3GameInstance->GetControllerEType(PlayerState->GetUniqueId());
+	
+	if (CurrentPlayerRoleType == OnPlayerRoleType) return;
+	ServerRPC_SelectedControllerType(OnPlayerRoleType);
+		
+	
 }
