@@ -20,7 +20,7 @@ protected:
 
 public:
 	UPROPERTY(EditAnywhere, Category = "UI")
-	TSubclassOf<UUserWidget> UIWidgetClass;
+	TArray<TSubclassOf<UUserWidget>> UIWidgetClass;
 	
 	UPROPERTY(VisibleAnywhere, Category = "UI")
 	TObjectPtr<UUserWidget> UIWidgetInstance;
