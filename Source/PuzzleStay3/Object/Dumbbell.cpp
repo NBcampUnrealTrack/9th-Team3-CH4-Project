@@ -1,27 +1,18 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "Object/Dumbbell.h"
 
-// Sets default values
 ADumbbell::ADumbbell()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
 
-}
+	DumbbellMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("DumbbellMesh"));
+	SetRootComponent(DumbbellMesh);
 
-// Called when the game starts or when spawned
-void ADumbbell::BeginPlay()
-{
-	Super::BeginPlay();
-	
-}
+	// 멀티플레이 및 물리 연동 설정
+	SetReplicatingMovement(true);
+	bReplicates = true;
 
-// Called every frame
-void ADumbbell::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
+	// 물리 및 콜리전 기본값
+	DumbbellMesh->SetSimulatePhysics(true);
+	DumbbellMesh->SetCollisionProfileName(TEXT("PhysicsActor"));
 }
 

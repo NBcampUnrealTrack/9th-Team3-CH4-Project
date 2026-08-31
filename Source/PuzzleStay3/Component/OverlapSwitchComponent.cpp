@@ -3,6 +3,7 @@
 #include "Core/GameMode/PS3GameModeBase.h"
 #include "GameFramework/Character.h"
 #include "Net/UnrealNetwork.h"
+#include "Object/Dumbbell.h"
 
 UOverlapSwitchComponent::UOverlapSwitchComponent()
 {
@@ -86,9 +87,11 @@ bool UOverlapSwitchComponent::IsValidOverlapActor(AActor* TargetActor) const
 		return true;
 	}
 
-	// 2. 만약 Dumbbell(무게 추) 등 특정 오브젝트도 발판을 누를 수 있어야 한다면
-	// 해당 클래스 헤더를 포함 후 Cast/IsA 체크를 아래와 같이 추가할 수 있습니다.
-	// if (TargetActor->IsA<ADumbbell>()) return true;
+	// 2. 무게추(Dumbbell) 감지
+	if (TargetActor->IsA<ADumbbell>())
+	{
+		return true;
+	}
 
 	return false;
 }
