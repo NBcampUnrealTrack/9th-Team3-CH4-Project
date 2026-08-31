@@ -38,14 +38,12 @@ void APS3GameModeS5::OnReduceGameTime()
 	}
 }
 
-<<<<<<< HEAD
 void APS3GameModeS5::OnGameStart()
 {
 	
 	
 }
 
-=======
 
 void APS3GameModeS5::SetPlayerRole(const APlayerController* CurrentPlayer)
 {
@@ -78,4 +76,3 @@ void APS3GameModeS5::SetPlayerRole(const APlayerController* CurrentPlayer)
 	FString::Printf(TEXT("UI 컨트롤러 할당 해야함")));
 	}
 }
->>>>>>> feat/core/gamemode-choice
