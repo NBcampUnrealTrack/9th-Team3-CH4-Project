@@ -8,7 +8,7 @@
 UInteractionSwitchComponent::UInteractionSwitchComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
-	SetIsReplicated(true);
+	SetIsReplicatedByDefault(true);
 }
 
 void UInteractionSwitchComponent::BeginPlay()

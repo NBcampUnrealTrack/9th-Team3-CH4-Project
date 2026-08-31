@@ -5,7 +5,7 @@
 UOverlapSwitchComponent::UOverlapSwitchComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
-	SetIsReplicated(true); //컴포넌트 리플리케이션 활성화
+	SetIsReplicatedByDefault(true); //컴포넌트 리플리케이션 활성화
 	bIsOverlapped = false;
 }
 
