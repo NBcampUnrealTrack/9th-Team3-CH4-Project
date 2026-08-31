@@ -27,7 +27,7 @@ void UOverlapSwitchComponent::BeginPlay()
 		{
 			// test dnjsqls
 			PrimitiveComp->SetHiddenInGame(false);
-			
+
 			// C++ 이벤트 바인딩 (AddDynamic)
 			PrimitiveComp->OnComponentBeginOverlap.AddDynamic(this, &UOverlapSwitchComponent::OnOwnerBeginOverlap);
 			PrimitiveComp->OnComponentEndOverlap.AddDynamic(this, &UOverlapSwitchComponent::OnOwnerEndOverlap);
