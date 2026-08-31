@@ -14,7 +14,8 @@ void APS3BlockingVolume::BeginPlay()
 	APS3GameModeBase* GameMode = Cast<APS3GameModeBase>(UGameplayStatics::GetGameMode(this));
 	if (!IsValid(GameMode)) return;
 
-	GameMode->OnBlockingVolumeDisabled.AddDynamic(this,&APS3BlockingVolume::BlockingVolumeDisabled);
+	BlockingVolumeDisabledHandle = 
+		GameMode->OnBlockingVolumeDisabled.AddUObject(this,&APS3BlockingVolume::BlockingVolumeDisabled);
 }
 
 void APS3BlockingVolume::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -22,8 +23,9 @@ void APS3BlockingVolume::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	APS3GameModeBase* GameMode = Cast<APS3GameModeBase>(UGameplayStatics::GetGameMode(this));
 	if (IsValid(GameMode))
 	{
-		GameMode->OnBlockingVolumeDisabled.RemoveDynamic(this,&APS3BlockingVolume::BlockingVolumeDisabled);
+		GameMode->OnBlockingVolumeDisabled.Remove(BlockingVolumeDisabledHandle);
 	}
+	BlockingVolumeDisabledHandle.Reset();
 
 	Super::EndPlay(EndPlayReason);
 }
