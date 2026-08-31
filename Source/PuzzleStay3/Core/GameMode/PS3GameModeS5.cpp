@@ -19,7 +19,15 @@ void APS3GameModeS5::PostLogin(APlayerController* NewPlayer)
 {
 	Super::PostLogin(NewPlayer);
 	
-	SetPlayerRole(NewPlayer);
+	/*if (NewPlayer->PlayerState == nullptr) return;
+	
+	auto* PS3GameInstance = Cast<UPS3GameInstance>(GetGameInstance());
+	if (PS3GameInstance == nullptr) return;
+	
+	PS3GameInstance->PlayerID = NewPlayer->PlayerState->GetUniqueId();
+	
+	
+	SetPlayerRole(NewPlayer);*/
 }
 
 

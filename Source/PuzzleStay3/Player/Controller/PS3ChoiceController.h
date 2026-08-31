@@ -26,11 +26,12 @@ public:
 	TObjectPtr<UUserWidget> UIWidgetInstance;
 
 	UFUNCTION(Server, Reliable)
-	void ServerRPC_SelectedControllerType(EPS3PlayerRoleType SelectedControllerType);
+	void ServerRPC_SelectedControllerType(EPS3PlayerRoleType SelectedPlayerRoleType);
 	
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION(BlueprintCallable, Category = "Test")
 	void OnClickedThirdPersonTypeButton();
 	
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION(BlueprintCallable, Category = "Test")
 	void OnClickedScreenTypeButton();
 };
+

@@ -32,7 +32,7 @@ void APS3ChoiceController::BeginPlay()
 	bShowMouseCursor = true;
 }
 
-void APS3ChoiceController::ServerRPC_SelectedControllerType_Implementation(EPS3PlayerRoleType SelectedControllerType)
+void APS3ChoiceController::ServerRPC_SelectedControllerType_Implementation(EPS3PlayerRoleType SelectedPlayerRoleType)
 {
 	if (PlayerState == nullptr) return;
 	
@@ -40,25 +40,31 @@ void APS3ChoiceController::ServerRPC_SelectedControllerType_Implementation(EPS3P
 	if (PS3GameInstance == nullptr) return;
 	
 	const FUniqueNetIdRepl& PlayerID = PlayerState->GetUniqueId();
-	PS3GameInstance->SetControllerEType(PlayerID, SelectedControllerType);
+	PS3GameInstance->SetControllerEType(PlayerID, SelectedPlayerRoleType);
 }
 
 void APS3ChoiceController::OnClickedThirdPersonTypeButton()
 {
-	/*if (bIsAlreadySelected == true) return;
-	bIsAlreadySelected = false;
+	if (PlayerState == nullptr) return;
 	
-	if (bIsAlreadySelected == false)
-	{
-		ServerRPC_SelectedControllerType(EPS3PlayerRoleType::PlayerRole_ThirdPerson);
-		bIsAlreadySelected = true;
-		
-		return;
-	}*/
+	auto* PS3GameInstance = Cast<UPS3GameInstance>(GetGameInstance());
+	if (PS3GameInstance == nullptr) return;
+	
+	EPS3PlayerRoleType OnPlayerRoleType = EPS3PlayerRoleType::PlayerRole_ThirdPerson;
+	EPS3PlayerRoleType CurrentPlayerRoleType = PS3GameInstance->GetControllerEType(PlayerState->GetUniqueId());
+	
+	if (CurrentPlayerRoleType == OnPlayerRoleType) return;
+	ServerRPC_SelectedControllerType(OnPlayerRoleType);
+	
+	FString PlayerIdString = FString::FromInt(PlayerState->GetPlayerId());
+	FString EnumString = UEnum::GetValueAsString(CurrentPlayerRoleType);
+	GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Green,
+		FString::Printf(TEXT("Player ID: %s | Current Role: %s"), *PlayerIdString, *EnumString));
 }
 
 void APS3ChoiceController::OnClickedScreenTypeButton()
 {
+	if (PlayerState == nullptr) return;
 	
 	auto* PS3GameInstance = Cast<UPS3GameInstance>(GetGameInstance());
 	if (PS3GameInstance == nullptr) return;
@@ -68,6 +74,11 @@ void APS3ChoiceController::OnClickedScreenTypeButton()
 	
 	if (CurrentPlayerRoleType == OnPlayerRoleType) return;
 	ServerRPC_SelectedControllerType(OnPlayerRoleType);
-		
 	
+	
+	FString PlayerIdString = FString::FromInt(PlayerState->GetPlayerId());
+	FString EnumString = UEnum::GetValueAsString(CurrentPlayerRoleType);
+	GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Blue,
+		FString::Printf(TEXT("Player ID: %s | Current Role: %s"), *PlayerIdString, *EnumString));
 }
+

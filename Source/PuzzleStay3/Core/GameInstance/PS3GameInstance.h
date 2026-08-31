@@ -17,6 +17,7 @@ class PUZZLESTAY3_API UPS3GameInstance : public UGameInstance
 	GENERATED_BODY()
 	
 public:
+	FUniqueNetIdRepl DeathPlayerID;
 	
 	
 	TMap<FUniqueNetIdRepl, EPS3PlayerRoleType> ControllerTypesMap;
