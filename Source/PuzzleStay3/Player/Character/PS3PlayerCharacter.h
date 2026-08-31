@@ -46,7 +46,17 @@ private:
 	void HandleJumpStarted();
 
 	void HandleJumpCompleted();
+	
+	void HandleInteractStarted();
 
+	UFUNCTION(Server, Reliable)
+	void Server_TryInteract();
+
+	void HandleDropStarted();
+
+	UFUNCTION(Server, Reliable)
+	void Server_TryDropHeldObject();
+	
 
 
 protected:
@@ -61,8 +71,16 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PS3|Character|Input")
 	TObjectPtr<UInputAction> JumpAction;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="PS3|Character|Input")
+	TObjectPtr<UInputAction> InteractAction;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="PS3|Character|Interaction")
+	float InteractionDistance = 300.0f;
 
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="PS3|Character|Input")
+	TObjectPtr<UInputAction> DropAction;
 
 	
 };

@@ -8,6 +8,8 @@
 #include "InputMappingContext.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Player/PlayerState/PS3PlayerState.h"
+#include "Component/InteractionSwitchComponent.h"
+
 
 
 APS3PlayerCharacter::APS3PlayerCharacter()
@@ -55,6 +57,16 @@ void APS3PlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInput
 	{
 		EIC->BindAction(JumpAction, ETriggerEvent::Started, this, &ThisClass::HandleJumpStarted);
 		EIC->BindAction(JumpAction, ETriggerEvent::Completed, this, &ThisClass::HandleJumpCompleted);
+	}
+	
+	if (IsValid(InteractAction))
+	{
+		EIC->BindAction(InteractAction,ETriggerEvent::Started,this,&ThisClass::HandleInteractStarted);
+	}
+	
+	if (IsValid(DropAction))
+	{
+		EIC->BindAction(DropAction, ETriggerEvent::Started,this,&ThisClass::HandleDropStarted);
 	}
 }
 
@@ -123,4 +135,88 @@ void APS3PlayerCharacter::HandleJumpStarted()
 void APS3PlayerCharacter::HandleJumpCompleted()
 {
 	StopJumping();
+}
+
+void APS3PlayerCharacter::HandleDropStarted()
+{
+	if (!IsLocallyControlled() || !CanUseFieldControls())
+	{
+		return;
+	}
+
+	Server_TryDropHeldObject();
+}
+
+
+void APS3PlayerCharacter::Server_TryDropHeldObject_Implementation()
+{
+	if (!CanUseFieldControls())
+	{
+		return;
+	}
+
+	// 실제 드롭 컴포넌트가 생기면:
+	// GrabComponent->TryDropHeldObject();
+}
+
+//상호작용했다는 것을 서버에 알림
+void APS3PlayerCharacter::HandleInteractStarted()
+{
+	if (!CanUseFieldControls())
+	{
+		return;
+	}
+
+	Server_TryInteract();
+}
+
+void APS3PlayerCharacter::Server_TryInteract_Implementation()
+{
+	if (!IsValid(Controller) || !CanUseFieldControls())
+	{
+		return;
+	}
+
+	UWorld* World = GetWorld();
+	if (!IsValid(World))
+	{
+		return;
+	}
+
+	FVector ViewLocation;
+	FRotator ViewRotation;
+	Controller->GetPlayerViewPoint(ViewLocation, ViewRotation);
+
+	const FVector TraceEnd =
+		ViewLocation + ViewRotation.Vector() * InteractionDistance;
+
+	FCollisionQueryParams QueryParams(
+		SCENE_QUERY_STAT(PlayerInteractionTrace),
+		false,
+		this
+	);
+
+	FHitResult HitResult;
+	const bool bHit = World->LineTraceSingleByChannel(
+		HitResult,
+		ViewLocation,
+		TraceEnd,
+		ECC_Visibility,
+		QueryParams
+	);
+
+	if (!bHit || !IsValid(HitResult.GetActor()))
+	{
+		return;
+	}
+
+	UInteractionSwitchComponent* InteractionComponent =
+		HitResult.GetActor()->FindComponentByClass<UInteractionSwitchComponent>();
+
+	if (!IsValid(InteractionComponent))
+	{
+		return;
+	}
+
+	InteractionComponent->TryInteract(this);
 }
