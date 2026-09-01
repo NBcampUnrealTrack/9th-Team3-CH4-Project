@@ -4,7 +4,7 @@
 #include "Components/ActorComponent.h"
 #include "InteractionSwitchComponent.generated.h"
 
-// GameModeBase에서 바인딩하는 델리게이트 (bool bActivated)
+// GameModeBase에서 바인딩하는 델리게이트 
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnSwitchActivatedChanged, bool);
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
@@ -15,6 +15,7 @@ class PUZZLESTAY3_API UInteractionSwitchComponent : public UActorComponent
 public:
 	UInteractionSwitchComponent();
 
+	
 protected:
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
@@ -24,11 +25,12 @@ protected:
 	UPROPERTY(ReplicatedUsing = OnRep_IsActivated, VisibleAnywhere, BlueprintReadOnly, Category = "Gimmick")
 	bool bIsActivated = false;
 
+	// GameMode의 글로벌 퍼즐 스위치 목록에 등록할지 여부
+	// 일반 퍼즐 스위치는 true, 저울 버튼 등 독립 기믹 스위치는 false로 설정
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Gimmick")
+	bool bRegisterToGameMode = true;
+	
 public:
-	// 현재 이 스위치를 점유 중인 플레이어 (1명만 할당)
-	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, Category = "Gimmick|State")
-	TObjectPtr<AActor> OccupyingPlayer = nullptr;
-
 	// GameMode가 바인딩할 델리게이트
 	FOnSwitchActivatedChanged OnSwitchActivatedChanged;
 
@@ -37,11 +39,13 @@ public:
 	bool IsActivated() const { return bIsActivated; }
 
 	// PlayerCharacter F키 라인트레이스 수신 인터페이스에서 호출할 함수
-
-	// 서버 권위 진입점. RPC가 아님 — 캐릭터 쪽에서 이미 검증된 서버 RPC를 통해
-	// 넘어온 뒤에만 호출되어야 함. 반환값은 실제로 토글이 일어났는지 여부.
 	bool TryInteract(AActor* Requestor);
+	
+	void SetRegisterToGameMode(bool bRegister) { bRegisterToGameMode = bRegister; }
 
+	// 수동으로 스위치 상태를 Off(false)로 리셋하는 함수
+	void ResetSwitch();
+	
 protected:
 	UFUNCTION()
 	void OnRep_IsActivated();
