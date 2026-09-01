@@ -1,14 +1,12 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
-
-
+﻿
 #include "PS3GameModeBase.h"
 
+#include "GameFramework/PlayerState.h"
 #include "PuzzleStay3/Component/InteractionSwitchComponent.h"
 
 //bgimmick enum final,normal 
 //if (bgimmick - normal) {APS3GameModeBase::RegisterInteractionSwitch 등록하렴}
 //else(bgimmick - final) {finalRegisterInteractionSwitch 등록하렴
-
 
 void APS3GameModeBase::BeginPlay()
 {
@@ -18,6 +16,13 @@ void APS3GameModeBase::BeginPlay()
 	{
 		OpenEscapeDoor();
 	}
+}
+
+void APS3GameModeBase::PostLogin(APlayerController* NewPlayer)
+{
+	Super::PostLogin(NewPlayer);
+	
+	NewPlayer->PlayerState->GetUniqueId();
 }
 
 void APS3GameModeBase::RegisterInteractionSwitch(UInteractionSwitchComponent* SwitchComp)
@@ -73,3 +78,4 @@ void APS3GameModeBase::DisableBlockingVolumes()
 {
 	OnBlockingVolumeDisabled.Broadcast();
 }
+
