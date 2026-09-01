@@ -11,6 +11,12 @@ class PUZZLESTAY3_API ADumbbell : public AActor
 	
 public:	
 	ADumbbell();
+	
+	// 캐릭터가 덤벨을 집을 때 호출 (서버 전용)
+	void Grab(USceneComponent* TargetParent);
+
+	// 캐릭터가 덤벨을 놓을 때 호출 (서버 전용)
+	void Drop();
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")

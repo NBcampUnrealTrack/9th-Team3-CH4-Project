@@ -81,13 +81,13 @@ bool UOverlapSwitchComponent::IsValidOverlapActor(AActor* TargetActor) const
 		return false;
 	}
 
-	// 1. 캐릭터(플레이어) 감지
-	if (TargetActor->IsA<ACharacter>())
-	{
-		return true;
-	}
+	// 캐릭터(플레이어) 감지
+	// if (TargetActor->IsA<ACharacter>())
+	// {
+	// 	return true;
+	// }
 
-	// 2. 무게추(Dumbbell) 감지
+	// Dumbbell 감지
 	if (TargetActor->IsA<ADumbbell>())
 	{
 		return true;
