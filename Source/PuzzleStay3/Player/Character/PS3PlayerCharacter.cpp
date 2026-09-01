@@ -33,7 +33,12 @@ APS3PlayerCharacter::APS3PlayerCharacter()
 bool APS3PlayerCharacter::CanUseFieldControls() const
 {
 	const APS3PlayerState* PS3PlayerState = GetPlayerState<APS3PlayerState>();
-	return !IsValid(PS3PlayerState) || PS3PlayerState->GetPlayerRole() != EPS3PlayerRole::Screen;
+	if (!IsValid(PS3PlayerState)|| PS3PlayerState->GetPlayerRole() != EPS3PlayerRole::Field)
+	{
+		return false;
+	}
+
+	return true;
 }
 
 
