@@ -11,9 +11,9 @@ UInteractionSwitchComponent::UInteractionSwitchComponent()
 void UInteractionSwitchComponent::BeginPlay()
 {
 	Super::BeginPlay();
-	
-	// 서버 권한을 가진 GameMode에 자신을 자동 등록
-	if (GetOwner() && GetOwner()->HasAuthority())
+
+	// bRegisterToGameMode가 true일 때만 서버 권한을 가진 GameMode에 자신을 자동 등록
+	if (bRegisterToGameMode && GetOwner() && GetOwner()->HasAuthority())
 	{
 		if (UWorld* World = GetWorld())
 		{
@@ -29,7 +29,7 @@ void UInteractionSwitchComponent::BeginPlay()
 void UInteractionSwitchComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	// 액터/컴포넌트 파괴 시 GameMode에서 해제
-	if (GetOwner() && GetOwner()->HasAuthority())
+	if (bRegisterToGameMode && GetOwner() && GetOwner()->HasAuthority())
 	{
 		if (UWorld* World = GetWorld())
 		{
@@ -65,6 +65,15 @@ bool UInteractionSwitchComponent::TryInteract(AActor* Requestor)
 	OnRep_IsActivated();
 
 	return true;
+}
+
+void UInteractionSwitchComponent::ResetSwitch()
+{
+	if (GetOwner() && GetOwner()->HasAuthority())
+	{
+		bIsActivated = false;
+		OnRep_IsActivated();
+	}
 }
 
 void UInteractionSwitchComponent::OnRep_IsActivated()
