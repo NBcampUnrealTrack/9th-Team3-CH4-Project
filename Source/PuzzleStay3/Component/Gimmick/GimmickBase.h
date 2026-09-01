@@ -5,6 +5,7 @@
 #include "GimmickBase.generated.h"
 
 class USceneComponent;
+class UStaticMeshComponent;
 
 UCLASS(Abstract, Blueprintable)
 class PUZZLESTAY3_API AGimmickBase : public AActor
@@ -34,6 +35,9 @@ protected:
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Gimmick")
 	TObjectPtr<USceneComponent> Root;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Gimmick")
+	TObjectPtr<UStaticMeshComponent> GimmickMesh;
 	
 	UPROPERTY(ReplicatedUsing = OnRep_IsActive, BlueprintReadOnly, Category = "Gimmick")
 	bool bIsActive = true;

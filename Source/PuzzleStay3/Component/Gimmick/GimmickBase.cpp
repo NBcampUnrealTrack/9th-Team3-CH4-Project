@@ -1,6 +1,7 @@
 #include "GimmickBase.h"
 
 #include "Components/SceneComponent.h"
+#include "Components/StaticMeshComponent.h"
 #include "Net/UnrealNetwork.h"
 
 AGimmickBase::AGimmickBase()
@@ -11,6 +12,10 @@ AGimmickBase::AGimmickBase()
 	Root = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
 	SetRootComponent(Root);
 
+	GimmickMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("GimmickMesh"));
+	GimmickMesh->SetupAttachment(Root);
+	// 각 기믹의 실제 충돌은 전용 컴포넌트가 담당합니다.
+	GimmickMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
 void AGimmickBase::BeginPlay()
