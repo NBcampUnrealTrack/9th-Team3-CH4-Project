@@ -125,12 +125,11 @@ void APS3PlayerCharacter::Server_TryInteract_Implementation()
 		return;
 	}
 
-	FVector ViewLocation;
-	FRotator ViewRotation;
-	Controller->GetPlayerViewPoint(ViewLocation, ViewRotation);
+	const FVector TraceStart = GetPawnViewLocation();
+	const FRotator TraceRotation = Controller->GetControlRotation();
 
 	const FVector TraceEnd =
-		ViewLocation + ViewRotation.Vector() * InteractionDistance;
+		TraceStart + TraceRotation.Vector() * InteractionDistance;
 
 	FCollisionQueryParams QueryParams(
 		SCENE_QUERY_STAT(PlayerInteractionTrace),
@@ -141,7 +140,7 @@ void APS3PlayerCharacter::Server_TryInteract_Implementation()
 	FHitResult HitResult;
 	const bool bHit = World->LineTraceSingleByChannel(
 		HitResult,
-		ViewLocation,
+		TraceStart,
 		TraceEnd,
 		ECC_Visibility,
 		QueryParams
