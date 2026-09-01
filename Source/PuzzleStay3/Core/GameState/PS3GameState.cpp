@@ -2,7 +2,6 @@
 
 
 #include "PS3GameState.h"
-#include "Data/Enum/PS3PlayerRoleType.h"
 
 
 /*void APS3GameState::SetControllerEType(const FUniqueNetIdRepl& SetPlayerID, EPS3PlayerRoleType SetControllerType)

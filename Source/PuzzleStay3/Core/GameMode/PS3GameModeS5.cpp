@@ -4,6 +4,7 @@
 #include "PS3GameModeS5.h"
 
 #include "Core/GameState/PS3GameState.h"
+#include "Data/Enum/PS3PlayerRole.h"
 #include "GameFramework/GameSession.h"
 #include "GameFramework/PlayerStart.h"
 #include "GameFramework/PlayerState.h"
@@ -40,27 +41,27 @@ void APS3GameModeS5::OnReduceGameTime()
 }
 
 
-void APS3GameModeS5::SetPlayerControllerRole(APlayerController* CurrentController, EPS3PlayerRoleType SelectedPlayerRoleType)
+void APS3GameModeS5::SetPlayerControllerRole(APlayerController* CurrentController, EPS3PlayerRole SelectedPlayerRoleType)
 {
 	if (IsValid(CurrentController) == false) return;
 	
 	//TODO 디버그 매세지 나중에 삭제하기
 	FString ControllerName = CurrentController->GetName(); // 예: PS3ChoiceController_0, PS3ChoiceController_1
-	if (SelectedPlayerRoleType == EPS3PlayerRoleType::PlayerRole_ThirdPerson && bIsTakeThirdPersonControllerType == true)
+	if (SelectedPlayerRoleType == EPS3PlayerRole::Field && bIsTakeThirdPersonControllerType == true)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("3인칭조작 컨트롤러는 [%s]에게 이미 할당 되어있습니다."), *ControllerName);
 		return;
 	}
 	
-	if (SelectedPlayerRoleType == EPS3PlayerRoleType::PlayerRole_Screen && bIsTakeScreenControllerType == true)
+	if (SelectedPlayerRoleType == EPS3PlayerRole::Screen && bIsTakeScreenControllerType == true)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("스크린조작 컨트롤러는 [%s]에게 이미 할당 되어있습니다."), *ControllerName);
 		return; 
 	}
 	
-	EPS3PlayerRoleType CurrentPlayerRoleType = SelectedPlayerRoleType;
+	EPS3PlayerRole CurrentPlayerRoleType = SelectedPlayerRoleType;
 	
-	if (CurrentPlayerRoleType == EPS3PlayerRoleType::PlayerRole_ThirdPerson)
+	if (CurrentPlayerRoleType == EPS3PlayerRole::Field)
 	{
 		bIsTakeThirdPersonControllerType = true;
 		UE_LOG(LogTemp, Warning, TEXT("3인칭조작 플레이어 생성"));
@@ -68,7 +69,7 @@ void APS3GameModeS5::SetPlayerControllerRole(APlayerController* CurrentControlle
 		
 	}
 	
-	if (CurrentPlayerRoleType == EPS3PlayerRoleType::PlayerRole_Screen)
+	if (CurrentPlayerRoleType == EPS3PlayerRole::Screen)
 	{
 		bIsTakeScreenControllerType = true;
 		UE_LOG(LogTemp, Warning, TEXT("스크린조작 플레이어 생성"));
@@ -76,7 +77,7 @@ void APS3GameModeS5::SetPlayerControllerRole(APlayerController* CurrentControlle
 		
 	}	
 	
-	if (CurrentPlayerRoleType == EPS3PlayerRoleType::PlayerRole_None)
+	if (CurrentPlayerRoleType == EPS3PlayerRole::Unassigned)
 	{
 		return;
 	}
