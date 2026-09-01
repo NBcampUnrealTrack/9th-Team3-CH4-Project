@@ -6,7 +6,7 @@
 #include "GameFramework/PlayerController.h"
 #include "PS3ChoiceController.generated.h"
 
-enum class EPS3PlayerRole : uint8;
+enum class EPS3PlayerRoleType : uint8;
 /**
  * 
  */
@@ -28,7 +28,7 @@ public:
 	TObjectPtr<UUserWidget> UIWidgetInstance;
 
 	UFUNCTION(Server, Reliable)
-	void ServerRPC_SelectedControllerType(EPS3PlayerRole SelectedPlayerRoleType);
+	void ServerRPC_SelectedControllerType(EPS3PlayerRoleType SelectedPlayerRoleType);
 	
 	UFUNCTION(BlueprintCallable, Category = "Test")
 	void OnClickedThirdPersonTypeButton();
