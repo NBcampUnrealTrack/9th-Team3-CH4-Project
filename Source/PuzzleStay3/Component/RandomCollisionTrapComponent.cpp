@@ -1,105 +1,158 @@
 #include "Component/RandomCollisionTrapComponent.h"
-#include "Object/RandomCollisionTrap.h"
+#include "Components/StaticMeshComponent.h"
+#include "Net/UnrealNetwork.h"
 
-//테스트용 생성
+URandomCollisionTrapComponent::URandomCollisionTrapComponent()
+{
+	SetIsReplicatedByDefault(true);
+
+	SetCollisionEnabled(ECollisionEnabled::NoCollision);
+}
+
 void URandomCollisionTrapComponent::BeginPlay()
 {
     Super::BeginPlay();
+    
+    SpawnPlatforms();
+    ApplyCollisionLayoutToPlatforms();
+    
+    //테스트용--
+    if (GetOwner() && GetOwner()->HasAuthority())
+    {
+        const TArray<bool> TestCollisionLayout =
+        {
+            true, false,
+            false, true,
+            true, false,
+            true, false,
+            false, true,
+            false, true,
+            true, false,
+            false, true,
+            true, false,
+            false, true
+        };
 
+        ApplyCollisionLayout(TestCollisionLayout);
+    }
+    //테스트용--
+}
+
+void URandomCollisionTrapComponent::ApplyCollisionLayout(
+    const TArray<bool>& InCollisionLayout)
+{
     if (!GetOwner() || !GetOwner()->HasAuthority())
     {
         return;
     }
 
-    InitializePlatforms(InitialSeed);
-}
-
-URandomCollisionTrapComponent::URandomCollisionTrapComponent()
-{
-	PrimaryComponentTick.bCanEverTick = false;
-}
-
-void URandomCollisionTrapComponent::InitializePlatforms(int32 InSeed)
-{
-    if (!GetOwner() || !GetOwner()->HasAuthority())
+    const int32 ExpectedPlatformCount = RowCount * ColumnCount;
+    if (InCollisionLayout.Num() != ExpectedPlatformCount)
     {
         return;
     }
 
     SpawnPlatforms();
-    ApplyRandomCollisionLayout(InSeed);
-}
 
-void URandomCollisionTrapComponent::ResetPlatforms(int32 InSeed)
-{
-    if (!GetOwner() || !GetOwner()->HasAuthority())
+    CollisionLayout.SetNum(ExpectedPlatformCount);
+    for (int32 Index = 0; Index < ExpectedPlatformCount; ++Index)
     {
-        return;
+        CollisionLayout[Index] = InCollisionLayout[Index] ? 1 : 0;
     }
 
-    ApplyRandomCollisionLayout(InSeed);
+    ApplyCollisionLayoutToPlatforms();
+    GetOwner()->ForceNetUpdate();
+}
+
+void URandomCollisionTrapComponent::OnRep_CollisionLayout()
+{
+    SpawnPlatforms();
+    ApplyCollisionLayoutToPlatforms();
 }
 
 void URandomCollisionTrapComponent::SpawnPlatforms()
 {
-    if (Platforms.Num() > 0 || !TrapClass)
+    if (PlatformMeshes.Num() > 0 || PlatformCollisions.Num() > 0)
     {
         return;
     }
 
     AActor* Owner = GetOwner();
-    UWorld* World = GetWorld();
+    if (!Owner)
+    {
+        return;
+    }
+
+    const int32 PlatformCount = RowCount * ColumnCount;
+    PlatformMeshes.Reserve(PlatformCount);
+    PlatformCollisions.Reserve(PlatformCount);
 
     for (int32 Row = 0; Row < RowCount; ++Row)
     {
         for (int32 Column = 0; Column < ColumnCount; ++Column)
         {
+            const int32 Index = Row * ColumnCount + Column;
             const FVector LocalLocation =
                 StartLocalLocation
                 + RowLocalOffset * Row
                 + ColumnLocalOffset * Column;
 
-            const FVector WorldLocation =
-                Owner->GetActorTransform().TransformPosition(LocalLocation);
+            const FName MeshName(*FString::Printf(TEXT("PlatformMesh_%02d"), Index));
+            UStaticMeshComponent* PlatformMesh =
+                NewObject<UStaticMeshComponent>(Owner, MeshName);
 
-            ARandomCollisionTrap* NewPlatfrom =
-                World->SpawnActor<ARandomCollisionTrap>(
-                    TrapClass,
-                    WorldLocation,
-                    Owner->GetActorRotation());
+            PlatformMesh->SetStaticMesh(PlatformMeshAsset);
+            PlatformMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+            PlatformMesh->SetupAttachment(this);
+            PlatformMesh->SetRelativeLocation(LocalLocation);
+            PlatformMesh->RegisterComponent();
 
-            if (NewPlatfrom)
+            const FName CollisionName(
+                *FString::Printf(TEXT("PlatformCollision_%02d"), Index));
+            UBoxComponent* PlatformCollision =
+                NewObject<UBoxComponent>(Owner, CollisionName);
+
+            PlatformCollision->SetupAttachment(PlatformMesh);
+
+            if (PlatformMeshAsset)
             {
-                NewPlatfrom->AttachToActor(
-                    Owner,
-                    FAttachmentTransformRules::KeepWorldTransform);
+                const FBoxSphereBounds MeshBounds = PlatformMeshAsset->GetBounds();
 
-                Platforms.Add(NewPlatfrom);
+                PlatformCollision->SetBoxExtent(MeshBounds.BoxExtent);
+                PlatformCollision->SetRelativeLocation(MeshBounds.Origin);
             }
+
+            PlatformCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+            PlatformCollision->SetCollisionResponseToAllChannels(ECR_Ignore);
+            PlatformCollision->SetCollisionResponseToChannel(ECC_Pawn, ECR_Block);
+            PlatformCollision->RegisterComponent();
+
+            PlatformMeshes.Add(PlatformMesh);
+            PlatformCollisions.Add(PlatformCollision);
         }
     }
 }
 
-void URandomCollisionTrapComponent::ApplyRandomCollisionLayout(int32 InSeed)
+void URandomCollisionTrapComponent::ApplyCollisionLayoutToPlatforms()
 {
-    if (Platforms.Num() != RowCount * ColumnCount)
+    if (CollisionLayout.Num() != PlatformCollisions.Num())
     {
         return;
     }
 
-    FRandomStream RandomStream(InSeed);
-
-    for (int32 Row = 0; Row < RowCount; ++Row)
+    for (int32 Index = 0; Index < PlatformCollisions.Num(); ++Index)
     {
-        // 0이면 왼쪽 발판 안전, 1이면 오른쪽 발판 안전
-        const int32 SafeColumn = RandomStream.RandRange(0, 1);
-
-        for (int32 Column = 0; Column < ColumnCount; ++Column)
-        {
-            const int32 PanelIndex = Row * ColumnCount + Column;
-            const bool bEnableCollision = (Column == SafeColumn);
-
-            Platforms[PanelIndex]->SetPlatformCollision(bEnableCollision);
-        }
+        PlatformCollisions[Index]->SetCollisionEnabled(
+            CollisionLayout[Index] == 1
+                ? ECollisionEnabled::QueryAndPhysics
+                : ECollisionEnabled::NoCollision);
     }
+}
+
+void URandomCollisionTrapComponent::GetLifetimeReplicatedProps(
+    TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+    Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+    DOREPLIFETIME(URandomCollisionTrapComponent, CollisionLayout);
 }
