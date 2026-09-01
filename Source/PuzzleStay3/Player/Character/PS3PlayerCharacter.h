@@ -2,7 +2,6 @@
 #pragma once
 
 #include "GameFramework/Character.h"
-#include "InputActionValue.h"
 #include "PS3PlayerCharacter.generated.h"
 
 class UUW_HPText;
@@ -10,8 +9,6 @@ class UDXHPTextWidgetComponent;
 class UDXStatusComponent;
 class UCameraComponent;
 class USpringArmComponent;
-class UInputMappingContext;
-class UInputAction;
 
 UCLASS()
 class PUZZLESTAY3_API APS3PlayerCharacter : public ACharacter
@@ -22,12 +19,15 @@ class PUZZLESTAY3_API APS3PlayerCharacter : public ACharacter
 public:
 	APS3PlayerCharacter();
 
-	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
-
-	virtual void BeginPlay() override;
-
 	UFUNCTION(BlueprintPure, Category = "PS3|Character")
 	bool CanUseFieldControls() const;
+
+	void Move(const FVector2D& InMovementVector);
+	void Look(const FVector2D& InLookVector);
+	void StartJump();
+	void StopJump();
+	void TryInteract();
+	void TryDropHeldObject();
 	
 
 protected:
@@ -37,50 +37,13 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "PS3|Character|Components")
 	TObjectPtr<UCameraComponent> Camera;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PS3|Character|Interaction")
+	float InteractionDistance = 300.0f;
 
 private:
-	void HandleMoveInput(const FInputActionValue& InValue);
-
-	void HandleLookInput(const FInputActionValue& InValue);
-
-	void HandleJumpStarted();
-
-	void HandleJumpCompleted();
-	
-	void HandleInteractStarted();
-
 	UFUNCTION(Server, Reliable)
 	void Server_TryInteract();
 
-	void HandleDropStarted();
-
 	UFUNCTION(Server, Reliable)
 	void Server_TryDropHeldObject();
-	
-
-
-protected:
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PS3|Character|Input")
-	TObjectPtr<UInputMappingContext> InputMappingContext;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PS3|Character|Input")
-	TObjectPtr<UInputAction> MoveAction;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PS3|Character|Input")
-	TObjectPtr<UInputAction> LookAction;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PS3|Character|Input")
-	TObjectPtr<UInputAction> JumpAction;
-	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="PS3|Character|Input")
-	TObjectPtr<UInputAction> InteractAction;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="PS3|Character|Interaction")
-	float InteractionDistance = 300.0f;
-
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="PS3|Character|Input")
-	TObjectPtr<UInputAction> DropAction;
-
-	
 };

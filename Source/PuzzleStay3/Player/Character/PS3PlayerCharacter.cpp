@@ -1,11 +1,8 @@
 
 #include "PS3PlayerCharacter.h"
 
-#include "EnhancedInputSubsystems.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
-#include "EnhancedInputComponent.h"
-#include "InputMappingContext.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Player/PlayerState/PS3PlayerState.h"
 #include "Component/InteractionSwitchComponent.h"
@@ -33,60 +30,6 @@ APS3PlayerCharacter::APS3PlayerCharacter()
 	Camera->SetupAttachment(SpringArm, USpringArmComponent::SocketName);
 }
 
-void APS3PlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
-{
-	Super::SetupPlayerInputComponent(PlayerInputComponent);
-
-	UEnhancedInputComponent* EIC = Cast<UEnhancedInputComponent>(PlayerInputComponent);
-	if (!IsValid(EIC))
-	{
-		return;
-	}
-
-	if (IsValid(MoveAction))
-	{
-		EIC->BindAction(MoveAction, ETriggerEvent::Triggered, this, &ThisClass::HandleMoveInput);
-	}
-
-	if (IsValid(LookAction))
-	{
-		EIC->BindAction(LookAction, ETriggerEvent::Triggered, this, &ThisClass::HandleLookInput);
-	}
-
-	if (IsValid(JumpAction))
-	{
-		EIC->BindAction(JumpAction, ETriggerEvent::Started, this, &ThisClass::HandleJumpStarted);
-		EIC->BindAction(JumpAction, ETriggerEvent::Completed, this, &ThisClass::HandleJumpCompleted);
-	}
-	
-	if (IsValid(InteractAction))
-	{
-		EIC->BindAction(InteractAction,ETriggerEvent::Started,this,&ThisClass::HandleInteractStarted);
-	}
-	
-	if (IsValid(DropAction))
-	{
-		EIC->BindAction(DropAction, ETriggerEvent::Started,this,&ThisClass::HandleDropStarted);
-	}
-}
-
-
-void APS3PlayerCharacter::BeginPlay()
-{
-	Super::BeginPlay();
-
-	if (IsLocallyControlled() && IsValid(InputMappingContext))
-	{
-		if (const APlayerController* PC = Cast<APlayerController>(GetController()))
-		{
-			if (UEnhancedInputLocalPlayerSubsystem* InputSubsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PC->GetLocalPlayer()))
-			{
-				InputSubsystem->AddMappingContext(InputMappingContext, 0);
-			}
-		}
-	}
-}
-
 bool APS3PlayerCharacter::CanUseFieldControls() const
 {
 	const APS3PlayerState* PS3PlayerState = GetPlayerState<APS3PlayerState>();
@@ -94,11 +37,9 @@ bool APS3PlayerCharacter::CanUseFieldControls() const
 }
 
 
-void APS3PlayerCharacter::HandleMoveInput(const FInputActionValue& InValue)
+void APS3PlayerCharacter::Move(const FVector2D& InMovementVector)
 {
 	if (!IsValid(Controller) || !CanUseFieldControls()) return;
-
-	const FVector2D InMovementVector = InValue.Get<FVector2D>();
 
 	const FRotator ControlRotation = Controller->GetControlRotation();
 	const FRotator ControlYawRotation(0.0f, ControlRotation.Yaw, 0.0f);
@@ -110,21 +51,18 @@ void APS3PlayerCharacter::HandleMoveInput(const FInputActionValue& InValue)
 	AddMovementInput(RightDirection, InMovementVector.Y);
 }
 
-void APS3PlayerCharacter::HandleLookInput(const FInputActionValue& InValue)
+void APS3PlayerCharacter::Look(const FVector2D& InLookVector)
 {
 	if (!IsValid(Controller) || !CanUseFieldControls()) return;
 
-
-	if (IsLocallyControlled() == true)
+	if (IsLocallyControlled())
 	{
-		const FVector2D InLookVector = InValue.Get<FVector2D>();
-
 		AddControllerYawInput(InLookVector.X);
 		AddControllerPitchInput(InLookVector.Y);
 	}
 }
 
-void APS3PlayerCharacter::HandleJumpStarted()
+void APS3PlayerCharacter::StartJump()
 {
 	if (CanUseFieldControls())
 	{
@@ -132,12 +70,12 @@ void APS3PlayerCharacter::HandleJumpStarted()
 	}
 }
 
-void APS3PlayerCharacter::HandleJumpCompleted()
+void APS3PlayerCharacter::StopJump()
 {
 	StopJumping();
 }
 
-void APS3PlayerCharacter::HandleDropStarted()
+void APS3PlayerCharacter::TryDropHeldObject()
 {
 	if (!IsLocallyControlled() || !CanUseFieldControls())
 	{
@@ -159,10 +97,9 @@ void APS3PlayerCharacter::Server_TryDropHeldObject_Implementation()
 	// GrabComponent->TryDropHeldObject();
 }
 
-//상호작용했다는 것을 서버에 알림
-void APS3PlayerCharacter::HandleInteractStarted()
+void APS3PlayerCharacter::TryInteract()
 {
-	if (!CanUseFieldControls())
+	if (!IsLocallyControlled() || !CanUseFieldControls())
 	{
 		return;
 	}
