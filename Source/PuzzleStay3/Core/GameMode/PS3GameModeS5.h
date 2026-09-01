@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "PS3GamemodeBase.h"
-#include "Data/Enum/PS3PlayerRoleType.h"
 #include "PS3GameModeS5.generated.h"
 
 class APS3PlayerCharacter;

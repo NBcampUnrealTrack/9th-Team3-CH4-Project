@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "Engine/GameInstance.h"
-#include "PuzzleStay3/Data/Enum/PS3PlayerRoleType.h"
 #include "PS3GameInstance.generated.h"
 
 
