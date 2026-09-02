@@ -5,7 +5,7 @@
 
 #include "Blueprint/UserWidget.h"
 #include "Core/GameMode/PS3GameModeS5.h"
-#include "Core/GameState/PS3GameState.h"
+#include "Core/GameState/PS3GameStateS5.h"
 #include "Data/Enum/PS3PlayerRole.h"
 #include "GameFramework/PlayerState.h"
 #include "Kismet/GameplayStatics.h"
@@ -42,12 +42,16 @@ void APS3ChoiceController::ServerRPC_SelectedControllerType_Implementation(EPS3P
 	
 	PS3GameModeS5->SetPlayerControllerRole(this, SelectedPlayerRoleType);
 	
+	if (PS3GameModeS5->RoleSelectedPlayerCount >= PS3GameModeS5->MaxPlayerCount)
+	{
+		PS3GameModeS5->OnGameStart();
+	}
 }
 
-void APS3ChoiceController::OnClickedThirdPersonTypeButton()
+void APS3ChoiceController::OnClickedFieldTypeButton()
 {
-	if (bIsSelectedThirdPersonType == true) return;
-	bIsSelectedThirdPersonType = true;
+	if (bIsSelectedFieldType == true) return;
+	bIsSelectedFieldType = true;
 	
 	ServerRPC_SelectedControllerType(EPS3PlayerRole::Field);
 }
