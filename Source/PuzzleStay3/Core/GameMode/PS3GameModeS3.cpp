@@ -1,9 +1,10 @@
 ﻿
 #include "PS3GameModeS3.h"
 
-#include "Component/CustomVoiceComponent.h"
+#include "PuzzleStay3/Component/CustomVoiceComponent.h"
 #include "GameFramework/GameStateBase.h"
 #include "Player/PlayerState/PS3PlayerState.h"
+
 
 void APS3GameModeS3::BeginPlay()
 {

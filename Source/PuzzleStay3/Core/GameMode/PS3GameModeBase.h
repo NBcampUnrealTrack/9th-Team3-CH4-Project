@@ -81,7 +81,6 @@ public:
 	FOnEscapeDoorOpened OnEscapeDoorOpened;
 
 protected:
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GameRule")
 	bool bEscapeDoorOpened = false;
 
 private:
@@ -121,7 +120,19 @@ private:
 #pragma region StageClear
 
 protected:
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "GameRule|StageClear")
+	FName NextStageLevelName;
+
+	// 모든 스위치 활성화 후 다음 스테이지로 넘어가기까지 대기 시간.
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "GameRule|StageClear")
+	float StageClearDelay = 10.0f;
+	
 	//각 스테이지 클리어 시 사용할 가상함수
 	virtual void StageClear();
+	void CallStageClearIfTimerOver();
+
+private:
+	FTimerHandle StageClearTimerHandle;
+	bool bStageClearTimerStarted = false;
 #pragma endregion
 };
