@@ -4,8 +4,10 @@
 #include "GameFramework/Actor.h"
 #include "RealDeathTrap.generated.h"
 
-class UShapeComponent;
-class UStaticMeshComponent;
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(
+	FOnRealDeathTrapTriggered,
+	APawn*,
+	TriggeringPawn);
 
 UCLASS()
 class PUZZLESTAY3_API ARealDeathTrap : public AActor
@@ -15,6 +17,9 @@ class PUZZLESTAY3_API ARealDeathTrap : public AActor
 public:	
 	ARealDeathTrap();
 
+	UPROPERTY(BlueprintAssignable, Category = "Real Death Trap")
+	FOnRealDeathTrapTriggered OnRealDeathTrapTriggered;
+	
 protected:
 	virtual void BeginPlay() override;
 	
@@ -28,4 +33,8 @@ protected:
 	void OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, 
 						UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, 
 						bool bFromSweep, const FHitResult& SweepResult);
+	
+private:
+	
+	bool bTriggered = false;
 };

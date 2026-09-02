@@ -27,17 +27,24 @@ void ARealDeathTrap::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor*
 								   UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, 
 								   bool bFromSweep, const FHitResult& SweepResult)
 {
-	if (OtherActor && (OtherActor != this))
+	if (!HasAuthority() || bTriggered)
 	{
-		APawn* PlayerPawn = Cast<APawn>(OtherActor);
-		if (PlayerPawn && PlayerPawn->IsPlayerControlled())
-		{
-			if (GEngine)
-			{
-				GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Red, 
-					FString::Printf(TEXT("플레이어 오버랩 감지: %s"), *OtherActor->GetName()));
-			}
-		}
+		return;
+	}
+
+	APawn* PlayerPawn = Cast<APawn>(OtherActor);
+
+	if (!IsValid(PlayerPawn) || !PlayerPawn->IsPlayerControlled())
+	{
+		return;
+	}
+
+	bTriggered = true;
+
+	OnRealDeathTrapTriggered.Broadcast(PlayerPawn);
+	if (GEngine)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Red, 
+			FString::Printf(TEXT("플레이어 오버랩 감지: %s"), *OtherActor->GetName()));
 	}
 }
-
