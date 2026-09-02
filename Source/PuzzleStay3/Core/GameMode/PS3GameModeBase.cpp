@@ -7,9 +7,7 @@
 #include "Component/InteractionSwitchComponent.h"
 #include "Player/PlayerState/PS3PlayerState.h"
 
-//bgimmick enum final,normal 
-//if (bgimmick - normal) {APS3GameModeBase::RegisterInteractionSwitch 등록하렴}
-//else(bgimmick - final) {finalRegisterInteractionSwitch 등록하렴
+
 
 void APS3GameModeBase::BeginPlay()
 {
@@ -82,6 +80,7 @@ void APS3GameModeBase::OpenEscapeDoor()
 	if (bEscapeDoorOpened) return;
 	
 	bEscapeDoorOpened = true;
+	//OnEscapeDoorOpened.Broadcast(EDoorType::StageAllFinalDoor);
 	OnEscapeDoorOpened.Broadcast();
 	
 	CallStageClearIfTimerOver();
