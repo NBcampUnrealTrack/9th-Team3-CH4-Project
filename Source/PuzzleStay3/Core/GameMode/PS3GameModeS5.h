@@ -27,7 +27,10 @@ protected:
 	
 public:
 	void SetPlayerControllerRole(APlayerController* CurrentController, EPS3PlayerRole SelectedPlayerRoleType);
-	void PossessedControllerAndSpawn(APlayerController* OldController, TSubclassOf<APlayerController> NewControllerClass, TSubclassOf<APS3PlayerCharacter> NewCharacterClass);
+	void PossessedControllerAndSpawn(
+		APlayerController* OldController, 
+		TSubclassOf<APlayerController> NewControllerClass, 
+		TSubclassOf<APS3PlayerCharacter> NewCharacterClass);
 	
 	void OnGameStart();
 	void OnGameOver();
@@ -62,6 +65,21 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "GameRule|SwapController")
 	TSubclassOf<APlayerController> ScreenControllerClass;
 	
+protected:
+	void ConfigureSpawnFieldControllerPlayer(
+		APlayerController* OldController, 
+	TSubclassOf<APlayerController> NewControllerClass, 
+	TSubclassOf<APS3PlayerCharacter> NewCharacterClass,
+	FString TargetTag);
+	
+	void ConfigureScreenControllerPlayer(
+		APlayerController* OldController, 
+		TSubclassOf<APlayerController> NewControllerClass);
+	
+	void SpawnScreenControllerPlayer(APlayerController* OldController, 
+	TSubclassOf<APlayerController> NewControllerClass, 
+	TSubclassOf<APS3PlayerCharacter> NewCharacterClass,
+	FString TargetTag);
 	
 protected:
 	FTimerHandle AllPlayerReadyTimeHandle;
@@ -69,7 +87,7 @@ protected:
 
 	
 private:
-	FString FieldTagString = "FieldPlayer";
-	FString ScreenTagString = "ScreenPlayer" ;
+	FString FieldPlayerTagString = "FieldPlayer";
+	FString ScreenPlayerTagString = "ScreenPlayer" ;
 };
 
