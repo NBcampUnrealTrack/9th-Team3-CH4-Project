@@ -51,7 +51,8 @@ class PUZZLESTAY3_API APS3GameModeBase : public AGameModeBase
 
 public:
 	virtual void BeginPlay() override;
-	
+	virtual void PostLogin(APlayerController* NewPlayer) override;
+
 #pragma region InteractionSwitch
 public:
 	//b기믹스위치 스위치 개수 저장
@@ -87,12 +88,12 @@ private:
 
 #pragma endregion
 	
-#pragma region BlokingVolumeForStage1 //Stage1Mode한테 넘길지 고려
+#pragma region BlokingVolume
 public:
 	//블록볼륨 델리게이트
 	FOnBlockingVolumeDisabled OnBlockingVolumeDisabled;
 
-	void DisableBlockingVolume(EPS3StageNumber StageNumber);
+	virtual void DisableBlockingVolume(EPS3StageNumber StageNumber);
 	
 #pragma endregion
 	

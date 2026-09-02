@@ -10,6 +10,12 @@ class PUZZLESTAY3_API UVoiceChatIconWidget : public UUserWidget
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI|VoiceChatIcon")
-	bool bIsSpeaking = false;
+	UFUNCTION(BlueprintCallable, Category = "UI|VoiceChatIcon")
+	void ShowVoiceChatIcon();
+
+	UFUNCTION(BlueprintCallable, Category = "UI|VoiceChatIcon")
+	void HideVoiceChatIcon();
+
+	UFUNCTION(BlueprintCallable, Category = "UI|VoiceChatIcon")
+	void SetSpeaking(bool bInIsSpeaking);
 };
