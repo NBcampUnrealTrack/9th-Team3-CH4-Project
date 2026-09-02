@@ -19,6 +19,11 @@ void APS3GameModeBase::BeginPlay()
 	}
 }
 
+void APS3GameModeBase::PostLogin(APlayerController* NewPlayer)
+{
+	Super::PostLogin(NewPlayer);
+}
+
 void APS3GameModeBase::RegisterInteractionSwitch(UInteractionSwitchComponent* SwitchComp)
 {
 	if (!IsValid(SwitchComp)) return;
