@@ -23,16 +23,12 @@ void ADumbbell::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetim
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(ADumbbell, bIsHeld);
-	DOREPLIFETIME(ADumbbell, HoldingCharacter);
 }
 
 bool ADumbbell::TryInteract(AActor* Requestor)
 {
-	// 서버 권한 검증 (InteractionSwitchComponent와 동일 패턴)
-	if (!HasAuthority() || !Requestor) return false;
-
-	// 이미 누가 들고 있으면 새로 잡지 못함
-	if (bIsHeld) return false;
+	// 서버 권한 검증 및 누가 들고 있는지 확인 
+	if (!HasAuthority() || !Requestor || bIsHeld) return false;
 
 	ACharacter* RequestorCharacter = Cast<ACharacter>(Requestor);
 	if (!RequestorCharacter || !RequestorCharacter->GetMesh()) return false;
@@ -46,7 +42,11 @@ bool ADumbbell::TryInteract(AActor* Requestor)
 		FAttachmentTransformRules::SnapToTargetNotIncludingScale,
 		GrabSocketName
 	);
-
+	
+	// 캐릭터와 너무 붙지 않도록 GrabOffset 적용 (X, Y, Z 거리 조절)
+	SetActorRelativeLocation(GrabOffset);
+	SetActorRelativeRotation(GrabRotationOffset);
+	
 	// 서버 로컬에서는 OnRep이 자동 호출되지 않으므로 수동 호출
 	OnRep_bIsHeld();
 
@@ -59,8 +59,31 @@ void ADumbbell::TryDrop()
 
 	bIsHeld = false;
 	HoldingCharacter = nullptr;
-
+	
+	// 부착 해제
 	DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+
+	// 라인트레이스로 아래쪽 바닥 위치 탐색
+	FVector Start = GetActorLocation();
+	FVector End = Start - FVector(0.0f, 0.0f, 500.0f); // 아래쪽 5m 탐색
+
+	FHitResult HitResult;
+	FCollisionQueryParams QueryParams;
+	QueryParams.AddIgnoredActor(this); // 자기 자신 제외
+	if (HoldingCharacter)
+	{
+		QueryParams.AddIgnoredActor(HoldingCharacter); // 들고 있던 캐릭터 제외
+	}
+
+	// ECC_WorldStatic 및 WorldDynamic 채널 탐색
+	if (GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_Visibility, QueryParams))
+	{
+		// 메쉬 바운드 절반 높이만큼 띄워서 바닥에 파묻히지 않게 보정
+		const float HalfHeight = DumbbellMesh->Bounds.BoxExtent.Z;
+		SetActorLocation(HitResult.ImpactPoint + FVector(0.0f, 0.0f, HalfHeight));
+	}
+	
+	
 
 	OnRep_bIsHeld();
 }
