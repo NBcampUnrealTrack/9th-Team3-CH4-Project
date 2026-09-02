@@ -30,8 +30,8 @@ enum class ERandomCollisionState : uint8
 	BlockAll
 };
 
-//DECLARE_MULTICAST_DELEGATE_OneParam(FOnEscapeDoorOpened, EDoorType);
-DECLARE_MULTICAST_DELEGATE(FOnEscapeDoorOpened);
+
+
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnBlockingVolumeDisabled, EPS3StageNumber);
 
 UCLASS()
@@ -66,13 +66,6 @@ private:
 #pragma endregion
 
 #pragma region OpenDoor
-
-public:
-	//문열기 델리게이트
-	FOnEscapeDoorOpened OnEscapeDoorOpened;
-
-protected:
-	bool bEscapeDoorOpened = false;
 
 private:
 	void OpenEscapeDoor();

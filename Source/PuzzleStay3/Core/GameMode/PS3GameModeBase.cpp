@@ -5,6 +5,7 @@
 #include "GameFramework/PlayerState.h"
 #include "Kismet/GameplayStatics.h"
 #include "Component/InteractionSwitchComponent.h"
+#include "Core/GameState/PS3GameStateBase.h"
 #include "Player/PlayerState/PS3PlayerState.h"
 
 
@@ -77,11 +78,12 @@ void APS3GameModeBase::OpenEscapeDoor()
 {
 	
 	if (AllInteractionSwitchActivated() == false) return;
-	if (bEscapeDoorOpened) return;
 	
-	bEscapeDoorOpened = true;
-	//OnEscapeDoorOpened.Broadcast(EDoorType::StageAllFinalDoor);
-	OnEscapeDoorOpened.Broadcast();
+	APS3GameStateBase* GS = GetGameState<APS3GameStateBase>();
+	if (!IsValid(GS)) return;
+	if (GS->IsEscapeDoorOpened()) return;
+
+	GS->SetEscapeDoorOpened(true);
 	
 	CallStageClearIfTimerOver();
 }
