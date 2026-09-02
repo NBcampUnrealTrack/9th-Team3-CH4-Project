@@ -4,7 +4,6 @@
 #include "Stage1BlockingVolumeComponent.h"
 
 #include "Kismet/GameplayStatics.h"
-#include "PuzzleStay3/Core/GameMode/PS3GameModeBase.h"
 
 
 UStage1BlockingVolumeComponent::UStage1BlockingVolumeComponent()
@@ -23,7 +22,10 @@ void UStage1BlockingVolumeComponent::BeginPlay()
 	if (!IsValid(GameMode)) return;
 
 	BlockingVolumeDisabledHandle =
-		GameMode->OnBlockingVolumeDisabled.AddUObject(this, &UStage1BlockingVolumeComponent::DisableBlockingVolume);
+		GameMode->OnBlockingVolumeDisabled.AddUObject(
+			this, 
+			&UStage1BlockingVolumeComponent::DisableStage1BlockingVolume
+			);
 }
 
 void UStage1BlockingVolumeComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -39,7 +41,9 @@ void UStage1BlockingVolumeComponent::EndPlay(const EEndPlayReason::Type EndPlayR
 	Super::EndPlay(EndPlayReason);
 }
 
-void UStage1BlockingVolumeComponent::DisableBlockingVolume()
+void UStage1BlockingVolumeComponent::DisableStage1BlockingVolume(EPS3StageNumber StageNumber)
 {
+	if (StageNumber != EPS3StageNumber::Stage1) return;
+	
 	SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
