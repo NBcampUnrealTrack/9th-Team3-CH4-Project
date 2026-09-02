@@ -13,7 +13,10 @@ public:
 	ADumbbell();
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	
+	// 상호작용 요청 (서버 권한 컨텍스트에서 호출되어야 함)
 	bool TryInteract(AActor* Requestor);
+	
+	// 들고 있던 걸 놓기 (마찬가지로 서버 컨텍스트에서 호출)
 	void TryDrop();
 
 	// 저울 기믹에서 사용할 무게 Getter
@@ -44,13 +47,7 @@ protected:
 	void OnRep_bIsHeld();
 	
 private:
-	UFUNCTION(Server, Reliable)
-	void Server_TryInteract();
-
-	UFUNCTION(Server, Reliable)
-	void Server_TryDropHeldObject();
-
-	// 현재 들고 있는 덤벨 (서버 권한 로직에서만 사용)
+	// 현재 나를 들고 있는 캐릭터 (서버 전용 참조, 리플리케이트 안 함)
 	UPROPERTY()
-	TObjectPtr<ADumbbell> HeldDumbbell;
+	TObjectPtr<ACharacter> HoldingCharacter;
 };
