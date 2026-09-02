@@ -1,38 +1,64 @@
 #include "TimerNotifyWidget.h"
 
-#include "../ViewModel/PS3ViewModel.h"
+#include "Components/HorizontalBox.h"
+#include "TimerNotifyEntryWidget.h"
 
-void UTimerNotifyWidget::SetViewModel(UPS3ViewModel* InViewModel)
+void UTimerNotifyWidget::UpdateTimerNotify(float InDuration)
 {
-	ViewModel = InViewModel;
-}
-
-void UTimerNotifyWidget::UpdateTimerNotify(float InRemainingTime, float InTotalTime)
-{
-	if (!ViewModel)
+	if (!TimerContainer || !EntryWidgetClass)
 	{
 		return;
 	}
 
-	float Progress = 0.0f;
-
-	if (InTotalTime > 0.0f)
+	UTimerNotifyEntryWidget* TimerEntryWidget = CreateWidget<UTimerNotifyEntryWidget>(GetOwningPlayer(), EntryWidgetClass);
+	if (!TimerEntryWidget)
 	{
-		Progress = FMath::Clamp(
-			InRemainingTime / InTotalTime,
-			0.0f,
-			1.0f
-		);
+		return;
 	}
 
-	ViewModel->SetTimerNotifyProgress(Progress);
-	ViewModel->SetIsTimerNotifyVisible(true);
+	TimerEntryWidget->OnTimerFinished.AddUObject(this, &UTimerNotifyWidget::HandleTimerEntryFinished);
+	ActiveTimerEntries.Add(TimerEntryWidget);
+	TimerContainer->AddChild(TimerEntryWidget);
+	TimerEntryWidget->StartTimer(InDuration);
 }
 
 void UTimerNotifyWidget::HideTimerNotify()
 {
-	if (ViewModel)
+	for (UTimerNotifyEntryWidget* TimerEntryWidget : ActiveTimerEntries)
 	{
-		ViewModel->SetIsTimerNotifyVisible(false);
+		if (TimerEntryWidget)
+		{
+			TimerEntryWidget->OnTimerFinished.RemoveAll(this);
+			TimerEntryWidget->StopTimer();
+		}
+	}
+
+	ActiveTimerEntries.Reset();
+
+	if (TimerContainer)
+	{
+		TimerContainer->ClearChildren();
+	}
+}
+
+void UTimerNotifyWidget::NativeDestruct()
+{
+	HideTimerNotify();
+	Super::NativeDestruct();
+}
+
+void UTimerNotifyWidget::HandleTimerEntryFinished(UTimerNotifyEntryWidget* FinishedEntry)
+{
+	if (!FinishedEntry)
+	{
+		return;
+	}
+
+	FinishedEntry->OnTimerFinished.RemoveAll(this);
+	ActiveTimerEntries.Remove(FinishedEntry);
+
+	if (TimerContainer)
+	{
+		TimerContainer->RemoveChild(FinishedEntry);
 	}
 }

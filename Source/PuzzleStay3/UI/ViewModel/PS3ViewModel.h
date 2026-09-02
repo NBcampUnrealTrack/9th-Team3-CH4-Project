@@ -6,7 +6,7 @@
 
 class APlayerHUD;
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnDoorOpenRequested, int32, DoorIndex);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnDoorActivationRequested, int32, DoorIndex, bool, bIsActive);
 
 UCLASS(BlueprintType)
 class PUZZLESTAY3_API UPS3ViewModel : public UMVVMViewModelBase
@@ -33,7 +33,7 @@ public:
 	void RequestHideAllInteractionNotifies();
 
 	UFUNCTION(BlueprintCallable, Category = "UI|TimerNotify")
-	void RequestTimerNotify(float InRemainingTime, float InTotalTime);
+	void RequestTimerNotify(float InDuration);
 
 	UFUNCTION(BlueprintCallable, Category = "UI|TimerNotify")
 	void RequestHideTimerNotify();
@@ -69,24 +69,6 @@ public:
 	void SetIsInteractionNotifyVisible(bool bInIsInteractionNotifyVisible);
 
 	UFUNCTION(BlueprintPure, FieldNotify, Category = "UI|ViewModel")
-	float GetTimerNotifyProgress() const;
-
-	UFUNCTION(BlueprintCallable, Category = "UI|ViewModel")
-	void SetTimerNotifyProgress(float InTimerNotifyProgress);
-
-	UFUNCTION(BlueprintPure, FieldNotify, Category = "UI|ViewModel")
-	bool GetIsTimerNotifyVisible() const;
-
-	UFUNCTION(BlueprintCallable, Category = "UI|ViewModel")
-	void SetIsTimerNotifyVisible(bool bInIsTimerNotifyVisible);
-
-	UFUNCTION(BlueprintPure, FieldNotify, Category = "UI|ViewModel")
-	bool GetIsTutorialNotifyVisible() const;
-
-	UFUNCTION(BlueprintCallable, Category = "UI|ViewModel")
-	void SetIsTutorialNotifyVisible(bool bInIsTutorialNotifyVisible);
-
-	UFUNCTION(BlueprintPure, FieldNotify, Category = "UI|ViewModel")
 	bool GetIsDoor1Unlocked() const;
 
 	UFUNCTION(BlueprintCallable, Category = "UI|ViewModel")
@@ -111,16 +93,13 @@ public:
 	void SetIsDoor4Unlocked(bool bInIsDoor4Unlocked);
 
 	UFUNCTION(BlueprintCallable, Category = "UI|DoorOpenButton")
-	void RequestOpenDoor(int32 InDoorIndex);
+	void RequestDoorActivation(int32 InDoorIndex, bool bIsActive);
 
 	UPROPERTY(BlueprintAssignable, Category = "UI|DoorOpenButton")
-	FOnDoorOpenRequested OnDoorOpenRequested;
+	FOnDoorActivationRequested OnDoorActivationRequested;
 
-	UFUNCTION(BlueprintPure, FieldNotify, Category = "UI|ViewModel")
-	bool GetIsSpeaking() const;
-
-	UFUNCTION(BlueprintCallable, Category = "UI|ViewModel")
-	void SetIsSpeaking(bool bInIsSpeaking);
+	UFUNCTION(BlueprintCallable, Category = "UI|VoiceChatIcon")
+	void RequestVoiceChatSpeaking(bool bInIsSpeaking);
 
 	UFUNCTION(BlueprintPure, FieldNotify, Category = "UI|ViewModel")
 	bool GetIsOpen() const;
@@ -144,15 +123,6 @@ private:
 	UPROPERTY(BlueprintReadWrite, FieldNotify, Getter = "GetIsInteractionNotifyVisible", Setter = "SetIsInteractionNotifyVisible", Category = "UI|ViewModel", meta = (AllowPrivateAccess = "true"))
 	bool bIsInteractionNotifyVisible = false;
 
-	UPROPERTY(BlueprintReadWrite, FieldNotify, Getter, Setter, Category = "UI|ViewModel", meta = (AllowPrivateAccess = "true"))
-	float TimerNotifyProgress = 0.0f;
-
-	UPROPERTY(BlueprintReadWrite, FieldNotify, Getter = "GetIsTimerNotifyVisible", Setter = "SetIsTimerNotifyVisible", Category = "UI|ViewModel", meta = (AllowPrivateAccess = "true"))
-	bool bIsTimerNotifyVisible = false;
-
-	UPROPERTY(BlueprintReadWrite, FieldNotify, Getter = "GetIsTutorialNotifyVisible", Setter = "SetIsTutorialNotifyVisible", Category = "UI|ViewModel", meta = (AllowPrivateAccess = "true"))
-	bool bIsTutorialNotifyVisible = false;
-
 	UPROPERTY(BlueprintReadWrite, FieldNotify, Getter = "GetIsDoor1Unlocked", Setter = "SetIsDoor1Unlocked", Category = "UI|ViewModel", meta = (AllowPrivateAccess = "true"))
 	bool bIsDoor1Unlocked = false;
 
@@ -164,9 +134,6 @@ private:
 
 	UPROPERTY(BlueprintReadWrite, FieldNotify, Getter = "GetIsDoor4Unlocked", Setter = "SetIsDoor4Unlocked", Category = "UI|ViewModel", meta = (AllowPrivateAccess = "true"))
 	bool bIsDoor4Unlocked = false;
-
-	UPROPERTY(BlueprintReadWrite, FieldNotify, Getter = "GetIsSpeaking", Setter = "SetIsSpeaking", Category = "UI|ViewModel", meta = (AllowPrivateAccess = "true"))
-	bool bIsSpeaking = false;
 
 	UPROPERTY(BlueprintReadWrite, FieldNotify, Getter = "GetIsOpen", Setter = "SetIsOpen", Category = "UI|ViewModel", meta = (AllowPrivateAccess = "true"))
 	bool bIsOpen = false;

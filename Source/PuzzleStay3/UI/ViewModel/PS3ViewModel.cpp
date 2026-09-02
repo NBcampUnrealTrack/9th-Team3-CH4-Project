@@ -54,11 +54,11 @@ void UPS3ViewModel::RequestHideAllInteractionNotifies()
 	}
 }
 
-void UPS3ViewModel::RequestTimerNotify(float InRemainingTime, float InTotalTime)
+void UPS3ViewModel::RequestTimerNotify(float InDuration)
 {
 	if (PlayerHUD)
 	{
-		PlayerHUD->UpdateTimerNotify(InRemainingTime, InTotalTime);
+		PlayerHUD->UpdateTimerNotify(InDuration);
 	}
 }
 
@@ -126,36 +126,6 @@ void UPS3ViewModel::SetIsInteractionNotifyVisible(bool bInIsInteractionNotifyVis
 	UE_MVVM_SET_PROPERTY_VALUE(bIsInteractionNotifyVisible, bInIsInteractionNotifyVisible);
 }
 
-float UPS3ViewModel::GetTimerNotifyProgress() const
-{
-	return TimerNotifyProgress;
-}
-
-void UPS3ViewModel::SetTimerNotifyProgress(float InTimerNotifyProgress)
-{
-	UE_MVVM_SET_PROPERTY_VALUE(TimerNotifyProgress, InTimerNotifyProgress);
-}
-
-bool UPS3ViewModel::GetIsTimerNotifyVisible() const
-{
-	return bIsTimerNotifyVisible;
-}
-
-void UPS3ViewModel::SetIsTimerNotifyVisible(bool bInIsTimerNotifyVisible)
-{
-	UE_MVVM_SET_PROPERTY_VALUE(bIsTimerNotifyVisible, bInIsTimerNotifyVisible);
-}
-
-bool UPS3ViewModel::GetIsTutorialNotifyVisible() const
-{
-	return bIsTutorialNotifyVisible;
-}
-
-void UPS3ViewModel::SetIsTutorialNotifyVisible(bool bInIsTutorialNotifyVisible)
-{
-	UE_MVVM_SET_PROPERTY_VALUE(bIsTutorialNotifyVisible, bInIsTutorialNotifyVisible);
-}
-
 bool UPS3ViewModel::GetIsDoor1Unlocked() const
 {
 	return bIsDoor1Unlocked;
@@ -196,24 +166,22 @@ void UPS3ViewModel::SetIsDoor4Unlocked(bool bInIsDoor4Unlocked)
 	UE_MVVM_SET_PROPERTY_VALUE(bIsDoor4Unlocked, bInIsDoor4Unlocked);
 }
 
-void UPS3ViewModel::RequestOpenDoor(int32 InDoorIndex)
+void UPS3ViewModel::RequestDoorActivation(int32 InDoorIndex, bool bIsActive)
 {
 	if (InDoorIndex < 1 || InDoorIndex > 4)
 	{
 		return;
 	}
 
-	OnDoorOpenRequested.Broadcast(InDoorIndex);
+	OnDoorActivationRequested.Broadcast(InDoorIndex, bIsActive);
 }
 
-bool UPS3ViewModel::GetIsSpeaking() const
+void UPS3ViewModel::RequestVoiceChatSpeaking(bool bInIsSpeaking)
 {
-	return bIsSpeaking;
-}
-
-void UPS3ViewModel::SetIsSpeaking(bool bInIsSpeaking)
-{
-	UE_MVVM_SET_PROPERTY_VALUE(bIsSpeaking, bInIsSpeaking);
+	if (PlayerHUD)
+	{
+		PlayerHUD->UpdateVoiceChatIcon(bInIsSpeaking);
+	}
 }
 
 bool UPS3ViewModel::GetIsOpen() const

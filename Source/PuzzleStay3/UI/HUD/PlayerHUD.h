@@ -90,7 +90,7 @@ public:
 	void HideAllInteractionNotifies();
 
 	UFUNCTION(BlueprintCallable, Category = "UI|TimerNotify")
-	void UpdateTimerNotify(float InRemainingTime, float InTotalTime);
+	void UpdateTimerNotify(float InDuration);
 
 	UFUNCTION(BlueprintCallable, Category = "UI|TimerNotify")
 	void HideTimerNotify();
@@ -110,10 +110,14 @@ public:
 	);
 
 	UFUNCTION(BlueprintCallable, Category = "UI|DoorOpenButton")
-	void RequestOpenDoor(int32 InDoorIndex);
+	void RequestDoorActivation(int32 InDoorIndex, bool bIsActive);
+
+	UFUNCTION(BlueprintCallable, Category = "UI|VoiceChatIcon")
+	void UpdateVoiceChatIcon(bool bInIsSpeaking);
 
 protected:
 	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI|Widget")
 	TSubclassOf<UPS3RootHUDWidget> RootHUDWidgetClass;
@@ -129,4 +133,17 @@ protected:
 
 private:
 	void ApplyViewModelToWidgets();
+
+	// Temporary UI test code. Remove before opening the PR.
+	void UpdateTemporaryUITest();
+
+	UFUNCTION()
+	void HandleTemporaryDoorActivationTest(int32 DoorIndex, bool bIsActive);
+
+	FTimerHandle TemporaryUITestTimerHandle;
+	int32 TemporaryUITestElapsedSeconds = 0;
+	int32 LifeCountTestCurrentLife = 3;
+	int32 InteractionNotifyTestStep = 0;
+	int32 TimerNotifyTestStep = 0;
+	bool bVoiceChatIconTestSpeaking = false;
 };

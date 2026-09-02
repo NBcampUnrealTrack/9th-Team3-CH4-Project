@@ -1,11 +1,6 @@
 #include "InteractionNotifyWidget.h"
 
-#include "../ViewModel/PS3ViewModel.h"
-
-void UInteractionNotifyWidget::SetViewModel(UPS3ViewModel* InViewModel)
-{
-	ViewModel = InViewModel;
-}
+#include "Components/Image.h"
 
 void UInteractionNotifyWidget::ShowInteractionNotify(FName InNotifyId, const FText& InKeyName)
 {
@@ -15,7 +10,7 @@ void UInteractionNotifyWidget::ShowInteractionNotify(FName InNotifyId, const FTe
 	}
 
 	ActiveInteractionNotifies.Add(InNotifyId, InKeyName);
-	RefreshViewModel();
+	RefreshInteractionImage();
 }
 
 void UInteractionNotifyWidget::HideInteractionNotify(FName InNotifyId)
@@ -26,30 +21,51 @@ void UInteractionNotifyWidget::HideInteractionNotify(FName InNotifyId)
 	}
 
 	ActiveInteractionNotifies.Remove(InNotifyId);
-	RefreshViewModel();
+	RefreshInteractionImage();
 }
 
 void UInteractionNotifyWidget::HideAllInteractionNotifies()
 {
 	ActiveInteractionNotifies.Empty();
-	RefreshViewModel();
+	RefreshInteractionImage();
 }
 
-void UInteractionNotifyWidget::RefreshViewModel()
+void UInteractionNotifyWidget::RefreshInteractionImage()
 {
-	if (!ViewModel)
+	if (!InteractionImage)
 	{
 		return;
 	}
 
-	TArray<FText> InteractionKeyNames;
-	InteractionKeyNames.Reserve(ActiveInteractionNotifies.Num());
+	UTexture2D* TextureToShow = nullptr;
+	bool bHasFInteraction = false;
 
 	for (const TPair<FName, FText>& ActiveInteractionNotify : ActiveInteractionNotifies)
 	{
-		InteractionKeyNames.Add(ActiveInteractionNotify.Value);
+		const FString KeyName = ActiveInteractionNotify.Value.ToString();
+		if (KeyName.Equals(TEXT("G"), ESearchCase::IgnoreCase))
+		{
+			TextureToShow = GInteractionTexture;
+			break;
+		}
+
+		if (KeyName.Equals(TEXT("F"), ESearchCase::IgnoreCase))
+		{
+			bHasFInteraction = true;
+		}
 	}
 
-	ViewModel->SetInteractionKeyNames(InteractionKeyNames);
-	ViewModel->SetIsInteractionNotifyVisible(!InteractionKeyNames.IsEmpty());
+	if (!TextureToShow && bHasFInteraction)
+	{
+		TextureToShow = FInteractionTexture;
+	}
+
+	if (!TextureToShow)
+	{
+		InteractionImage->SetVisibility(ESlateVisibility::Collapsed);
+		return;
+	}
+
+	InteractionImage->SetBrushFromTexture(TextureToShow, false);
+	InteractionImage->SetVisibility(ESlateVisibility::Visible);
 }
