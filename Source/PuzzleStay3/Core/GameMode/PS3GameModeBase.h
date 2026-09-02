@@ -8,15 +8,16 @@
 class UInteractionSwitchComponent;
 class ADoor;
 
-DECLARE_MULTICAST_DELEGATE(FOnEscapeDoorOpened);
-DECLARE_MULTICAST_DELEGATE(FOnBlockingVolumeDisabled);
+//구현 완료
+//DisableBlockingVolumeCompo가 호출할 함수
+//Stage3BlockingVolumeCompo - 스테이지3 못가게 가로막는 블록볼륨
+//6.게임 오버 시 스테이지 재 시작하는 함수 StageRestart() -> 가상 함수
+//스테이지 클리어시 다음 스테이지 오픈하는 가상함수
 
 //구현예정
-//DisableBlockingVolumeCompo한테 알림받는 내용
-//Stage1BlockingVolumeCompo - 스테이지1 못가게 가로막는 블록볼륨
-//Stage3BlockingVolumeCompo - 스테이지3 못가게 가로막는 블록볼륨
-//두개 블록볼륨한테 각각 지시 내리는 내용
+// Stage3 블록볼륨한테 지시 내리는 내용
 
+//보류
 //5.스테이지 이동하는 탈출 문에 사용되는B기믹
 // b기믹1 <-p1 활성화! p1 enum = IsInteracting 
 // b기믹 활성화 로직에서 if ( player enum == NowInteracting) { b기믹과 상호작용 불가능!}
@@ -24,7 +25,14 @@ DECLARE_MULTICAST_DELEGATE(FOnBlockingVolumeDisabled);
 //p2 enum = NotIntertacting
 //b기믹2
 
-//6.게임 오버 시 스테이지 재 시작하는 함수 StageRestart() -> 가상 함수로 정의
+
+
+UENUM(BlueprintType)
+enum class EPS3StageNumber : uint8
+{
+	Stage1,
+	Stage3
+};
 
 UENUM(BlueprintType)
 enum class ERandomCollisionState : uint8
@@ -33,6 +41,9 @@ enum class ERandomCollisionState : uint8
 	BlockAll
 };
 
+DECLARE_MULTICAST_DELEGATE(FOnEscapeDoorOpened);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnBlockingVolumeDisabled, EPS3StageNumber);
+
 UCLASS()
 class PUZZLESTAY3_API APS3GameModeBase : public AGameModeBase
 {
@@ -40,7 +51,6 @@ class PUZZLESTAY3_API APS3GameModeBase : public AGameModeBase
 
 public:
 	virtual void BeginPlay() override;
-	virtual void PostLogin(APlayerController* NewPlayer) override;
 	
 #pragma region InteractionSwitch
 public:
@@ -77,12 +87,23 @@ private:
 
 #pragma endregion
 	
-
+#pragma region BlokingVolumeForStage1 //Stage1Mode한테 넘길지 고려
 public:
 	//블록볼륨 델리게이트
 	FOnBlockingVolumeDisabled OnBlockingVolumeDisabled;
 
-	void DisableBlockingVolumes();
+	void DisableBlockingVolume(EPS3StageNumber StageNumber);
 	
+#pragma endregion
 	
+#pragma region StageRestart
+	//게임오버 시 해당 스테이지 재오픈
+	virtual void StageRestart() ;
+	
+#pragma endregion
+	
+#pragma region StageClear
+	//각 스테이지 클리어 시 사용할 가상함수
+	virtual void StageClear();
+#pragma endregion
 };
