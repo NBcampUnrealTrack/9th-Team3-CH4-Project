@@ -1,5 +1,6 @@
 #include "OptionPopupWidget.h"
 
+#include "../HUD/PlayerHUD.h"
 #include "Components/Button.h"
 #include "Components/CheckBox.h"
 #include "Components/ComboBoxString.h"
@@ -30,6 +31,73 @@ void UOptionPopupWidget::HideOptionPopup()
 {
 	bIsOpen = false;
 	SetVisibility(ESlateVisibility::Collapsed);
+}
+
+void UOptionPopupWidget::ToggleOptionPopup()
+{
+	const ESlateVisibility CurrentVisibility = GetVisibility();
+	if (CurrentVisibility == ESlateVisibility::Collapsed || CurrentVisibility == ESlateVisibility::Hidden)
+	{
+		ShowOptionPopup();
+		return;
+	}
+
+	HideOptionPopup();
+}
+
+void UOptionPopupWidget::SetPlayerHUD(APlayerHUD* InPlayerHUD)
+{
+	PlayerHUD = InPlayerHUD;
+}
+
+void UOptionPopupWidget::RequestExitToMain()
+{
+	if (!PlayerHUD)
+	{
+		return;
+	}
+
+	PlayerHUD->RequestExitToMain();
+}
+
+void UOptionPopupWidget::RequestBGMVolumeChanged(float Value)
+{
+	if (!PlayerHUD)
+	{
+		return;
+	}
+
+	PlayerHUD->RequestBGMVolumeChanged(Value);
+}
+
+void UOptionPopupWidget::RequestSFXVolumeChanged(float Value)
+{
+	if (!PlayerHUD)
+	{
+		return;
+	}
+
+	PlayerHUD->RequestSFXVolumeChanged(Value);
+}
+
+void UOptionPopupWidget::RequestVoiceChatEnabledChanged(bool bEnabled)
+{
+	if (!PlayerHUD)
+	{
+		return;
+	}
+
+	PlayerHUD->RequestVoiceChatEnabledChanged(bEnabled);
+}
+
+void UOptionPopupWidget::RequestResolutionChanged(const FString& Resolution)
+{
+	if (!PlayerHUD)
+	{
+		return;
+	}
+
+	PlayerHUD->RequestResolutionChanged(Resolution);
 }
 
 void UOptionPopupWidget::InitializeResolutionOptions()
@@ -117,24 +185,28 @@ void UOptionPopupWidget::UnbindOptionPopupDelegates()
 void UOptionPopupWidget::HandleBGMValueChanged(float Value)
 {
 	BGMValue = Value;
+	RequestBGMVolumeChanged(Value);
 }
 
 void UOptionPopupWidget::HandleSFXValueChanged(float Value)
 {
 	SFXValue = Value;
+	RequestSFXVolumeChanged(Value);
 }
 
 void UOptionPopupWidget::HandleVoiceChatCheckStateChanged(bool bIsChecked)
 {
 	bIsVoiceChatEnabled = bIsChecked;
+	RequestVoiceChatEnabledChanged(bIsChecked);
 }
 
 void UOptionPopupWidget::HandleResolutionSelectionChanged(FString SelectedItem, ESelectInfo::Type SelectionType)
 {
 	SelectedResolution = SelectedItem;
+	RequestResolutionChanged(SelectedResolution);
 }
 
 void UOptionPopupWidget::HandleCloseButtonClicked()
 {
-	HideOptionPopup();
+	RequestExitToMain();
 }
