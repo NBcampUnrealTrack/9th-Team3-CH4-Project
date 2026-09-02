@@ -52,6 +52,7 @@ protected:
 
 
 private:
+	APS3GameModeS5* GetValidPS3GameModeS5();
 	void OnGameStartedBind();
 	void OnBindFunctionToComponent(bool bIsGameStart);
 	
