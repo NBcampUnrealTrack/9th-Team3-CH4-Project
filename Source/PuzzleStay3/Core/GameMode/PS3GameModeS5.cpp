@@ -173,7 +173,7 @@ void APS3GameModeS5::PossessedControllerAndSpawn(APlayerController* OldControlle
 		NewController->InitInputSystem();
 	}*/
 	
-	//OldController->Destroy();
+	OldController->Destroy();
 	
 	
 	AActor* GameStartPoint = FindPlayerStart(NewController, TargetTag);
