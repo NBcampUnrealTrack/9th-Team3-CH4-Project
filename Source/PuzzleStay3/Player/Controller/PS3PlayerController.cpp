@@ -118,6 +118,8 @@ void APS3PlayerController::HandleJumpCompleted()
 
 void APS3PlayerController::HandleInteractStarted()
 {
+	UE_LOG(LogTemp, Warning, TEXT("[Input] Interact pressed"));
+
 	if (APS3PlayerCharacter* PlayerCharacter = GetPawn<APS3PlayerCharacter>())
 	{
 		PlayerCharacter->TryInteract();
@@ -126,6 +128,8 @@ void APS3PlayerController::HandleInteractStarted()
 
 void APS3PlayerController::HandleDropStarted()
 {
+	UE_LOG(LogTemp, Warning, TEXT("[Input] Drop pressed"));
+
 	if (APS3PlayerCharacter* PlayerCharacter = GetPawn<APS3PlayerCharacter>())
 	{
 		PlayerCharacter->TryDropHeldObject();
