@@ -78,9 +78,3 @@ void APS3GameModeS3::SetAllPlayersVoiceChatState(EVoiceChatState NewState)
 		//PS3PlayerState->SetVoiceChatState(NewState);
 	}
 }
-
-void APS3GameModeS3::StageRestart()
-{
-	
-	Super::StageRestart();
-}
