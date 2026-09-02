@@ -4,19 +4,19 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameStateBase.h"
-#include "PS3GameStateBase.generated.h"
+#include "PS3GameStateS5.generated.h"
 
 
 /**
  * 
  */
 UCLASS()
-class PUZZLESTAY3_API APS3GameStateBase : public AGameStateBase
+class PUZZLESTAY3_API APS3GameStateS5 : public AGameStateBase
 {
 	GENERATED_BODY()
 	
-public:
-	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+protected:
+	APS3GameStateS5();
 	
 	
 protected:
@@ -24,26 +24,25 @@ protected:
 	
 	
 public:
-	void OnRep_IsGameOver();
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
 	
-	
-protected:
-	void OnGameStart();
+public:
 	void OnGameOver();
 	void OnReduceGameTime();
+	
 	
 public:
 	UPROPERTY(Replicated, EditAnywhere, Category = "GameRule")
 	float GameLimitTime = 60.0f;
-	
+
 	UPROPERTY(ReplicatedUsing = OnRep_IsGameOver)
 	bool bIsGameOver = false;
-	
+
 	
 protected:
-	FTimerHandle GameLimitTimeHandle;
-	
-	
+	UFUNCTION()
+	void OnRep_IsGameOver();
 
 
 };
