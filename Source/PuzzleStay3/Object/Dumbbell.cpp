@@ -42,11 +42,11 @@ bool ADumbbell::TryInteract(AActor* Requestor)
 		FAttachmentTransformRules::SnapToTargetNotIncludingScale,
 		GrabSocketName
 	);
-	
+
 	// 캐릭터와 너무 붙지 않도록 GrabOffset 적용 (X, Y, Z 거리 조절)
 	SetActorRelativeLocation(GrabOffset);
 	SetActorRelativeRotation(GrabRotationOffset);
-	
+
 	// 서버 로컬에서는 OnRep이 자동 호출되지 않으므로 수동 호출
 	OnRep_bIsHeld();
 
@@ -59,7 +59,7 @@ void ADumbbell::TryDrop()
 
 	bIsHeld = false;
 	HoldingCharacter = nullptr;
-	
+
 	// 부착 해제
 	DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
 
@@ -82,8 +82,6 @@ void ADumbbell::TryDrop()
 		const float HalfHeight = DumbbellMesh->Bounds.BoxExtent.Z;
 		SetActorLocation(HitResult.ImpactPoint + FVector(0.0f, 0.0f, HalfHeight));
 	}
-	
-	
 
 	OnRep_bIsHeld();
 }

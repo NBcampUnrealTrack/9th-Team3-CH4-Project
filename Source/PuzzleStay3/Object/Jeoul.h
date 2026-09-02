@@ -87,6 +87,9 @@ private:
 	// 스위치 상호작용 콜백
 	void OnCheckButtonPressed(bool bActivated);
 	
+	UFUNCTION()
+	void OnRep_TargetBeamRotation();
+	
 	// 최대 기울기 각도 (예: 25도)
 	UPROPERTY(EditAnywhere, Category = "Jeoul Settings")
 	float MaxTiltAngle = 25.0f;
@@ -99,10 +102,11 @@ private:
 	FRotator InitialBeamRotation;
 
 	// 목표 회전값 (Tick에서 부드럽게 보간)
-	UPROPERTY(Replicated)
+	UPROPERTY(ReplicatedUsing = OnRep_TargetBeamRotation)
 	FRotator TargetBeamRotation;
 
 	// 저울 상태
+	UPROPERTY(Replicated)
 	EJeoulState CurrentState = EJeoulState::Idle;
 	
 	// 컷씬 및 기울기 연출 대기 시간 (기본값: 3초)
