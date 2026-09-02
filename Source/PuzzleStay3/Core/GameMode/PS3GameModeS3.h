@@ -31,4 +31,6 @@ private:
 	
 	void StageRestart() override;
 	
+protected:
+	virtual bool StageRestartIfPlayerDead() const override { return true; }
 };

@@ -5,6 +5,7 @@
 
 #include "PS3GameModeBase.generated.h"
 
+class APS3PlayerState;
 class UInteractionSwitchComponent;
 class ADoor;
 
@@ -13,10 +14,9 @@ class ADoor;
 //Stage3BlockingVolumeCompo - 스테이지3 못가게 가로막는 블록볼륨
 //6.게임 오버 시 스테이지 재 시작하는 함수 StageRestart() -> 가상 함수
 //스테이지 클리어시 다음 스테이지 오픈하는 가상함수
-
-//구현예정
 // Stage3 블록볼륨한테 지시 내리는 내용
 
+//구현예정
 //보류
 //5.스테이지 이동하는 탈출 문에 사용되는B기믹
 // b기믹1 <-p1 활성화! p1 enum = IsInteracting 
@@ -24,7 +24,6 @@ class ADoor;
 // else { b기믹과 상호작용 가능}
 //p2 enum = NotIntertacting
 //b기믹2
-
 
 
 UENUM(BlueprintType)
@@ -54,6 +53,7 @@ public:
 	virtual void PostLogin(APlayerController* NewPlayer) override;
 
 #pragma region InteractionSwitch
+
 public:
 	//b기믹스위치 스위치 개수 저장
 	void RegisterInteractionSwitch(UInteractionSwitchComponent* SwitchComp);
@@ -75,6 +75,7 @@ private:
 #pragma endregion
 
 #pragma region OpenDoor
+
 public:
 	//문열기 델리게이트
 	FOnEscapeDoorOpened OnEscapeDoorOpened;
@@ -87,23 +88,39 @@ private:
 	void OpenEscapeDoor();
 
 #pragma endregion
-	
+
 #pragma region BlokingVolume
+
 public:
 	//블록볼륨 델리게이트
 	FOnBlockingVolumeDisabled OnBlockingVolumeDisabled;
 
 	virtual void DisableBlockingVolume(EPS3StageNumber StageNumber);
-	
+
 #pragma endregion
-	
+
 #pragma region StageRestart
 	//게임오버 시 해당 스테이지 재오픈
-	virtual void StageRestart() ;
-	
+protected:
+	//스테이지 재시작을 사용하는 스테이지에서 해당 함수 true반환 override
+	virtual bool StageRestartIfPlayerDead() const { return false; }
+
+	virtual void StageRestart();
+	void ResetAllPlayersDeadState();
+
+private:
+	//플레이어 사망 델리게이트 구독함수
+	void RegisterPlayerDeadState(APS3PlayerState* PS3PlayerState);
+
+	UFUNCTION()
+	void HandlePlayerDeadState(bool bNewIsDead);
+
+	bool bStageRestartRequested = false;
 #pragma endregion
-	
+
 #pragma region StageClear
+
+protected:
 	//각 스테이지 클리어 시 사용할 가상함수
 	virtual void StageClear();
 #pragma endregion
