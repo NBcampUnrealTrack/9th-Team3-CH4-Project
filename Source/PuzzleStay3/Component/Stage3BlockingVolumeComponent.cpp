@@ -4,7 +4,7 @@
 #include "Stage3BlockingVolumeComponent.h"
 
 #include "Kismet/GameplayStatics.h"
-#include "PuzzleStay3/Core/GameMode/PS3GameModeBase.h"
+#include "Core/GameMode/PS3GameModeBase.h"
 
 
 UStage3BlockingVolumeComponent::UStage3BlockingVolumeComponent()
