@@ -7,6 +7,7 @@
 
 class UInputAction;
 class UInputMappingContext;
+class UCustomVoiceComponent;
 
 UCLASS()
 class PUZZLESTAY3_API APS3PlayerController : public APlayerController
@@ -15,9 +16,6 @@ class PUZZLESTAY3_API APS3PlayerController : public APlayerController
 
 public:
 	APS3PlayerController();
-
-	UFUNCTION(BlueprintPure, Category = "PS3|Player Controller")
-	bool IsFieldPlayer() const;
 
 protected:
 	virtual void BeginPlay() override;
@@ -40,6 +38,14 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PS3|Player Controller|Input")
 	TObjectPtr<UInputAction> DropAction;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Voice")
+	TObjectPtr<UCustomVoiceComponent> VoiceComponent;
+	
+	//말하기 입력 액션
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly,
+		Category = "PS3|Player Controller|Input")
+	TObjectPtr<UInputAction> PushToTalkAction;
 
 private:
 	void HandleMoveInput(const FInputActionValue& InValue);
@@ -48,4 +54,7 @@ private:
 	void HandleJumpCompleted();
 	void HandleInteractStarted();
 	void HandleDropStarted();
+	void HandleVoiceStarted();
+	void HandleVoiceStopped();
+	
 };
