@@ -16,6 +16,7 @@ class PUZZLESTAY3_API APS3PlayerController : public APlayerController
 
 public:
 	APS3PlayerController();
+	virtual void ReceivedPlayer() override;
 
 protected:
 	virtual void BeginPlay() override;
@@ -48,6 +49,10 @@ protected:
 	TObjectPtr<UInputAction> PushToTalkAction;
 
 private:
+	void ConfigureLocalInput();
+
+	bool bLocalInputConfigured = false;
+
 	void HandleMoveInput(const FInputActionValue& InValue);
 	void HandleLookInput(const FInputActionValue& InValue);
 	void HandleJumpStarted();

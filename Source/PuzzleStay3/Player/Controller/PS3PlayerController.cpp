@@ -20,8 +20,18 @@ APS3PlayerController::APS3PlayerController()
 void APS3PlayerController::BeginPlay()
 {
 	Super::BeginPlay();
+	ConfigureLocalInput();
+}
 
-	if (!IsLocalController())
+void APS3PlayerController::ReceivedPlayer()
+{
+	Super::ReceivedPlayer();
+	ConfigureLocalInput();
+}
+
+void APS3PlayerController::ConfigureLocalInput()
+{
+	if (bLocalInputConfigured || !IsLocalController())
 	{
 		return;
 	}
@@ -36,6 +46,7 @@ void APS3PlayerController::BeginPlay()
 			ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer()))
 		{
 			InputSubsystem->AddMappingContext(InputMappingContext, 0);
+			bLocalInputConfigured = true;
 		}
 	}
 }
@@ -118,6 +129,8 @@ void APS3PlayerController::HandleJumpCompleted()
 
 void APS3PlayerController::HandleInteractStarted()
 {
+	UE_LOG(LogTemp, Warning, TEXT("[Input] Interact pressed"));
+
 	if (APS3PlayerCharacter* PlayerCharacter = GetPawn<APS3PlayerCharacter>())
 	{
 		PlayerCharacter->TryInteract();
@@ -126,6 +139,8 @@ void APS3PlayerController::HandleInteractStarted()
 
 void APS3PlayerController::HandleDropStarted()
 {
+	UE_LOG(LogTemp, Warning, TEXT("[Input] Drop pressed"));
+
 	if (APS3PlayerCharacter* PlayerCharacter = GetPawn<APS3PlayerCharacter>())
 	{
 		PlayerCharacter->TryDropHeldObject();
