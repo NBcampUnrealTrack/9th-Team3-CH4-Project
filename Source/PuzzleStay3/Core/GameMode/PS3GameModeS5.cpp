@@ -29,12 +29,11 @@ void APS3GameModeS5::OnGameStart()
 
 void APS3GameModeS5::OnReduceGameTime()
 {
-	float CurrentGameLimitTime = GameLimitTime;
+	--GameLimitTime;
 	
-	--CurrentGameLimitTime;
-	
-	if (CurrentGameLimitTime <= 0.0f)
+	if (GameLimitTime <= 0.0f)
 	{
+		GetWorld()->GetTimerManager().ClearTimer(GameLimitTimeHandle);
 		//TODO 나중에 게임모드베이스에서 GameOver 함수 추가하기
 		UE_LOG(LogTemp, Error, TEXT("GameOver 예정"));
 	}
@@ -47,7 +46,7 @@ void APS3GameModeS5::SetPlayerControllerRole(APlayerController* CurrentControlle
 	
 	//TODO 디버그 매세지 나중에 삭제하기
 	FString ControllerName = CurrentController->GetName(); // 예: PS3ChoiceController_0, PS3ChoiceController_1
-	if (SelectedPlayerRoleType == EPS3PlayerRole::Field && bIsTakeThirdPersonControllerType == true)
+	if (SelectedPlayerRoleType == EPS3PlayerRole::Field && bIsTakeFieldControllerType == true)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("3인칭조작 컨트롤러는 [%s]에게 이미 할당 되어있습니다."), *ControllerName);
 		return;
@@ -63,9 +62,9 @@ void APS3GameModeS5::SetPlayerControllerRole(APlayerController* CurrentControlle
 	
 	if (CurrentPlayerRoleType == EPS3PlayerRole::Field)
 	{
-		bIsTakeThirdPersonControllerType = true;
+		bIsTakeFieldControllerType = true;
 		UE_LOG(LogTemp, Warning, TEXT("3인칭조작 플레이어 생성"));
-		PossessedControllerAndSpawn(CurrentController, ThirdPersonControllerClass, ThirdPersonCharacterClass);
+		PossessedControllerAndSpawn(CurrentController, FieldControllerClass, FieldCharacterClass);
 		
 	}
 	
@@ -94,9 +93,9 @@ void APS3GameModeS5::PossessedControllerAndSpawn(APlayerController* OldControlle
 	
 	FString TargetTag = TEXT("");
 	
-	if (NewControllerClass == ThirdPersonControllerClass)
+	if (NewControllerClass == FieldControllerClass)
 	{
-		TargetTag = ThirdPersonString;
+		TargetTag = FieldString;
 		
 	}
 	

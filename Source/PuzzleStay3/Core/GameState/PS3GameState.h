@@ -16,8 +16,9 @@ class PUZZLESTAY3_API APS3GameState : public AGameStateBase
 	GENERATED_BODY()
 	
 public:
-	/*TMap<FUniqueNetIdRepl, EPS3PlayerRoleType> ControllerTypesMap;
+	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	
-	void SetControllerEType(const FUniqueNetIdRepl& SetPlayerID, EPS3PlayerRoleType SetControllerType);
-	EPS3PlayerRoleType GetControllerEType(const FUniqueNetIdRepl& FindPlayerID);	*/
+	UPROPERTY(Replicated, EditAnywhere, Category = "GameRule")
+	float GameLimitTime = 60.0f;
+
 };

@@ -44,10 +44,10 @@ void APS3ChoiceController::ServerRPC_SelectedControllerType_Implementation(EPS3P
 	
 }
 
-void APS3ChoiceController::OnClickedThirdPersonTypeButton()
+void APS3ChoiceController::OnClickedFieldTypeButton()
 {
-	if (bIsSelectedThirdPersonType == true) return;
-	bIsSelectedThirdPersonType = true;
+	if (bIsSelectedFieldType == true) return;
+	bIsSelectedFieldType = true;
 	
 	ServerRPC_SelectedControllerType(EPS3PlayerRole::Field);
 }

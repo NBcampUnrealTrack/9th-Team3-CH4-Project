@@ -3,19 +3,12 @@
 
 #include "PS3GameState.h"
 
+#include "Net/UnrealNetwork.h"
 
-/*void APS3GameState::SetControllerEType(const FUniqueNetIdRepl& SetPlayerID, EPS3PlayerRoleType SetControllerType)
+
+void APS3GameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
-	ControllerTypesMap.Add(SetPlayerID, SetControllerType);
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	
+	DOREPLIFETIME(ThisClass, GameLimitTime);
 }
-
-
-EPS3PlayerRoleType APS3GameState::GetControllerEType(const FUniqueNetIdRepl& FindPlayerID)
-{
-	if (FindPlayerID.IsValid() == false) return EPS3PlayerRoleType::PlayerRole_None;
-	
-	EPS3PlayerRoleType* FoundedControllerType = ControllerTypesMap.Find(FindPlayerID);
-	if (FoundedControllerType == nullptr) return EPS3PlayerRoleType::PlayerRole_None;
-	
-	return *FoundedControllerType;
-}*/

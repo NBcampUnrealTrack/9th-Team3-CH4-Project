@@ -24,15 +24,15 @@ public:
 	void OnReduceGameTime();
 	void OnGameStart();
 	
-	bool bIsTakeThirdPersonControllerType = false;
+	bool bIsTakeFieldControllerType = false;
 	bool bIsTakeScreenControllerType = false;
 	
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "GameRule|SwapController")
-	TSubclassOf<APS3PlayerCharacter> ThirdPersonCharacterClass;
+	TSubclassOf<APS3PlayerCharacter> FieldCharacterClass;
 	
 	UPROPERTY(EditDefaultsOnly, Category = "GameRule|SwapController")
-	TSubclassOf<APlayerController> ThirdPersonControllerClass;
+	TSubclassOf<APlayerController> FieldControllerClass;
 	
 	UPROPERTY(EditDefaultsOnly, Category = "GameRule|SwapController")
 	TSubclassOf<APS3PlayerCharacter> ScreenCharacterClass;
@@ -47,7 +47,7 @@ private:
 	
 	FTimerHandle GameLimitTimeHandle;
 	
-	FString ThirdPersonString = "ThirdPersonPlayer";
+	FString FieldString = "FieldPlayer";
 	FString ScreenString = "ScreenPlayer" ;
 	
 	
