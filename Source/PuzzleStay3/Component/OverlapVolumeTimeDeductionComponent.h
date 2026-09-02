@@ -1,27 +1,59 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
-
-#pragma once
+﻿#pragma once
 
 #include "CoreMinimal.h"
-#include "Components/ActorComponent.h"
+#include "Components/BoxComponent.h"
 #include "OverlapVolumeTimeDeductionComponent.generated.h"
 
+class APS3GameModeS5;
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
-class PUZZLESTAY3_API UOverlapVolumeTimeDeductionComponent : public UActorComponent
+class PUZZLESTAY3_API UOverlapVolumeTimeDeductionComponent : public UBoxComponent
 {
 	GENERATED_BODY()
-
-public:
-	// Sets default values for this component's properties
-	UOverlapVolumeTimeDeductionComponent();
-
+	
 protected:
-	// Called when the game starts
+	UOverlapVolumeTimeDeductionComponent();
+	
+protected:
 	virtual void BeginPlay() override;
+	
+	
+protected:
+	UFUNCTION()
+	void OnCharacterOverLapped
+	(
+		UPrimitiveComponent* OverlappedComp, 
+		AActor* OtherActor, 
+		UPrimitiveComponent* OtherComp, 
+		int32 OtherBodyIndex, 
+		bool bFromSweep, 
+		const FHitResult& SweepResult
+	);
+	
+	UFUNCTION()
+	void OnCharacterEndOverlap
+	(
+		UPrimitiveComponent* OverlappedComp, 
+		AActor* OtherActor, 
+		UPrimitiveComponent* OtherComp, 
+		int32 OtherBodyIndex
+	);
+	
+	
+protected:
+	UPROPERTY()
+	TArray<TObjectPtr<AActor>> OverlappedCharacters;
+	
+	UPROPERTY(EditAnywhere, Category = "GameRule")
+	float DeductedTimeRange = 3.0f;
 
-public:
-	// Called every frame
-	virtual void TickComponent(float DeltaTime, ELevelTick TickType,
-	                           FActorComponentTickFunction* ThisTickFunction) override;
+	
+protected:
+	TObjectPtr<APS3GameModeS5> PS3GameModeS5;
+	
+	
+private:
+	void OnGameStartedBind();
+	void OnBindFunctionToComponent(bool bIsGameStart);
+	
 };

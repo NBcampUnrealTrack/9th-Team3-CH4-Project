@@ -1,36 +1,90 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
+﻿#include "OverlapVolumeTimeDeductionComponent.h"
+
+#include "Components/BoxComponent.h"
+#include "Core/GameMode/PS3GameModeS5.h"
+#include "Gimmick/GimmickBase.h"
+#include "Player/Character/PS3PlayerCharacter.h"
 
 
-#include "OverlapVolumeTimeDeductionComponent.h"
-
-
-// Sets default values for this component's properties
 UOverlapVolumeTimeDeductionComponent::UOverlapVolumeTimeDeductionComponent()
 {
-	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
-	// off to improve performance if you don't need them.
-	PrimaryComponentTick.bCanEverTick = true;
-
-	// ...
 }
 
-
-// Called when the game starts
 void UOverlapVolumeTimeDeductionComponent::BeginPlay()
 {
 	Super::BeginPlay();
-
-	// ...
 	
+	if (GetOwner() == nullptr) return;
+	
+	if (GetOwner()->HasAuthority() == true)
+	{
+		UWorld* World = GetWorld();
+		if (World == nullptr) return;
+		
+		PS3GameModeS5 = Cast<APS3GameModeS5>(World->GetAuthGameMode());
+	}
+	
+	OnGameStartedBind();
 }
 
-
-// Called every frame
-void UOverlapVolumeTimeDeductionComponent::TickComponent(float DeltaTime, ELevelTick TickType,
-                                                         FActorComponentTickFunction* ThisTickFunction)
+void UOverlapVolumeTimeDeductionComponent::OnCharacterOverLapped(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
+	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-
-	// ...
+	if (GetOwner() == nullptr) return;
+	
+	if (GetOwner()->HasAuthority() == true)
+	{
+		auto* PS3PlayerCharacter = Cast<APS3PlayerCharacter>(OtherActor);
+		if (IsValid(PS3PlayerCharacter) == false) return;
+		
+		if (OverlappedCharacters.Contains(PS3PlayerCharacter) == true) return;
+		OverlappedCharacters.Add(PS3PlayerCharacter);
+		
+		PS3GameModeS5->OnTimeDeduction(DeductedTimeRange);
+	}
 }
+
+void UOverlapVolumeTimeDeductionComponent::OnCharacterEndOverlap(UPrimitiveComponent* OverlappedComp,
+	AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	if (GetOwner() == nullptr) return;
+	
+	if (GetOwner()->HasAuthority() == true)
+	{
+		if (IsValid(OtherActor) == false) return;
+		if (OverlappedCharacters.Contains(OtherActor) == false) return;
+		
+		OverlappedCharacters.Remove(OtherActor);
+	}
+
+}
+
+void UOverlapVolumeTimeDeductionComponent::OnGameStartedBind()
+{
+	if (GetOwner() == nullptr) return;
+	
+	if (GetOwner()->HasAuthority() == true)
+	{
+		PS3GameModeS5->OnIsGameStart.AddUObject(this, &ThisClass::OnBindFunctionToComponent);
+	}
+}
+
+void UOverlapVolumeTimeDeductionComponent::OnBindFunctionToComponent(bool bIsGameStart)
+{
+	if (bIsGameStart == true)
+	{
+		OnComponentBeginOverlap.RemoveDynamic(this, &ThisClass::OnCharacterOverLapped);
+		OnComponentEndOverlap.RemoveDynamic(this, &ThisClass::OnCharacterEndOverlap);
+		
+		OnComponentBeginOverlap.AddDynamic(this, &ThisClass::OnCharacterOverLapped);
+		OnComponentEndOverlap.AddDynamic(this, &ThisClass::OnCharacterEndOverlap);
+	}
+}
+
+
+
+
+
+
+
 

@@ -20,6 +20,8 @@ void APS3GameModeS5::BeginPlay()
 
 void APS3GameModeS5::OnGameStart()
 {
+	OnIsGameStart.Broadcast(true);
+	
 	UE_LOG(LogTemp, Warning, TEXT("게임이 시작되었습니다."));
 	GetWorld()->GetTimerManager().SetTimer(GameLimitTimeHandle, this, &ThisClass::OnReduceGameTime, 1.f, true);
 }
@@ -42,6 +44,7 @@ void APS3GameModeS5::OnGameOver()
 	auto* PS3GameStateS5 = GetGameState<APS3GameStateS5>();
 	if (IsValid(PS3GameStateS5) == false) return;
 	
+	OnIsGameStart.Broadcast(false);
 	PS3GameStateS5->OnGameOver();
 }
 
@@ -50,7 +53,7 @@ void APS3GameModeS5::OnReduceGameTime()
 	auto* PS3GameStateS5 = GetGameState<APS3GameStateS5>();
 	if (IsValid(PS3GameStateS5) == false) return;
 		
-	PS3GameStateS5->OnReduceGameTime();
+	PS3GameStateS5->OnReduceGameTime(ReducedTimeRange);
 	
 	if (PS3GameStateS5->GameLimitTime <= 0.0f)
 	{
@@ -59,6 +62,14 @@ void APS3GameModeS5::OnReduceGameTime()
 		
 		OnGameOver();
 	}
+}
+
+void APS3GameModeS5::OnTimeDeduction(float TimeToDeducted)
+{
+	auto* PS3GameStateS5 = GetGameState<APS3GameStateS5>();
+	if (IsValid(PS3GameStateS5) == false) return;
+	
+	PS3GameStateS5->OnTimeDeduction(TimeToDeducted);
 }
 
 
