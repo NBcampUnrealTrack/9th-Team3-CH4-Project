@@ -39,8 +39,9 @@ void APS3GameStateS5::OnRep_IsGameOver()
 	}
 	
 	/*TODO 결론적으로 게임오버가 되면 이쪽으로 넘어온다.
-	즉, 이때 클라이언트 화면에 UI 띄우기, 입력 모드 전환 등 Local 처리해야함*/
-	UE_LOG(LogTemp, Warning, TEXT("게임 종료 UI 만들어야함."));
+	즉, 이때 클라이언트 화면에 UI 띄우기, 입력 모드 전환 등 Local 처리해야함
+	(현준님과 상의하기)*/
+	UE_LOG(LogTemp, Warning, TEXT("게임 종료 UI 띄어야함. MVVM현준님과 상의하기"));
 }
 
 void APS3GameStateS5::OnGameOver()
