@@ -1,12 +1,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Data/Enum/PS3PlayerRole.h"
 #include "MVVMViewModelBase.h"
 #include "PS3ViewModel.generated.h"
 
 class APlayerHUD;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnDoorActivationRequested, int32, DoorIndex, bool, bIsActive);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnStage5RoleSelectionRequested, EPS3PlayerRole, SelectedRole);
 
 UCLASS(BlueprintType)
 class PUZZLESTAY3_API UPS3ViewModel : public UMVVMViewModelBase
@@ -20,8 +22,23 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "UI|TextNotify")
 	void RequestTextNotify(const FText& InDisplayText, float InFontSize, float InDisplayDuration);
 
+	UFUNCTION(BlueprintCallable, Category = "UI|TextNotify")
+	void RequestHideTextNotify();
+
+	UFUNCTION(BlueprintCallable, Category = "UI|LifeCount")
+	void RequestShowLifeCount();
+
+	UFUNCTION(BlueprintCallable, Category = "UI|LifeCount")
+	void RequestHideLifeCount();
+
 	UFUNCTION(BlueprintCallable, Category = "UI|LifeCount")
 	void RequestUpdateLifeCount(int32 InCurrentLifeCount, int32 InMaxLifeCount);
+
+	UFUNCTION(BlueprintCallable, Category = "UI|InteractionNotify")
+	void RequestShowInteractionNotifyWidget();
+
+	UFUNCTION(BlueprintCallable, Category = "UI|InteractionNotify")
+	void RequestHideInteractionNotifyWidget();
 
 	UFUNCTION(BlueprintCallable, Category = "UI|InteractionNotify")
 	void RequestShowInteractionNotify(FName InNotifyId, const FText& InKeyName);
@@ -31,6 +48,12 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "UI|InteractionNotify")
 	void RequestHideAllInteractionNotifies();
+
+	UFUNCTION(BlueprintCallable, Category = "UI|TimerNotify")
+	void RequestShowTimerNotify();
+
+	UFUNCTION(BlueprintCallable, Category = "UI|TimerNotify")
+	void RequestHideTimerNotifyWidget();
 
 	UFUNCTION(BlueprintCallable, Category = "UI|TimerNotify")
 	void RequestTimerNotify(float InDuration);
@@ -43,6 +66,12 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "UI|TutorialNotify")
 	void RequestHideTutorialNotify();
+
+	UFUNCTION(BlueprintCallable, Category = "UI|DoorOpenButton")
+	void RequestShowDoorOpenButton();
+
+	UFUNCTION(BlueprintCallable, Category = "UI|DoorOpenButton")
+	void RequestHideDoorOpenButton();
 
 	UFUNCTION(BlueprintPure, FieldNotify, Category = "UI|ViewModel")
 	int32 GetCurrentLifeCount() const;
@@ -100,6 +129,42 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "UI|VoiceChatIcon")
 	void RequestVoiceChatSpeaking(bool bInIsSpeaking);
+
+	UFUNCTION(BlueprintCallable, Category = "UI|VoiceChatIcon")
+	void RequestShowVoiceChatIcon();
+
+	UFUNCTION(BlueprintCallable, Category = "UI|VoiceChatIcon")
+	void RequestHideVoiceChatIcon();
+
+	UFUNCTION(BlueprintCallable, Category = "UI|OptionPopup")
+	void RequestShowOptionPopup();
+
+	UFUNCTION(BlueprintCallable, Category = "UI|OptionPopup")
+	void RequestHideOptionPopup();
+
+	UFUNCTION(BlueprintCallable, Category = "UI|Title")
+	void RequestShowTitle();
+
+	UFUNCTION(BlueprintCallable, Category = "UI|Title")
+	void RequestHideTitle();
+
+	UFUNCTION(BlueprintCallable, Category = "UI|GameOver")
+	void RequestShowGameOver();
+
+	UFUNCTION(BlueprintCallable, Category = "UI|GameOver")
+	void RequestHideGameOver();
+
+	UFUNCTION(BlueprintCallable, Category = "UI|Stage5RoleSelect")
+	void RequestShowStage5RoleSelect();
+
+	UFUNCTION(BlueprintCallable, Category = "UI|Stage5RoleSelect")
+	void RequestHideStage5RoleSelect();
+
+	UFUNCTION(BlueprintCallable, Category = "UI|Stage5RoleSelect")
+	void RequestStage5RoleSelection(EPS3PlayerRole SelectedRole);
+
+	UPROPERTY(BlueprintAssignable, Category = "UI|Stage5RoleSelect")
+	FOnStage5RoleSelectionRequested OnStage5RoleSelectionRequested;
 
 	UFUNCTION(BlueprintPure, FieldNotify, Category = "UI|ViewModel")
 	bool GetIsOpen() const;

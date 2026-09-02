@@ -14,6 +14,12 @@ class PUZZLESTAY3_API UTimerNotifyWidget : public UUserWidget
 
 public:
 	UFUNCTION(BlueprintCallable, Category = "UI|TimerNotify")
+	void ShowTimerNotify();
+
+	UFUNCTION(BlueprintCallable, Category = "UI|TimerNotify")
+	void HideTimerNotifyWidget();
+
+	UFUNCTION(BlueprintCallable, Category = "UI|TimerNotify")
 	void UpdateTimerNotify(float InDuration);
 
 	UFUNCTION(BlueprintCallable, Category = "UI|TimerNotify")

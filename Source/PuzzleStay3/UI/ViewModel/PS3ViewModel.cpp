@@ -9,16 +9,33 @@ void UPS3ViewModel::SetPlayerHUD(APlayerHUD* InPlayerHUD)
 
 void UPS3ViewModel::RequestTextNotify(const FText& InDisplayText, float InFontSize, float InDisplayDuration)
 {
-	UE_LOG(
-		LogTemp,
-		Log,
-		TEXT("RootHUDTest PS3ViewModel::RequestTextNotify Entry Text=%s"),
-		*InDisplayText.ToString()
-	);
-
 	if (PlayerHUD)
 	{
 		PlayerHUD->ShowTextNotify(InDisplayText, InFontSize, InDisplayDuration);
+	}
+}
+
+void UPS3ViewModel::RequestHideTextNotify()
+{
+	if (PlayerHUD)
+	{
+		PlayerHUD->HideTextNotify();
+	}
+}
+
+void UPS3ViewModel::RequestShowLifeCount()
+{
+	if (PlayerHUD)
+	{
+		PlayerHUD->ShowLifeCount();
+	}
+}
+
+void UPS3ViewModel::RequestHideLifeCount()
+{
+	if (PlayerHUD)
+	{
+		PlayerHUD->HideLifeCount();
 	}
 }
 
@@ -27,6 +44,22 @@ void UPS3ViewModel::RequestUpdateLifeCount(int32 InCurrentLifeCount, int32 InMax
 	if (PlayerHUD)
 	{
 		PlayerHUD->UpdateLifeCount(InCurrentLifeCount, InMaxLifeCount);
+	}
+}
+
+void UPS3ViewModel::RequestShowInteractionNotifyWidget()
+{
+	if (PlayerHUD)
+	{
+		PlayerHUD->ShowInteractionNotifyWidget();
+	}
+}
+
+void UPS3ViewModel::RequestHideInteractionNotifyWidget()
+{
+	if (PlayerHUD)
+	{
+		PlayerHUD->HideInteractionNotifyWidget();
 	}
 }
 
@@ -51,6 +84,22 @@ void UPS3ViewModel::RequestHideAllInteractionNotifies()
 	if (PlayerHUD)
 	{
 		PlayerHUD->HideAllInteractionNotifies();
+	}
+}
+
+void UPS3ViewModel::RequestShowTimerNotify()
+{
+	if (PlayerHUD)
+	{
+		PlayerHUD->ShowTimerNotify();
+	}
+}
+
+void UPS3ViewModel::RequestHideTimerNotifyWidget()
+{
+	if (PlayerHUD)
+	{
+		PlayerHUD->HideTimerNotifyWidget();
 	}
 }
 
@@ -83,6 +132,22 @@ void UPS3ViewModel::RequestHideTutorialNotify()
 	if (PlayerHUD)
 	{
 		PlayerHUD->HideTutorialNotify();
+	}
+}
+
+void UPS3ViewModel::RequestShowDoorOpenButton()
+{
+	if (PlayerHUD)
+	{
+		PlayerHUD->ShowDoorOpenButton();
+	}
+}
+
+void UPS3ViewModel::RequestHideDoorOpenButton()
+{
+	if (PlayerHUD)
+	{
+		PlayerHUD->HideDoorOpenButton();
 	}
 }
 
@@ -182,6 +247,91 @@ void UPS3ViewModel::RequestVoiceChatSpeaking(bool bInIsSpeaking)
 	{
 		PlayerHUD->UpdateVoiceChatIcon(bInIsSpeaking);
 	}
+}
+
+void UPS3ViewModel::RequestShowVoiceChatIcon()
+{
+	if (PlayerHUD)
+	{
+		PlayerHUD->ShowVoiceChatIcon();
+	}
+}
+
+void UPS3ViewModel::RequestHideVoiceChatIcon()
+{
+	if (PlayerHUD)
+	{
+		PlayerHUD->HideVoiceChatIcon();
+	}
+}
+
+void UPS3ViewModel::RequestShowOptionPopup()
+{
+	if (PlayerHUD)
+	{
+		PlayerHUD->ShowOptionPopup();
+	}
+}
+
+void UPS3ViewModel::RequestHideOptionPopup()
+{
+	if (PlayerHUD)
+	{
+		PlayerHUD->HideOptionPopup();
+	}
+}
+
+void UPS3ViewModel::RequestShowTitle()
+{
+	if (PlayerHUD)
+	{
+		PlayerHUD->ShowTitle();
+	}
+}
+
+void UPS3ViewModel::RequestHideTitle()
+{
+	if (PlayerHUD)
+	{
+		PlayerHUD->HideTitle();
+	}
+}
+
+void UPS3ViewModel::RequestShowGameOver()
+{
+	if (PlayerHUD)
+	{
+		PlayerHUD->ShowGameOver();
+	}
+}
+
+void UPS3ViewModel::RequestHideGameOver()
+{
+	if (PlayerHUD)
+	{
+		PlayerHUD->HideGameOver();
+	}
+}
+
+void UPS3ViewModel::RequestShowStage5RoleSelect()
+{
+	if (PlayerHUD)
+	{
+		PlayerHUD->ShowStage5RoleSelect();
+	}
+}
+
+void UPS3ViewModel::RequestHideStage5RoleSelect()
+{
+	if (PlayerHUD)
+	{
+		PlayerHUD->HideStage5RoleSelect();
+	}
+}
+
+void UPS3ViewModel::RequestStage5RoleSelection(EPS3PlayerRole SelectedRole)
+{
+	OnStage5RoleSelectionRequested.Broadcast(SelectedRole);
 }
 
 bool UPS3ViewModel::GetIsOpen() const

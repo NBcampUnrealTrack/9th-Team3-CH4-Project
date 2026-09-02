@@ -2,6 +2,16 @@
 
 #include "Components/Image.h"
 
+void UInteractionNotifyWidget::ShowInteractionNotifyWidget()
+{
+	SetVisibility(ESlateVisibility::Visible);
+}
+
+void UInteractionNotifyWidget::HideInteractionNotifyWidget()
+{
+	SetVisibility(ESlateVisibility::Collapsed);
+}
+
 void UInteractionNotifyWidget::ShowInteractionNotify(FName InNotifyId, const FText& InKeyName)
 {
 	if (InNotifyId.IsNone())
@@ -63,9 +73,11 @@ void UInteractionNotifyWidget::RefreshInteractionImage()
 	if (!TextureToShow)
 	{
 		InteractionImage->SetVisibility(ESlateVisibility::Collapsed);
+		HideInteractionNotifyWidget();
 		return;
 	}
 
 	InteractionImage->SetBrushFromTexture(TextureToShow, false);
 	InteractionImage->SetVisibility(ESlateVisibility::Visible);
+	ShowInteractionNotifyWidget();
 }

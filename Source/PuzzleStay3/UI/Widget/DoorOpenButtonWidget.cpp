@@ -26,6 +26,16 @@ void UDoorOpenButtonWidget::SetPlayerHUD(APlayerHUD* InPlayerHUD)
 	PlayerHUD = InPlayerHUD;
 }
 
+void UDoorOpenButtonWidget::ShowDoorOpenButton()
+{
+	SetVisibility(ESlateVisibility::Visible);
+}
+
+void UDoorOpenButtonWidget::HideDoorOpenButton()
+{
+	SetVisibility(ESlateVisibility::Collapsed);
+}
+
 void UDoorOpenButtonWidget::UpdateDoorOpenButtons(
 	bool bInDoor1Unlocked,
 	bool bInDoor2Unlocked,
@@ -42,6 +52,7 @@ void UDoorOpenButtonWidget::UpdateDoorOpenButtons(
 	ViewModel->SetIsDoor2Unlocked(bInDoor2Unlocked);
 	ViewModel->SetIsDoor3Unlocked(bInDoor3Unlocked);
 	ViewModel->SetIsDoor4Unlocked(bInDoor4Unlocked);
+	ShowDoorOpenButton();
 }
 
 void UDoorOpenButtonWidget::RequestDoorActivation(int32 InDoorIndex, bool bIsActive)

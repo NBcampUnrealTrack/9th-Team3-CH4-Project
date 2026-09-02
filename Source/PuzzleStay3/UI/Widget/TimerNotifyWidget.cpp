@@ -3,6 +3,16 @@
 #include "Components/HorizontalBox.h"
 #include "TimerNotifyEntryWidget.h"
 
+void UTimerNotifyWidget::ShowTimerNotify()
+{
+	SetVisibility(ESlateVisibility::Visible);
+}
+
+void UTimerNotifyWidget::HideTimerNotifyWidget()
+{
+	SetVisibility(ESlateVisibility::Collapsed);
+}
+
 void UTimerNotifyWidget::UpdateTimerNotify(float InDuration)
 {
 	if (!TimerContainer || !EntryWidgetClass)
@@ -19,6 +29,7 @@ void UTimerNotifyWidget::UpdateTimerNotify(float InDuration)
 	TimerEntryWidget->OnTimerFinished.AddUObject(this, &UTimerNotifyWidget::HandleTimerEntryFinished);
 	ActiveTimerEntries.Add(TimerEntryWidget);
 	TimerContainer->AddChild(TimerEntryWidget);
+	ShowTimerNotify();
 	TimerEntryWidget->StartTimer(InDuration);
 }
 
@@ -39,6 +50,8 @@ void UTimerNotifyWidget::HideTimerNotify()
 	{
 		TimerContainer->ClearChildren();
 	}
+
+	HideTimerNotifyWidget();
 }
 
 void UTimerNotifyWidget::NativeDestruct()
@@ -60,5 +73,10 @@ void UTimerNotifyWidget::HandleTimerEntryFinished(UTimerNotifyEntryWidget* Finis
 	if (TimerContainer)
 	{
 		TimerContainer->RemoveChild(FinishedEntry);
+	}
+
+	if (ActiveTimerEntries.Num() == 0)
+	{
+		HideTimerNotifyWidget();
 	}
 }

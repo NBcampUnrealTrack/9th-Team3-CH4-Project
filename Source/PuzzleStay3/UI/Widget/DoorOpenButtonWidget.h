@@ -21,6 +21,12 @@ public:
 	void SetPlayerHUD(APlayerHUD* InPlayerHUD);
 
 	UFUNCTION(BlueprintCallable, Category = "UI|DoorOpenButton")
+	void ShowDoorOpenButton();
+
+	UFUNCTION(BlueprintCallable, Category = "UI|DoorOpenButton")
+	void HideDoorOpenButton();
+
+	UFUNCTION(BlueprintCallable, Category = "UI|DoorOpenButton")
 	void UpdateDoorOpenButtons(
 		bool bInDoor1Unlocked,
 		bool bInDoor2Unlocked,

@@ -1,6 +1,23 @@
 #include "VoiceChatIconWidget.h"
 
+void UVoiceChatIconWidget::ShowVoiceChatIcon()
+{
+	SetVisibility(ESlateVisibility::Visible);
+}
+
+void UVoiceChatIconWidget::HideVoiceChatIcon()
+{
+	SetVisibility(ESlateVisibility::Collapsed);
+}
+
 void UVoiceChatIconWidget::SetSpeaking(bool bInIsSpeaking)
 {
-	SetVisibility(bInIsSpeaking ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
+	if (bInIsSpeaking)
+	{
+		ShowVoiceChatIcon();
+	}
+	else
+	{
+		HideVoiceChatIcon();
+	}
 }

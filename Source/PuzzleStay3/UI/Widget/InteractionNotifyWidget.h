@@ -14,6 +14,12 @@ class PUZZLESTAY3_API UInteractionNotifyWidget : public UUserWidget
 
 public:
 	UFUNCTION(BlueprintCallable, Category = "UI|InteractionNotify")
+	void ShowInteractionNotifyWidget();
+
+	UFUNCTION(BlueprintCallable, Category = "UI|InteractionNotify")
+	void HideInteractionNotifyWidget();
+
+	UFUNCTION(BlueprintCallable, Category = "UI|InteractionNotify")
 	void ShowInteractionNotify(FName InNotifyId, const FText& InKeyName);
 
 	UFUNCTION(BlueprintCallable, Category = "UI|InteractionNotify")

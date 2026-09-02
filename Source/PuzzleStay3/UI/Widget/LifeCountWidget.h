@@ -19,6 +19,12 @@ public:
 	void SetViewModel(UPS3ViewModel* InViewModel);
 
 	UFUNCTION(BlueprintCallable, Category = "UI|LifeCount")
+	void ShowLifeCount();
+
+	UFUNCTION(BlueprintCallable, Category = "UI|LifeCount")
+	void HideLifeCount();
+
+	UFUNCTION(BlueprintCallable, Category = "UI|LifeCount")
 	void UpdateLifeCount(int32 InCurrentLifeCount, int32 InMaxLifeCount);
 
 protected:

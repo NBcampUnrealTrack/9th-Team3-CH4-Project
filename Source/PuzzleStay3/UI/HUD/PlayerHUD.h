@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Data/Enum/PS3PlayerRole.h"
 #include "GameFramework/HUD.h"
 #include "PlayerHUD.generated.h"
 
@@ -77,8 +78,23 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "UI|TextNotify")
 	void ShowTextNotify(const FText& InDisplayText, float InFontSize, float InDisplayDuration);
 
+	UFUNCTION(BlueprintCallable, Category = "UI|TextNotify")
+	void HideTextNotify();
+
+	UFUNCTION(BlueprintCallable, Category = "UI|LifeCount")
+	void ShowLifeCount();
+
+	UFUNCTION(BlueprintCallable, Category = "UI|LifeCount")
+	void HideLifeCount();
+
 	UFUNCTION(BlueprintCallable, Category = "UI|LifeCount")
 	void UpdateLifeCount(int32 InCurrentLifeCount, int32 InMaxLifeCount);
+
+	UFUNCTION(BlueprintCallable, Category = "UI|InteractionNotify")
+	void ShowInteractionNotifyWidget();
+
+	UFUNCTION(BlueprintCallable, Category = "UI|InteractionNotify")
+	void HideInteractionNotifyWidget();
 
 	UFUNCTION(BlueprintCallable, Category = "UI|InteractionNotify")
 	void ShowInteractionNotify(FName InNotifyId, const FText& InKeyName);
@@ -88,6 +104,12 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "UI|InteractionNotify")
 	void HideAllInteractionNotifies();
+
+	UFUNCTION(BlueprintCallable, Category = "UI|TimerNotify")
+	void ShowTimerNotify();
+
+	UFUNCTION(BlueprintCallable, Category = "UI|TimerNotify")
+	void HideTimerNotifyWidget();
 
 	UFUNCTION(BlueprintCallable, Category = "UI|TimerNotify")
 	void UpdateTimerNotify(float InDuration);
@@ -102,6 +124,12 @@ public:
 	void HideTutorialNotify();
 
 	UFUNCTION(BlueprintCallable, Category = "UI|DoorOpenButton")
+	void ShowDoorOpenButton();
+
+	UFUNCTION(BlueprintCallable, Category = "UI|DoorOpenButton")
+	void HideDoorOpenButton();
+
+	UFUNCTION(BlueprintCallable, Category = "UI|DoorOpenButton")
 	void UpdateDoorOpenButtons(
 		bool bInDoor1Unlocked,
 		bool bInDoor2Unlocked,
@@ -114,6 +142,39 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "UI|VoiceChatIcon")
 	void UpdateVoiceChatIcon(bool bInIsSpeaking);
+
+	UFUNCTION(BlueprintCallable, Category = "UI|VoiceChatIcon")
+	void ShowVoiceChatIcon();
+
+	UFUNCTION(BlueprintCallable, Category = "UI|VoiceChatIcon")
+	void HideVoiceChatIcon();
+
+	UFUNCTION(BlueprintCallable, Category = "UI|OptionPopup")
+	void ShowOptionPopup();
+
+	UFUNCTION(BlueprintCallable, Category = "UI|OptionPopup")
+	void HideOptionPopup();
+
+	UFUNCTION(BlueprintCallable, Category = "UI|Title")
+	void ShowTitle();
+
+	UFUNCTION(BlueprintCallable, Category = "UI|Title")
+	void HideTitle();
+
+	UFUNCTION(BlueprintCallable, Category = "UI|GameOver")
+	void ShowGameOver();
+
+	UFUNCTION(BlueprintCallable, Category = "UI|GameOver")
+	void HideGameOver();
+
+	UFUNCTION(BlueprintCallable, Category = "UI|Stage5RoleSelect")
+	void ShowStage5RoleSelect();
+
+	UFUNCTION(BlueprintCallable, Category = "UI|Stage5RoleSelect")
+	void HideStage5RoleSelect();
+
+	UFUNCTION(BlueprintCallable, Category = "UI|Stage5RoleSelect")
+	void RequestStage5RoleSelection(EPS3PlayerRole SelectedRole);
 
 protected:
 	virtual void BeginPlay() override;
@@ -134,11 +195,17 @@ protected:
 private:
 	void ApplyViewModelToWidgets();
 
-	// Temporary UI test code. Remove before opening the PR.
+	// Temporary UI Test Zone. Remove before opening the PR.
+	void StartTemporaryUITest();
+	void StopTemporaryUITest();
+	void ResetTemporaryUITestState();
 	void UpdateTemporaryUITest();
 
 	UFUNCTION()
 	void HandleTemporaryDoorActivationTest(int32 DoorIndex, bool bIsActive);
+
+	UFUNCTION()
+	void HandleTemporaryStage5RoleSelectionRequested(EPS3PlayerRole SelectedRole);
 
 	FTimerHandle TemporaryUITestTimerHandle;
 	int32 TemporaryUITestElapsedSeconds = 0;

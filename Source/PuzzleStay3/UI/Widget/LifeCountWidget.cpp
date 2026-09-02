@@ -10,6 +10,16 @@ void ULifeCountWidget::SetViewModel(UPS3ViewModel* InViewModel)
 	ViewModel = InViewModel;
 }
 
+void ULifeCountWidget::ShowLifeCount()
+{
+	SetVisibility(ESlateVisibility::Visible);
+}
+
+void ULifeCountWidget::HideLifeCount()
+{
+	SetVisibility(ESlateVisibility::Collapsed);
+}
+
 void ULifeCountWidget::UpdateLifeCount(int32 InCurrentLifeCount, int32 InMaxLifeCount)
 {
 	if (!ViewModel)
@@ -26,6 +36,7 @@ void ULifeCountWidget::UpdateLifeCount(int32 InCurrentLifeCount, int32 InMaxLife
 	}
 
 	RefreshHearts(InCurrentLifeCount);
+	ShowLifeCount();
 }
 
 void ULifeCountWidget::RebuildHearts(int32 MaxLife)

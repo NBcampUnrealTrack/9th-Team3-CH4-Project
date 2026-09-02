@@ -34,3 +34,23 @@ UVoiceChatIconWidget* UPS3RootHUDWidget::GetVoiceChatIconWidget() const
 {
 	return VoiceChatIconWidget;
 }
+
+UOptionPopupWidget* UPS3RootHUDWidget::GetOptionPopupWidget() const
+{
+	return OptionPopupWidget;
+}
+
+UTitleWidget* UPS3RootHUDWidget::GetTitleWidget() const
+{
+	return TitleWidget;
+}
+
+UGameOverWidget* UPS3RootHUDWidget::GetGameOverWidget() const
+{
+	return GameOverWidget;
+}
+
+UStage5RoleSelectWidget* UPS3RootHUDWidget::GetStage5RoleSelectWidget() const
+{
+	return Stage5RoleSelectWidget;
+}

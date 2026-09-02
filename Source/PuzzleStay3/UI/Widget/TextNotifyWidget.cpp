@@ -5,29 +5,15 @@
 
 void UTextNotifyWidget::ShowTextNotify(const FText& InDisplayText, float InFontSize, float InDisplayDuration)
 {
-	UE_LOG(
-		LogTemp,
-		Log,
-		TEXT("RootHUDTest TextNotifyWidget::ShowTextNotify Entry Text=%s TextNotifyTextValid=%s"),
-		*InDisplayText.ToString(),
-		TextNotifyText ? TEXT("true") : TEXT("false")
-	);
-
 	if (TextNotifyText)
 	{
+		SetVisibility(ESlateVisibility::Visible);
 		TextNotifyText->SetText(InDisplayText);
 
 		FSlateFontInfo FontInfo = TextNotifyText->GetFont();
 		FontInfo.Size = static_cast<int32>(InFontSize);
 		TextNotifyText->SetFont(FontInfo);
 		TextNotifyText->SetVisibility(ESlateVisibility::Visible);
-		UE_LOG(
-			LogTemp,
-			Log,
-			TEXT("RootHUDTest TextNotifyWidget::ShowTextNotify AfterSetTextAndVisible Text=%s Visibility=%d"),
-			*TextNotifyText->GetText().ToString(),
-			static_cast<int32>(TextNotifyText->GetVisibility())
-		);
 	}
 
 	UWorld* World = GetWorld();
@@ -50,8 +36,15 @@ void UTextNotifyWidget::ShowTextNotify(const FText& InDisplayText, float InFontS
 
 void UTextNotifyWidget::HideTextNotify()
 {
+	if (UWorld* World = GetWorld())
+	{
+		World->GetTimerManager().ClearTimer(TextNotifyTimerHandle);
+	}
+
 	if (TextNotifyText)
 	{
 		TextNotifyText->SetVisibility(ESlateVisibility::Collapsed);
 	}
+
+	SetVisibility(ESlateVisibility::Collapsed);
 }
