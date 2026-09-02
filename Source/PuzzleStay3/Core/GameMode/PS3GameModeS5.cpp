@@ -18,8 +18,6 @@ void APS3GameModeS5::BeginPlay()
 	
 }
 
-//테스트용 주석입니다 지울겁니다
-
 void APS3GameModeS5::OnGameStart()
 {
 	UE_LOG(LogTemp, Warning, TEXT("게임이 시작되었습니다."));
