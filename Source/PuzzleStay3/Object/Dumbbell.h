@@ -46,8 +46,8 @@ protected:
 	UFUNCTION()
 	void OnRep_bIsHeld();
 	
-private:
+// private:
 	// 현재 나를 들고 있는 캐릭터 (서버 전용 참조, 리플리케이트 안 함)
-	UPROPERTY()
+	UPROPERTY(Replicated)
 	TObjectPtr<ACharacter> HoldingCharacter;
 };
