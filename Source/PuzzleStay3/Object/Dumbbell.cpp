@@ -1,5 +1,7 @@
 #include "Object/Dumbbell.h"
 
+#include "Net/UnrealNetwork.h"
+
 ADumbbell::ADumbbell()
 {
 	PrimaryActorTick.bCanEverTick = false;
@@ -16,22 +18,31 @@ ADumbbell::ADumbbell()
 	DumbbellMesh->SetCollisionProfileName(TEXT("PhysicsActor"));
 }
 
-void ADumbbell::Grab(USceneComponent* TargetParent)
+void ADumbbell::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
-	if (!HasAuthority() || !TargetParent) return;
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(ADumbbell, bIsHeld);
+}
+
+bool ADumbbell::TryInteract(AActor* Requestor)
+{
 	
-	// 잡았을 때는 물리를 끄고 캐릭터의 손/소켓 위치에 부착
-	DumbbellMesh->SetSimulatePhysics(false);
-	TargetParent->UpdateComponentToWorld();
-	AttachToComponent(TargetParent, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
 }
 
-void ADumbbell::Drop()
+void ADumbbell::TryDrop()
 {
-	if (!HasAuthority()) return;
-
-	// 놓았을 때는 부착을 해제하고 물리를 다시 켜서 바닥으로 떨어지게 함
-	DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
-	DumbbellMesh->SetSimulatePhysics(true);
 }
 
+void ADumbbell::Server_TryInteract_Implementation()
+{
+}
+
+void ADumbbell::Server_TryDropHeldObject_Implementation()
+{
+}
+
+void ADumbbell::OnRep_bIsHeld()
+{
+	
+}

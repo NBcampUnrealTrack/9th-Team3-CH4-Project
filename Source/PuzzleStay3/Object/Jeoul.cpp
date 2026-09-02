@@ -92,9 +92,9 @@ float AJeoul::CalculateWeightOnPlate(UBoxComponent* InPlateTrigger) const
 		if (!Actor) continue;
 
 		// 1. Dumbbell 무게 합산
-		if (Actor->IsA<ADumbbell>())
+		if (ADumbbell* Dumbbell = Cast<ADumbbell>(Actor))
 		{
-			TotalWeight += 1.0f;
+			TotalWeight += Dumbbell->GetWeight();
 		}
 		// 2. 플레이어 무게 합산
 		else if (ACharacter* Character = Cast<ACharacter>(Actor))
