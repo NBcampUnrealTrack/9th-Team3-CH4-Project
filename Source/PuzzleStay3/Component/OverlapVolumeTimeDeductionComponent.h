@@ -42,16 +42,15 @@ protected:
 	
 protected:
 	UPROPERTY()
+	TObjectPtr<APS3GameModeS5> PS3GameModeS5;
+	
+	UPROPERTY()
 	TArray<TObjectPtr<AActor>> OverlappedCharacters;
 	
 	UPROPERTY(EditAnywhere, Category = "GameRule")
 	float DeductedTimeRange = 3.0f;
 
-	
-protected:
-	TObjectPtr<APS3GameModeS5> PS3GameModeS5;
-	
-	
+
 private:
 	void OnGameStartedBind();
 	void OnBindFunctionToComponent(bool bIsGameStart);
