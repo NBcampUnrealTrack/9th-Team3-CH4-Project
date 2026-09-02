@@ -4,7 +4,7 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
-#include "Player/PlayerState/PS3PlayerState.h"
+#include "Player/Controller/PS3PlayerController.h"
 #include "Component/InteractionSwitchComponent.h"
 
 
@@ -32,13 +32,7 @@ APS3PlayerCharacter::APS3PlayerCharacter()
 
 bool APS3PlayerCharacter::CanUseFieldControls() const
 {
-	const APS3PlayerState* PS3PlayerState = GetPlayerState<APS3PlayerState>();
-	if (!IsValid(PS3PlayerState)|| PS3PlayerState->GetPlayerRole() != EPS3PlayerRole::Field)
-	{
-		return false;
-	}
-
-	return true;
+	return IsValid(Cast<APS3PlayerController>(GetController()));
 }
 
 

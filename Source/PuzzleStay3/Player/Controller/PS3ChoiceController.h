@@ -17,7 +17,7 @@ class PUZZLESTAY3_API APS3ChoiceController : public APlayerController
 protected:
 	virtual void BeginPlay() override;
 	
-	bool bIsSelectedThirdPersonType = false;
+	bool bIsSelectedFieldType = false;
 	bool bIsSelectedScreenType = false;
 	
 public:
@@ -31,7 +31,7 @@ public:
 	void ServerRPC_SelectedControllerType(EPS3PlayerRole SelectedPlayerRoleType);
 	
 	UFUNCTION(BlueprintCallable, Category = "Test")
-	void OnClickedThirdPersonTypeButton();
+	void OnClickedFieldTypeButton();
 	
 	UFUNCTION(BlueprintCallable, Category = "Test")
 	void OnClickedScreenTypeButton();

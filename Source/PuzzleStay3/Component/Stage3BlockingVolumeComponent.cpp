@@ -22,8 +22,8 @@ void UStage3BlockingVolumeComponent::BeginPlay()
 	APS3GameModeBase* GameMode = Cast<APS3GameModeBase>(UGameplayStatics::GetGameMode(this));
 	if (!IsValid(GameMode)) return;
 
-	BlockingVolumeDisabledHandle =
-		GameMode->OnBlockingVolumeDisabled.AddUObject(this, &UStage3BlockingVolumeComponent::DisableBlockingVolume);
+	//BlockingVolumeDisabledHandle =
+	//	GameMode->OnBlockingVolumeDisabled.AddUObject(this, &UStage3BlockingVolumeComponent::DisableStage3BlockingVolume);
 }
 
 void UStage3BlockingVolumeComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -39,7 +39,7 @@ void UStage3BlockingVolumeComponent::EndPlay(const EEndPlayReason::Type EndPlayR
 	Super::EndPlay(EndPlayReason);
 }
 
-void UStage3BlockingVolumeComponent::DisableBlockingVolume()
+void UStage3BlockingVolumeComponent::DisableStage3BlockingVolume()
 {
 	SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }

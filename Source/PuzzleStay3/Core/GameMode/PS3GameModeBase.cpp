@@ -2,6 +2,7 @@
 #include "PS3GameModeBase.h"
 
 #include "GameFramework/PlayerState.h"
+#include "Kismet/GameplayStatics.h"
 #include "PuzzleStay3/Component/InteractionSwitchComponent.h"
 
 //bgimmick enum final,normal 
@@ -16,13 +17,6 @@ void APS3GameModeBase::BeginPlay()
 	{
 		OpenEscapeDoor();
 	}
-}
-
-void APS3GameModeBase::PostLogin(APlayerController* NewPlayer)
-{
-	Super::PostLogin(NewPlayer);
-	
-	NewPlayer->PlayerState->GetUniqueId();
 }
 
 void APS3GameModeBase::RegisterInteractionSwitch(UInteractionSwitchComponent* SwitchComp)
@@ -74,8 +68,21 @@ void APS3GameModeBase::OpenEscapeDoor()
 	OnEscapeDoorOpened.Broadcast();
 }
 
-void APS3GameModeBase::DisableBlockingVolumes()
+void APS3GameModeBase::DisableBlockingVolume(EPS3StageNumber StageNumber)
 {
-	OnBlockingVolumeDisabled.Broadcast();
+	OnBlockingVolumeDisabled.Broadcast(StageNumber);
 }
 
+void APS3GameModeBase::StageRestart()
+{
+	FString CurrentLevel = UGameplayStatics::GetCurrentLevelName(this, true);
+
+	if (CurrentLevel.IsEmpty()) return;
+
+	UGameplayStatics::OpenLevel(this, FName(*CurrentLevel));
+}
+
+void APS3GameModeBase::StageClear()
+{
+	
+}

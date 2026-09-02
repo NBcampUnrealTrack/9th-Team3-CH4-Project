@@ -22,7 +22,7 @@ protected:
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 	UFUNCTION()
-	void DisableBlockingVolume();
+	void DisableStage3BlockingVolume();
 
 private:
 	FDelegateHandle BlockingVolumeDisabledHandle;

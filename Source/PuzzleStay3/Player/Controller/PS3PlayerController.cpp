@@ -5,11 +5,16 @@
 #include "Engine/LocalPlayer.h"
 #include "InputMappingContext.h"
 #include "Player/Character/PS3PlayerCharacter.h"
-#include "Player/PlayerState/PS3PlayerState.h"
+#include "Component/CustomVoiceComponent.h"
+
 
 APS3PlayerController::APS3PlayerController()
 {
 	bShowMouseCursor = false;
+	
+	VoiceComponent = CreateDefaultSubobject<UCustomVoiceComponent>(
+	TEXT("VoiceComponent"));
+	
 }
 
 void APS3PlayerController::BeginPlay()
@@ -70,12 +75,13 @@ void APS3PlayerController::SetupInputComponent()
 	{
 		EIC->BindAction(DropAction, ETriggerEvent::Started, this, &ThisClass::HandleDropStarted);
 	}
-}
-
-bool APS3PlayerController::IsFieldPlayer() const
-{
-	const APS3PlayerState* PS3PlayerState = GetPlayerState<APS3PlayerState>();
-	return IsValid(PS3PlayerState) && PS3PlayerState->GetPlayerRole() == EPS3PlayerRole::Field;
+	
+	if (IsValid(PushToTalkAction))
+	{
+		EIC->BindAction(PushToTalkAction, ETriggerEvent::Started,this, &ThisClass::HandleVoiceStarted);
+		EIC->BindAction(PushToTalkAction, ETriggerEvent::Completed,this, &ThisClass::HandleVoiceStopped);
+		EIC->BindAction(PushToTalkAction, ETriggerEvent::Canceled,this, &ThisClass::HandleVoiceStopped);
+	}
 }
 
 void APS3PlayerController::HandleMoveInput(const FInputActionValue& InValue)
@@ -124,4 +130,17 @@ void APS3PlayerController::HandleDropStarted()
 	{
 		PlayerCharacter->TryDropHeldObject();
 	}
+}
+
+
+void APS3PlayerController::HandleVoiceStarted()
+{
+	UE_LOG(LogTemp, Warning, TEXT("Voice: V pressed"));
+	VoiceComponent->StartPushToTalk();
+}
+
+void APS3PlayerController::HandleVoiceStopped()
+{
+	UE_LOG(LogTemp, Warning, TEXT("Voice: V released"));
+	VoiceComponent->StopPushToTalk();
 }
