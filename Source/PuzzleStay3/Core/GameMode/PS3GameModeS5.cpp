@@ -138,6 +138,9 @@ void APS3GameModeS5::PossessedControllerAndSpawn(APlayerController* OldControlle
 		TargetTag = ScreenTagString;
 	}
 	
+	//bool bWasLocalController = OldController->IsLocalController();
+	
+	
 	APawn* OldPawn = OldController->GetPawn();
 	if (IsValid(OldPawn) == true)
 	{
@@ -150,8 +153,27 @@ void APS3GameModeS5::PossessedControllerAndSpawn(APlayerController* OldControlle
 	auto* NewController = GetWorld()->SpawnActor<APlayerController>(NewControllerClass, ControllerSpawnParams);
 	if (IsValid(NewController) == false) return;
 	
+	
+	/*if (bWasLocalController == true)
+	{
+		NewController->SetAsLocalPlayerController();
+	}*/
+	
 	SwapPlayerControllers(OldController, NewController);
-	OldController->Destroy();
+	
+	/*if (bWasLocalController == true)
+	{
+		FInputModeGameOnly InputMode;
+		NewController->SetInputMode(InputMode);
+		NewController->bShowMouseCursor = false;
+
+		NewController->SetIgnoreMoveInput(false);
+		NewController->SetIgnoreLookInput(false);
+
+		NewController->InitInputSystem();
+	}*/
+	
+	//OldController->Destroy();
 	
 	
 	AActor* GameStartPoint = FindPlayerStart(NewController, TargetTag);
