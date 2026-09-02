@@ -5,7 +5,6 @@
 #include "Engine/LocalPlayer.h"
 #include "InputMappingContext.h"
 #include "Player/Character/PS3PlayerCharacter.h"
-#include "Player/PlayerState/PS3PlayerState.h"
 
 APS3PlayerController::APS3PlayerController()
 {
@@ -74,8 +73,7 @@ void APS3PlayerController::SetupInputComponent()
 
 bool APS3PlayerController::IsFieldPlayer() const
 {
-	const APS3PlayerState* PS3PlayerState = GetPlayerState<APS3PlayerState>();
-	return IsValid(PS3PlayerState) && PS3PlayerState->GetPlayerRole() == EPS3PlayerRole::Field;
+	return true;
 }
 
 void APS3PlayerController::HandleMoveInput(const FInputActionValue& InValue)

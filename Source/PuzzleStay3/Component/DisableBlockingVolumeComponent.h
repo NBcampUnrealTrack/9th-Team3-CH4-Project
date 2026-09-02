@@ -6,8 +6,7 @@
 #include "Components/BoxComponent.h"
 #include "DisableBlockingVolumeComponent.generated.h"
 
-//플레이어가 오버랩 되면 모드한테 알림 -> 구현예정
-
+//Stage1에서 Player1이 오버랩 시 Stage1의 블록볼륨 콜리전을 해제하기 위한 컴포넌트
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class PUZZLESTAY3_API UDisableBlockingVolumeComponent : public UBoxComponent
@@ -17,9 +16,6 @@ class PUZZLESTAY3_API UDisableBlockingVolumeComponent : public UBoxComponent
 public:
 	UDisableBlockingVolumeComponent();
 
-	UFUNCTION()
-	bool IsOverlapped() const;
-
 protected:
 	virtual void BeginPlay() override;
 
@@ -27,7 +23,7 @@ private:
 	bool bIsOverlapped = false;
 
 	UFUNCTION()
-	void OnOverlapDeathVolume(
+	void OnOverlapDisableBlockingVolume(
 		UPrimitiveComponent* OverlappedComp,
 		AActor* OtherActor,
 		UPrimitiveComponent* OtherComp,
