@@ -28,9 +28,7 @@ private:
 	void ChangeVoiceChatStateAndBlockingVolumeCollision(int32 Count);
 	
 	void SetAllPlayersVoiceChatState(EVoiceChatState NewState);
-	
-	void StageRestart() override;
-	
+
 protected:
 	virtual bool StageRestartIfPlayerDead() const override { return true; }
 };
