@@ -1,83 +1,337 @@
 #include "PS3ViewModel.h"
 
-FText UPS3ViewModel::GetDisplayText() const
+#include "../HUD/PlayerHUD.h"
+
+void UPS3ViewModel::SetPlayerHUD(APlayerHUD* InPlayerHUD)
 {
-	return DisplayText;
+	PlayerHUD = InPlayerHUD;
 }
 
-void UPS3ViewModel::SetDisplayText(const FText& InDisplayText)
+void UPS3ViewModel::RequestTextNotify(const FText& InDisplayText, float InFontSize, float InDisplayDuration)
 {
-	UE_MVVM_SET_PROPERTY_VALUE(DisplayText, InDisplayText);
+	if (PlayerHUD)
+	{
+		PlayerHUD->ShowTextNotify(InDisplayText, InFontSize, InDisplayDuration);
+	}
 }
 
-float UPS3ViewModel::GetDisplayDuration() const
+void UPS3ViewModel::RequestHideTextNotify()
 {
-	return DisplayDuration;
+	if (PlayerHUD)
+	{
+		PlayerHUD->HideTextNotify();
+	}
 }
 
-void UPS3ViewModel::SetDisplayDuration(float InDisplayDuration)
+void UPS3ViewModel::RequestShowLifeCount()
 {
-	UE_MVVM_SET_PROPERTY_VALUE(DisplayDuration, InDisplayDuration);
+	if (PlayerHUD)
+	{
+		PlayerHUD->ShowLifeCount();
+	}
 }
 
-int32 UPS3ViewModel::GetCurrentRemainingLife() const
+void UPS3ViewModel::RequestHideLifeCount()
 {
-	return CurrentRemainingLife;
+	if (PlayerHUD)
+	{
+		PlayerHUD->HideLifeCount();
+	}
 }
 
-void UPS3ViewModel::SetCurrentRemainingLife(int32 InCurrentRemainingLife)
+void UPS3ViewModel::RequestUpdateLifeCount(int32 InCurrentLifeCount, int32 InMaxLifeCount)
 {
-	UE_MVVM_SET_PROPERTY_VALUE(CurrentRemainingLife, InCurrentRemainingLife);
+	if (PlayerHUD)
+	{
+		PlayerHUD->UpdateLifeCount(InCurrentLifeCount, InMaxLifeCount);
+	}
 }
 
-FText UPS3ViewModel::GetKeyName() const
+void UPS3ViewModel::RequestShowInteractionNotifyWidget()
 {
-	return KeyName;
+	if (PlayerHUD)
+	{
+		PlayerHUD->ShowInteractionNotifyWidget();
+	}
 }
 
-void UPS3ViewModel::SetKeyName(const FText& InKeyName)
+void UPS3ViewModel::RequestHideInteractionNotifyWidget()
 {
-	UE_MVVM_SET_PROPERTY_VALUE(KeyName, InKeyName);
+	if (PlayerHUD)
+	{
+		PlayerHUD->HideInteractionNotifyWidget();
+	}
 }
 
-FText UPS3ViewModel::GetActionName() const
+void UPS3ViewModel::RequestShowInteractionNotify(FName InNotifyId, const FText& InKeyName)
 {
-	return ActionName;
+	if (PlayerHUD)
+	{
+		PlayerHUD->ShowInteractionNotify(InNotifyId, InKeyName);
+	}
 }
 
-void UPS3ViewModel::SetActionName(const FText& InActionName)
+void UPS3ViewModel::RequestHideInteractionNotify(FName InNotifyId)
 {
-	UE_MVVM_SET_PROPERTY_VALUE(ActionName, InActionName);
+	if (PlayerHUD)
+	{
+		PlayerHUD->HideInteractionNotify(InNotifyId);
+	}
 }
 
-int32 UPS3ViewModel::GetTokenID() const
+void UPS3ViewModel::RequestHideAllInteractionNotifies()
 {
-	return TokenID;
+	if (PlayerHUD)
+	{
+		PlayerHUD->HideAllInteractionNotifies();
+	}
 }
 
-void UPS3ViewModel::SetTokenID(int32 InTokenID)
+void UPS3ViewModel::RequestShowTimerNotify()
 {
-	UE_MVVM_SET_PROPERTY_VALUE(TokenID, InTokenID);
+	if (PlayerHUD)
+	{
+		PlayerHUD->ShowTimerNotify();
+	}
 }
 
-bool UPS3ViewModel::GetIsUnlocked() const
+void UPS3ViewModel::RequestHideTimerNotifyWidget()
 {
-	return bIsUnlocked;
+	if (PlayerHUD)
+	{
+		PlayerHUD->HideTimerNotifyWidget();
+	}
 }
 
-void UPS3ViewModel::SetIsUnlocked(bool bInIsUnlocked)
+void UPS3ViewModel::RequestTimerNotify(float InDuration)
 {
-	UE_MVVM_SET_PROPERTY_VALUE(bIsUnlocked, bInIsUnlocked);
+	if (PlayerHUD)
+	{
+		PlayerHUD->UpdateTimerNotify(InDuration);
+	}
 }
 
-bool UPS3ViewModel::GetIsSpeaking() const
+void UPS3ViewModel::RequestHideTimerNotify()
 {
-	return bIsSpeaking;
+	if (PlayerHUD)
+	{
+		PlayerHUD->HideTimerNotify();
+	}
 }
 
-void UPS3ViewModel::SetIsSpeaking(bool bInIsSpeaking)
+void UPS3ViewModel::RequestShowTutorialNotify()
 {
-	UE_MVVM_SET_PROPERTY_VALUE(bIsSpeaking, bInIsSpeaking);
+	if (PlayerHUD)
+	{
+		PlayerHUD->ShowTutorialNotify();
+	}
+}
+
+void UPS3ViewModel::RequestHideTutorialNotify()
+{
+	if (PlayerHUD)
+	{
+		PlayerHUD->HideTutorialNotify();
+	}
+}
+
+void UPS3ViewModel::RequestShowDoorOpenButton()
+{
+	if (PlayerHUD)
+	{
+		PlayerHUD->ShowDoorOpenButton();
+	}
+}
+
+void UPS3ViewModel::RequestHideDoorOpenButton()
+{
+	if (PlayerHUD)
+	{
+		PlayerHUD->HideDoorOpenButton();
+	}
+}
+
+int32 UPS3ViewModel::GetCurrentLifeCount() const
+{
+	return CurrentLifeCount;
+}
+
+void UPS3ViewModel::SetCurrentLifeCount(int32 InCurrentLifeCount)
+{
+	UE_MVVM_SET_PROPERTY_VALUE(CurrentLifeCount, InCurrentLifeCount);
+}
+
+int32 UPS3ViewModel::GetMaxLifeCount() const
+{
+	return MaxLifeCount;
+}
+
+void UPS3ViewModel::SetMaxLifeCount(int32 InMaxLifeCount)
+{
+	UE_MVVM_SET_PROPERTY_VALUE(MaxLifeCount, InMaxLifeCount);
+}
+
+TArray<FText> UPS3ViewModel::GetInteractionKeyNames() const
+{
+	return InteractionKeyNames;
+}
+
+void UPS3ViewModel::SetInteractionKeyNames(const TArray<FText>& InInteractionKeyNames)
+{
+	UE_MVVM_SET_PROPERTY_VALUE(InteractionKeyNames, InInteractionKeyNames);
+}
+
+bool UPS3ViewModel::GetIsInteractionNotifyVisible() const
+{
+	return bIsInteractionNotifyVisible;
+}
+
+void UPS3ViewModel::SetIsInteractionNotifyVisible(bool bInIsInteractionNotifyVisible)
+{
+	UE_MVVM_SET_PROPERTY_VALUE(bIsInteractionNotifyVisible, bInIsInteractionNotifyVisible);
+}
+
+bool UPS3ViewModel::GetIsDoor1Unlocked() const
+{
+	return bIsDoor1Unlocked;
+}
+
+void UPS3ViewModel::SetIsDoor1Unlocked(bool bInIsDoor1Unlocked)
+{
+	UE_MVVM_SET_PROPERTY_VALUE(bIsDoor1Unlocked, bInIsDoor1Unlocked);
+}
+
+bool UPS3ViewModel::GetIsDoor2Unlocked() const
+{
+	return bIsDoor2Unlocked;
+}
+
+void UPS3ViewModel::SetIsDoor2Unlocked(bool bInIsDoor2Unlocked)
+{
+	UE_MVVM_SET_PROPERTY_VALUE(bIsDoor2Unlocked, bInIsDoor2Unlocked);
+}
+
+bool UPS3ViewModel::GetIsDoor3Unlocked() const
+{
+	return bIsDoor3Unlocked;
+}
+
+void UPS3ViewModel::SetIsDoor3Unlocked(bool bInIsDoor3Unlocked)
+{
+	UE_MVVM_SET_PROPERTY_VALUE(bIsDoor3Unlocked, bInIsDoor3Unlocked);
+}
+
+bool UPS3ViewModel::GetIsDoor4Unlocked() const
+{
+	return bIsDoor4Unlocked;
+}
+
+void UPS3ViewModel::SetIsDoor4Unlocked(bool bInIsDoor4Unlocked)
+{
+	UE_MVVM_SET_PROPERTY_VALUE(bIsDoor4Unlocked, bInIsDoor4Unlocked);
+}
+
+void UPS3ViewModel::RequestDoorActivation(int32 InDoorIndex, bool bIsActive)
+{
+	if (InDoorIndex < 1 || InDoorIndex > 4)
+	{
+		return;
+	}
+
+	OnDoorActivationRequested.Broadcast(InDoorIndex, bIsActive);
+}
+
+void UPS3ViewModel::RequestVoiceChatSpeaking(bool bInIsSpeaking)
+{
+	if (PlayerHUD)
+	{
+		PlayerHUD->UpdateVoiceChatIcon(bInIsSpeaking);
+	}
+}
+
+void UPS3ViewModel::RequestShowVoiceChatIcon()
+{
+	if (PlayerHUD)
+	{
+		PlayerHUD->ShowVoiceChatIcon();
+	}
+}
+
+void UPS3ViewModel::RequestHideVoiceChatIcon()
+{
+	if (PlayerHUD)
+	{
+		PlayerHUD->HideVoiceChatIcon();
+	}
+}
+
+void UPS3ViewModel::RequestShowOptionPopup()
+{
+	if (PlayerHUD)
+	{
+		PlayerHUD->ShowOptionPopup();
+	}
+}
+
+void UPS3ViewModel::RequestHideOptionPopup()
+{
+	if (PlayerHUD)
+	{
+		PlayerHUD->HideOptionPopup();
+	}
+}
+
+void UPS3ViewModel::RequestShowTitle()
+{
+	if (PlayerHUD)
+	{
+		PlayerHUD->ShowTitle();
+	}
+}
+
+void UPS3ViewModel::RequestHideTitle()
+{
+	if (PlayerHUD)
+	{
+		PlayerHUD->HideTitle();
+	}
+}
+
+void UPS3ViewModel::RequestShowGameOver()
+{
+	if (PlayerHUD)
+	{
+		PlayerHUD->ShowGameOver();
+	}
+}
+
+void UPS3ViewModel::RequestHideGameOver()
+{
+	if (PlayerHUD)
+	{
+		PlayerHUD->HideGameOver();
+	}
+}
+
+void UPS3ViewModel::RequestShowStage5RoleSelect()
+{
+	if (PlayerHUD)
+	{
+		PlayerHUD->ShowStage5RoleSelect();
+	}
+}
+
+void UPS3ViewModel::RequestHideStage5RoleSelect()
+{
+	if (PlayerHUD)
+	{
+		PlayerHUD->HideStage5RoleSelect();
+	}
+}
+
+void UPS3ViewModel::RequestStage5RoleSelection(EPS3PlayerRole SelectedRole)
+{
+	OnStage5RoleSelectionRequested.Broadcast(SelectedRole);
 }
 
 bool UPS3ViewModel::GetIsOpen() const
