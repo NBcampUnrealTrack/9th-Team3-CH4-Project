@@ -20,8 +20,18 @@ APS3PlayerController::APS3PlayerController()
 void APS3PlayerController::BeginPlay()
 {
 	Super::BeginPlay();
+	ConfigureLocalInput();
+}
 
-	if (!IsLocalController())
+void APS3PlayerController::ReceivedPlayer()
+{
+	Super::ReceivedPlayer();
+	ConfigureLocalInput();
+}
+
+void APS3PlayerController::ConfigureLocalInput()
+{
+	if (bLocalInputConfigured || !IsLocalController())
 	{
 		return;
 	}
@@ -36,6 +46,7 @@ void APS3PlayerController::BeginPlay()
 			ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer()))
 		{
 			InputSubsystem->AddMappingContext(InputMappingContext, 0);
+			bLocalInputConfigured = true;
 		}
 	}
 }

@@ -8,8 +8,18 @@ APS3ScreenPlayerController::APS3ScreenPlayerController()
 void APS3ScreenPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
+	ConfigureLocalInputMode();
+}
 
-	if (IsLocalController())
+void APS3ScreenPlayerController::ReceivedPlayer()
+{
+	Super::ReceivedPlayer();
+	ConfigureLocalInputMode();
+}
+
+void APS3ScreenPlayerController::ConfigureLocalInputMode()
+{
+	if (!bLocalInputModeConfigured && IsLocalController())
 	{
 		SetIgnoreMoveInput(true);
 		SetIgnoreLookInput(true);
@@ -19,6 +29,7 @@ void APS3ScreenPlayerController::BeginPlay()
 		InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
 		SetInputMode(InputMode);
 		bShowMouseCursor = true;
+		bLocalInputModeConfigured = true;
 	}
 }
 

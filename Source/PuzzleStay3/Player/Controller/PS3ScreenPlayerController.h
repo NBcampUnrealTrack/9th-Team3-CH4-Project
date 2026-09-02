@@ -14,7 +14,12 @@ public:
 
 	UFUNCTION(BlueprintPure, Category = "PS3|Screen Player Controller")
 	bool IsScreenPlayer() const;
+	virtual void ReceivedPlayer() override;
 
 protected:
 	virtual void BeginPlay() override;
+
+private:
+	void ConfigureLocalInputMode();
+	bool bLocalInputModeConfigured = false;
 };
