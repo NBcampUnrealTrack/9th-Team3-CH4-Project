@@ -12,4 +12,7 @@ UCLASS()
 class PUZZLESTAY3_API APS3GameModeS2 : public APS3GameModeBase
 {
 	GENERATED_BODY()
+	
+	protected:
+	virtual bool StageRestartIfPlayerDead() const override { return true; }
 };
