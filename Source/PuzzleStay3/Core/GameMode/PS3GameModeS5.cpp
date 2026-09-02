@@ -3,7 +3,7 @@
 
 #include "PS3GameModeS5.h"
 
-#include "Core/GameState/PS3GameState.h"
+#include "Core/GameState/PS3GameStateS5.h"
 #include "Data/Enum/PS3PlayerRole.h"
 #include "GameFramework/GameSession.h"
 #include "GameFramework/PlayerStart.h"
@@ -16,27 +16,50 @@ void APS3GameModeS5::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	
-	
 }
+
 
 
 void APS3GameModeS5::OnGameStart()
 {
+	UE_LOG(LogTemp, Warning, TEXT("게임이 시작되었습니다."));
 	GetWorld()->GetTimerManager().SetTimer(GameLimitTimeHandle, this, &ThisClass::OnReduceGameTime, 1.f, true);
 }
 
+void APS3GameModeS5::OnGameOver()
+{
+	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
+	{
+		auto* OldController = Cast<APlayerController>(*It);
+		if (IsValid(OldController) == false) continue;
+		
+		APawn* OldPawn = OldController->GetPawn();
+		if (IsValid(OldPawn) == true)
+		{
+			OldController->UnPossess();
+			OldPawn->Destroy();
+		}
+	}
+	
+	auto* PS3GameStateS5 = GetGameState<APS3GameStateS5>();
+	if (IsValid(PS3GameStateS5) == false) return;
+	
+	PS3GameStateS5->OnGameOver();
+}
 
 void APS3GameModeS5::OnReduceGameTime()
 {
-	float CurrentGameLimitTime = GameLimitTime;
+	auto* PS3GameStateS5 = GetGameState<APS3GameStateS5>();
+	if (IsValid(PS3GameStateS5) == false) return;
+		
+	PS3GameStateS5->OnReduceGameTime();
 	
-	--CurrentGameLimitTime;
-	
-	if (CurrentGameLimitTime <= 0.0f)
+	if (PS3GameStateS5->GameLimitTime <= 0.0f)
 	{
-		//TODO 나중에 게임모드베이스에서 GameOver 함수 추가하기
-		UE_LOG(LogTemp, Error, TEXT("GameOver 예정"));
+		GetWorld()->GetTimerManager().ClearTimer(GameLimitTimeHandle);
+		UE_LOG(LogTemp, Warning, TEXT("제한시간 종료."));
+		
+		OnGameOver();
 	}
 }
 
@@ -47,7 +70,7 @@ void APS3GameModeS5::SetPlayerControllerRole(APlayerController* CurrentControlle
 	
 	//TODO 디버그 매세지 나중에 삭제하기
 	FString ControllerName = CurrentController->GetName(); // 예: PS3ChoiceController_0, PS3ChoiceController_1
-	if (SelectedPlayerRoleType == EPS3PlayerRole::Field && bIsTakeThirdPersonControllerType == true)
+	if (SelectedPlayerRoleType == EPS3PlayerRole::Field && bIsTakeFieldControllerType == true)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("3인칭조작 컨트롤러는 [%s]에게 이미 할당 되어있습니다."), *ControllerName);
 		return;
@@ -59,13 +82,15 @@ void APS3GameModeS5::SetPlayerControllerRole(APlayerController* CurrentControlle
 		return; 
 	}
 	
+	++RoleSelectedPlayerCount;
+	
 	EPS3PlayerRole CurrentPlayerRoleType = SelectedPlayerRoleType;
 	
 	if (CurrentPlayerRoleType == EPS3PlayerRole::Field)
 	{
-		bIsTakeThirdPersonControllerType = true;
+		bIsTakeFieldControllerType = true;
 		UE_LOG(LogTemp, Warning, TEXT("3인칭조작 플레이어 생성"));
-		PossessedControllerAndSpawn(CurrentController, ThirdPersonControllerClass, ThirdPersonCharacterClass);
+		PossessedControllerAndSpawn(CurrentController, FieldControllerClass, FieldCharacterClass);
 		
 	}
 	
@@ -94,15 +119,14 @@ void APS3GameModeS5::PossessedControllerAndSpawn(APlayerController* OldControlle
 	
 	FString TargetTag = TEXT("");
 	
-	if (NewControllerClass == ThirdPersonControllerClass)
+	if (NewControllerClass == FieldControllerClass)
 	{
-		TargetTag = ThirdPersonString;
-		
+		TargetTag = FieldTagString;
 	}
 	
 	else if (NewControllerClass == ScreenControllerClass)
 	{
-		TargetTag = ScreenString;
+		TargetTag = ScreenTagString;
 	}
 	
 	APawn* OldPawn = OldController->GetPawn();
@@ -154,4 +178,7 @@ void APS3GameModeS5::PossessedControllerAndSpawn(APlayerController* OldControlle
 	UE_LOG(LogTemp, Warning, TEXT("플레이어 스폰 완료"));
 	
 }
+
+
+
 
