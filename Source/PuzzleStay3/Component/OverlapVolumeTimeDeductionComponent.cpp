@@ -2,7 +2,7 @@
 
 #include "Components/BoxComponent.h"
 #include "Core/GameMode/PS3GameModeS5.h"
-#include "Gimmick/GimmickBase.h"
+#include "Object/GimmickBase.h"
 #include "Player/Character/PS3PlayerCharacter.h"
 
 
