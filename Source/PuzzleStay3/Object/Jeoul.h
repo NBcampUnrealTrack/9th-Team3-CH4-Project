@@ -125,12 +125,12 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Jeoul Settings")
 	float ResetBeamTime = 1.5f;
 	
-	// 플레이어 무게 설정값 (Player A = 1.0f, Player B = 0.5f)
+	// 플레이어 무게 설정값 (Player A = 100.f, Player B = 70.f)
 	UPROPERTY(EditAnywhere, Category = "Jeoul Settings")
-	float PlayerAWeight = 1.0f;
+	float PlayerAWeight = 100.f;
 	
 	UPROPERTY(EditAnywhere, Category = "Jeoul Settings")
-	float PlayerBWeight = 0.5f;
+	float PlayerBWeight = 70.f;
 	
 	
 };

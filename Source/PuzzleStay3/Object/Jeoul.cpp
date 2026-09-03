@@ -109,21 +109,18 @@ float AJeoul::CalculateWeightOnPlate(UBoxComponent* InPlateTrigger)
 	{
 		if (!Actor) continue;
 
-		// 1. Dumbbell 무게 합산 (캐릭터가 들고 있는 상태면 제외)
+		// 1. Dumbbell 무게 합산 (안고 있는 상태여도 포함)
 		if (ADumbbell* Dumbbell = Cast<ADumbbell>(Actor))
 		{
-			if (!Dumbbell->IsHeld())
-			{
-				TotalWeight += Dumbbell->GetWeight();
+			TotalWeight += Dumbbell->GetWeight();
 
-				// 서버 권한에서 덤벨을 BeamPivot에 부착하여 기울어질 때 함께 이동
-				if (HasAuthority())
-				{
-					Dumbbell->AttachToComponent(
-						BeamPivot,
-						FAttachmentTransformRules::KeepWorldTransform
-					);
-				}
+			// 서버 권한에서 덤벨을 BeamPivot에 부착하여 저울대가 기울어질 때 함께 이동
+			if (HasAuthority())
+			{
+				Dumbbell->AttachToComponent(
+					BeamPivot,
+					FAttachmentTransformRules::KeepWorldTransform
+				);
 			}
 		}
 		// 2. 플레이어 무게 합산
@@ -184,7 +181,7 @@ void AJeoul::Server_CheckBalance_Implementation()
 	{
 		// 수평(동일 무게) 판정: 오차 허용 범위 0.01f 적용
 		bool bIsSuccess = FMath::IsNearlyEqual(TotalWeight, JudgeWeight, 0.01f) && TotalWeight > 0.0f;
-		
+
 		//GameModeS4에 판정 결과 통보 (GameMode가 문 개방 로직을 구동함)
 		if (APS3GameModeS4* GM = Cast<APS3GameModeS4>(GetWorld()->GetAuthGameMode()))
 		{
