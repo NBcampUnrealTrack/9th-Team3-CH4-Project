@@ -30,10 +30,6 @@ enum class ERandomCollisionState : uint8
 	BlockAll
 };
 
-
-
-DECLARE_MULTICAST_DELEGATE_OneParam(FOnBlockingVolumeDisabled, EPS3StageNumber);
-
 UCLASS()
 class PUZZLESTAY3_API APS3GameModeBase : public AGameModeBase
 {
@@ -75,9 +71,7 @@ private:
 #pragma region BlokingVolume
 
 public:
-	//블록볼륨 델리게이트
-	FOnBlockingVolumeDisabled OnBlockingVolumeDisabled;
-
+	
 	virtual void DisableBlockingVolume(EPS3StageNumber StageNumber);
 
 #pragma endregion
@@ -105,7 +99,7 @@ private:
 
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "GameRule|StageClear")
-	FName NextStageLevelName;
+	FString NextStageLevelName;
 
 	// 모든 스위치 활성화 후 다음 스테이지로 넘어가기까지 대기 시간.
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "GameRule|StageClear")
