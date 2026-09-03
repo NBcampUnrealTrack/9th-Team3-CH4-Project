@@ -55,7 +55,7 @@ protected:
 
 private:
 	UFUNCTION()
-	void HandleSwitchActivatedChanged(bool bActivated);
+	virtual void HandleSwitchActivatedChanged(bool bActivated);
 
 	FDelegateHandle InteractionSwitchCompoHandle;
 
