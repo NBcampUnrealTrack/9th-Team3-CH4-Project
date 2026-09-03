@@ -29,12 +29,14 @@ public:
 	
 public:
 	void OnGameOver();
-	void OnReduceGameTime();
-	
+	void OnReduceGameTime(float ReducedTimeRange);
+	void OnTimeDeduction(float TimeToDeducted);
 	
 public:
-	UPROPERTY(Replicated, EditAnywhere, Category = "GameRule")
+	UPROPERTY(ReplicatedUsing = OnRep_GameLimitTime, EditAnywhere, Category = "GameRule")
 	float GameLimitTime = 60.0f;
+	
+	
 
 	UPROPERTY(ReplicatedUsing = OnRep_IsGameOver)
 	bool bIsGameOver = false;
@@ -43,6 +45,11 @@ public:
 protected:
 	UFUNCTION()
 	void OnRep_IsGameOver();
+	void SetIsGameOver_AuthorityOnRep(bool SetIsGameOver);
+	
+	UFUNCTION()
+	void OnRep_GameLimitTime();
+	void SetDeductGameLimitTime_AuthorityOnRep(float TimeToDeducted);
 
 
 };

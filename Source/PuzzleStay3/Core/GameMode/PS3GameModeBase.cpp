@@ -4,12 +4,10 @@
 #include "GameFramework/GameStateBase.h"
 #include "GameFramework/PlayerState.h"
 #include "Kismet/GameplayStatics.h"
+#include "Component/InteractionSwitchComponent.h"
 #include "Player/PlayerState/PS3PlayerState.h"
-#include "PuzzleStay3/Component/InteractionSwitchComponent.h"
 
-//bgimmick enum final,normal 
-//if (bgimmick - normal) {APS3GameModeBase::RegisterInteractionSwitch 등록하렴}
-//else(bgimmick - final) {finalRegisterInteractionSwitch 등록하렴
+
 
 void APS3GameModeBase::BeginPlay()
 {
@@ -82,7 +80,10 @@ void APS3GameModeBase::OpenEscapeDoor()
 	if (bEscapeDoorOpened) return;
 	
 	bEscapeDoorOpened = true;
+	//OnEscapeDoorOpened.Broadcast(EDoorType::StageAllFinalDoor);
 	OnEscapeDoorOpened.Broadcast();
+	
+	CallStageClearIfTimerOver();
 }
 
 void APS3GameModeBase::DisableBlockingVolume(EPS3StageNumber StageNumber)
@@ -138,5 +139,25 @@ void APS3GameModeBase::ResetAllPlayersDeadState()
 
 void APS3GameModeBase::StageClear()
 {
-	
+	if (NextStageLevelName.IsNone()) return;
+
+	UGameplayStatics::OpenLevel(this, NextStageLevelName);
+}
+
+void APS3GameModeBase::CallStageClearIfTimerOver()
+{
+	if (!bStageClearTimerStarted)
+	{
+		bStageClearTimerStarted = true;
+
+		UE_LOG(LogTemp, Warning, TEXT("Go to Next Stage After 10 Seconds"));
+		
+		GetWorldTimerManager().SetTimer(
+			StageClearTimerHandle,
+			this,
+			&APS3GameModeBase::StageClear,
+			StageClearDelay,
+			false
+		);
+	}
 }

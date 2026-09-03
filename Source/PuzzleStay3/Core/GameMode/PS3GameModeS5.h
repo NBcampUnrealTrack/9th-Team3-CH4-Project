@@ -16,7 +16,7 @@ enum class EPS3PlayerRole : uint8;
  이를 언리얼 에디터에서 꼭 스타트포인트 액터의 Tag에 작성해주세요
  (사실 다른 스테이지도 마찬가지일테죠)*/
  
-
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnIsGameStart, bool)
 UCLASS()
 class PUZZLESTAY3_API APS3GameModeS5 : public APS3GameModeBase
 {
@@ -32,6 +32,8 @@ public:
 	void OnGameStart();
 	void OnGameOver();
 	void OnReduceGameTime();
+	void OnTimeDeduction(float TimeToDeducted);
+	
 	//virtual void StageRestart() override;
 	
 	int32 RoleSelectedPlayerCount = 0;
@@ -40,6 +42,12 @@ public:
 	
 	bool bIsTakeFieldControllerType = false;
 	bool bIsTakeScreenControllerType = false;
+	
+	FOnIsGameStart OnIsGameStart;
+	
+public:
+	UPROPERTY(EditAnywhere, Category = "GameRule")
+	float ReducedTimeRange = 1.0f;
 	
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "GameRule|SwapController")
