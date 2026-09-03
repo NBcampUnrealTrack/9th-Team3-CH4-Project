@@ -68,6 +68,12 @@ void AJeoul::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimePr
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(AJeoul, TargetBeamRotation);
+	DOREPLIFETIME(AJeoul, CurrentState);
+}
+
+void AJeoul::OnRep_TargetBeamRotation()
+{
+	// 클라이언트 측에서 TargetBeamRotation 업데이트 시 보간 애니메이션이 Tick에서 즉시 동작함
 }
 
 void AJeoul::OnCheckButtonPressed(bool bActivated)
@@ -91,10 +97,13 @@ float AJeoul::CalculateWeightOnPlate(UBoxComponent* InPlateTrigger) const
 	{
 		if (!Actor) continue;
 
-		// 1. Dumbbell 무게 합산
-		if (Actor->IsA<ADumbbell>())
+		// 1. Dumbbell 무게 합산 (캐릭터가 들고 있는 상태면 제외)
+		if (ADumbbell* Dumbbell = Cast<ADumbbell>(Actor))
 		{
-			TotalWeight += 1.0f;
+			if (!Dumbbell->IsHeld())
+			{
+				TotalWeight += Dumbbell->GetWeight();
+			}
 		}
 		// 2. 플레이어 무게 합산
 		else if (ACharacter* Character = Cast<ACharacter>(Actor))
@@ -127,13 +136,14 @@ void AJeoul::Server_CheckBalance_Implementation()
 	// 서버에서만 Broadcast하지 않고, 모든 클라이언트로 Multicast 호출
 	Multicast_OnJeoulCheckStarted();
 
-	float TotalWeight = CalculateWeightOnPlate(PlateTrigger);
+	// 스위치를 누른 순간의 무게 스냅샷 측정
+	const float TotalWeight = CalculateWeightOnPlate(PlateTrigger);
 
 	// GameMode에서 이번 스테이지/저울의 목표 정답 무게 가져오기
 	float JudgeWeight = 0.0f;
 	if (APS3GameModeBase* GM = Cast<APS3GameModeBase>(GetWorld()->GetAuthGameMode()))
 	{
-		// GameMode에 선언된 TargetBalancedWeight (또는 정답 무게 Getter) 참조
+		// TODO GameMode에 선언된 TargetBalancedWeight (또는 정답 무게 Getter) 참조
 		JudgeWeight = 3.f;
 		//JudgeWeight = GM->GetTargetBalancedWeight(); 
 	}
@@ -145,12 +155,12 @@ void AJeoul::Server_CheckBalance_Implementation()
 	float TargetRoll = FMath::Clamp(WeightDifference * TiltSensitivity, -MaxTiltAngle, MaxTiltAngle);
 	TargetBeamRotation = InitialBeamRotation + FRotator(0.0f, 0.0f, TargetRoll);
 
-	// 3초 후 컷씬 종료 및 결과 판단 타이머
+	// CutSceneTime 후 컷씬 종료 및 결과 판단 타이머
 	FTimerHandle ResultTimer;
 	GetWorldTimerManager().SetTimer(ResultTimer, [this, TotalWeight, JudgeWeight]()
 	{
-		// 수평(동일 무게) 판정
-		bool bIsSuccess = FMath::IsNearlyEqual(TotalWeight, JudgeWeight, KINDA_SMALL_NUMBER) && TotalWeight > 0.0f;
+		// 수평(동일 무게) 판정: 오차 허용 범위 0.01f 적용
+		bool bIsSuccess = FMath::IsNearlyEqual(TotalWeight, JudgeWeight, 0.01f) && TotalWeight > 0.0f;
 
 		if (bIsSuccess)
 		{
@@ -161,6 +171,7 @@ void AJeoul::Server_CheckBalance_Implementation()
 			{
 				GM->OnEscapeDoorOpened.Broadcast();
 			}
+			
 			// 성공 시 모든 클라이언트에 알림
 			Multicast_OnJeoulCheckFinished(true);
 			
@@ -181,7 +192,7 @@ void AJeoul::Server_CheckBalance_Implementation()
 				InteractionSwitchComp->ResetSwitch();   // 컷씬 종료 시점에 리셋
 			}
 			
-			// 원위치로 돌아가는 연출 시간을 위해 1.5초 후 카메라 복구 요청
+			// 원위치로 돌아가는 연출 시간을 위해 ResetBeamTime 후 카메라 복구 요청
 			FTimerHandle ResetTimer;
 			GetWorldTimerManager().SetTimer(ResetTimer, [this]()
 			{
