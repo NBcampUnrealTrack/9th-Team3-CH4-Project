@@ -70,7 +70,8 @@ void AJeoul::Tick(float DeltaTime)
 	{
 		FRotator NewRot = FMath::RInterpTo(CurrentRot, TargetBeamRotation, DeltaTime, 3.0f);
 		BeamPivot->SetRelativeRotation(NewRot);
-	}
+	
+		}
 }
 
 void AJeoul::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -151,7 +152,7 @@ void AJeoul::Multicast_OnJeoulCheckFinished_Implementation(bool bIsSuccess)
 void AJeoul::Server_CheckBalance_Implementation()
 {
 	CurrentState = EJeoulState::Checking;
-
+	
 	// 서버에서만 Broadcast하지 않고, 모든 클라이언트로 Multicast 호출
 	Multicast_OnJeoulCheckStarted();
 
@@ -159,13 +160,13 @@ void AJeoul::Server_CheckBalance_Implementation()
 	const float TotalWeight = CalculateWeightOnPlate(PlateTrigger);
 
 	// GameMode에서 이번 스테이지/저울의 목표 정답 무게 가져오기
-	float JudgeWeight = 0.0f;
-	if (APS3GameModeBase* GM = Cast<APS3GameModeBase>(GetWorld()->GetAuthGameMode()))
-	{
-		// TODO GameMode에 선언된 TargetBalancedWeight (또는 정답 무게 Getter) 참조
-		JudgeWeight = 3.f;
-		//JudgeWeight = GM->GetTargetBalancedWeight(); 
-	}
+	float JudgeWeight = 3.f;
+	// if (APS3GameModeBase* GM = Cast<APS3GameModeBase>(GetWorld()->GetAuthGameMode()))
+	// {
+	// 	// TODO GameMode에 선언된 TargetBalancedWeight (또는 정답 무게 Getter) 참조
+	// 	JudgeWeight = 3.f;
+	// 	//JudgeWeight = GM->GetTargetBalancedWeight(); 
+	// }
 
 	//무게 차이 계산
 	float WeightDifference = JudgeWeight - TotalWeight;
@@ -173,7 +174,9 @@ void AJeoul::Server_CheckBalance_Implementation()
 	// 무게 차이에 따른 기울기 목표 각도 산출 (Pitch 또는 Roll 축 제어)
 	float TargetRoll = FMath::Clamp(WeightDifference * TiltSensitivity, -MaxTiltAngle, MaxTiltAngle);
 	TargetBeamRotation = InitialBeamRotation + FRotator(0.0f, 0.0f, TargetRoll);
-
+	
+	UE_LOG(LogTemp, Warning, TEXT("[Jeoul] 테스트%f, %f, %f,%f"),WeightDifference ,TargetRoll,TotalWeight,JudgeWeight);
+	
 	// CutSceneTime 후 컷씬 종료 및 결과 판단 타이머
 	FTimerHandle ResultTimer;
 	GetWorldTimerManager().SetTimer(ResultTimer, [this, TotalWeight, JudgeWeight]()

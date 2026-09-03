@@ -37,7 +37,7 @@ protected:
 	TObjectPtr<UStaticMeshComponent> DumbbellMesh;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PS3|Character|Interaction")
-	FVector GrabOffset = FVector(0.0f, 50.0f, 40.0f);
+	FVector GrabOffset = FVector(0.0f, 0.0f, 0.0f);
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PS3|Character|Interaction")
 	FRotator GrabRotationOffset = FRotator::ZeroRotator;
