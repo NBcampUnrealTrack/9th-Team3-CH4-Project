@@ -34,11 +34,16 @@ public:
 	
 	//TODO 테스트용 BlueprintCallable 임. 나중에 삭제 할 것
 	UFUNCTION(BlueprintCallable)
-	void OnClickedRestartGame();
+	void StageRestart();
 	UFUNCTION(BlueprintCallable)
-	void OnClickedQuitGame();
+	void OnQuitGame();
 	
 public:
+	UPROPERTY(Replicated)
+	bool bIsSelectedFieldType = false;
+	UPROPERTY(Replicated)
+	bool bIsSelectedScreenType = false;
+	
 	UPROPERTY(ReplicatedUsing = OnRep_GameLimitTime, EditAnywhere, Category = "GameRule")
 	float GameLimitTime = 60.0f;
 	

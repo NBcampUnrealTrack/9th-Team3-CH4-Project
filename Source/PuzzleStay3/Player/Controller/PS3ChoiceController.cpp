@@ -8,6 +8,8 @@
 #include "Core/GameMode/PS3GameModeS5.h"
 #include "Core/GameState/PS3GameStateS5.h"
 #include "Data/Enum/PS3PlayerRole.h"
+#include "UI/HUD/PlayerHUD.h"
+#include "UI/ViewModel/PS3ViewModel.h"
 
 
 APS3ChoiceController::APS3ChoiceController()
@@ -19,9 +21,10 @@ APS3ChoiceController::APS3ChoiceController()
 void APS3ChoiceController::BeginPlay()
 {
 	Super::BeginPlay();
-	SetViewTarget(this);
 	
-	ConfigureInputMapping();
+	GetWorld()->GetTimerManager().SetTimer(InitTimerHandle, this, &APS3ChoiceController::ConfigureInputMapping, 0.01f, false);
+	
+	SetViewTarget(this);
 }
 
 void APS3ChoiceController::ReceivedPlayer()
@@ -39,26 +42,40 @@ void APS3ChoiceController::ConfigureInputMapping()
 {
 	if (IsLocalController() == false) return;
 	
-	if (UIWidgetClass.IsValidIndex(0) == false) return;
+	GetWorld()->GetTimerManager().ClearTimer(InitTimerHandle);
 	
-	if (UIWidgetClass[0] == nullptr) return;
-	
-	UIWidgetInstance = CreateWidget<UUserWidget>(this, UIWidgetClass[0]);
-	if (IsValid(UIWidgetInstance) == false) return;
-	
-	UIWidgetInstance->AddToViewport();
+	auto* HUD = Cast<APlayerHUD>(GetHUD());
+	if (HUD == nullptr) return;
+
+	PS3ViewModel = Cast<UPS3ViewModel>(HUD->GetViewModel());
+	if (PS3ViewModel == nullptr) return;
+
+	PS3ViewModel->OnStage5RoleSelectionRequested.AddDynamic(this, &ThisClass::OnClickedFieldTypeButton);
+	PS3ViewModel->OnStage5RoleSelectionRequested.AddDynamic(this, &ThisClass::OnClickedScreenTypeButton);
+	PS3ViewModel->RequestShowStage5RoleSelect();
 
 	FInputModeUIOnly UIOnlyMode;
-	UIOnlyMode.SetWidgetToFocus(UIWidgetInstance->GetCachedWidget());
 	SetInputMode(UIOnlyMode);
 
 	bShowMouseCursor = true;
-	
-
 }
+
 
 void APS3ChoiceController::ServerRPC_SelectedControllerType_Implementation(EPS3PlayerRole SelectedPlayerRoleType)
 {
+	auto* PS3GameStateS5 = Cast<APS3GameStateS5>(GetWorld()->GetGameState());
+	if (IsValid(PS3GameStateS5) == false) return;
+	
+	if (SelectedPlayerRoleType == EPS3PlayerRole::Field)
+	{
+		PS3GameStateS5->bIsSelectedFieldType = true;
+	}
+	
+	else if (SelectedPlayerRoleType == EPS3PlayerRole::Screen)
+	{
+		PS3GameStateS5->bIsSelectedScreenType = true;
+	}
+	
 	auto* PS3GameModeS5 = Cast<APS3GameModeS5>(GetWorld()->GetAuthGameMode());
 	if (IsValid(PS3GameModeS5) == false) return;
 	
@@ -70,21 +87,36 @@ void APS3ChoiceController::ServerRPC_SelectedControllerType_Implementation(EPS3P
 	}
 }
 
-void APS3ChoiceController::OnClickedFieldTypeButton()
+void APS3ChoiceController::OnClickedFieldTypeButton(EPS3PlayerRole SelectType)
 {
+	if (SelectType == EPS3PlayerRole::Field)
+	{
+		auto* PS3GameStateS5 = Cast<APS3GameStateS5>(GetWorld()->GetGameState());
+		if (IsValid(PS3GameStateS5) == false) return;
+		
+		if (PS3GameStateS5->bIsSelectedFieldType == true) return;
 	
-	if (bIsSelectedFieldType == true) return;
-	bIsSelectedFieldType = true;
-	
-	ServerRPC_SelectedControllerType(EPS3PlayerRole::Field);
+		ServerRPC_SelectedControllerType(SelectType);
+		
+		if (IsValid(PS3ViewModel) == false) return;
+		PS3ViewModel->RequestHideStage5RoleSelect();
+	}
 }
 
-void APS3ChoiceController::OnClickedScreenTypeButton()
+void APS3ChoiceController::OnClickedScreenTypeButton(EPS3PlayerRole SelectType)
 {
-	if (bIsSelectedScreenType == true) return;
-	bIsSelectedScreenType = true;
+	if (SelectType == EPS3PlayerRole::Screen)
+	{
+		auto* PS3GameStateS5 = Cast<APS3GameStateS5>(GetWorld()->GetGameState());
+		if (IsValid(PS3GameStateS5) == false) return;
+		
+		if (PS3GameStateS5->bIsSelectedScreenType == true) return;
 	
-	ServerRPC_SelectedControllerType(EPS3PlayerRole::Screen);
+		ServerRPC_SelectedControllerType(SelectType);
+		
+		if (IsValid(PS3ViewModel) == false) return;
+		PS3ViewModel->RequestHideStage5RoleSelect();
+	}
 }
 
 

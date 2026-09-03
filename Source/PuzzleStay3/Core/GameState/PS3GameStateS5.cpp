@@ -25,6 +25,8 @@ void APS3GameStateS5::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutL
 	
 	DOREPLIFETIME(ThisClass, GameLimitTime);
 	DOREPLIFETIME(ThisClass, bIsGameOver);
+	DOREPLIFETIME(ThisClass, bIsSelectedFieldType);
+	DOREPLIFETIME(ThisClass, bIsSelectedScreenType);
 }
 
 void APS3GameStateS5::OnRep_IsGameOver()
@@ -86,7 +88,7 @@ void APS3GameStateS5::OnTimeDeduction(float TimeToDeducted)
 	SetDeductGameLimitTime_AuthorityOnRep(TimeToDeducted);
 }
 
-void APS3GameStateS5::OnClickedRestartGame()
+void APS3GameStateS5::StageRestart()
 {
 	auto* PS3GameModeS5 = Cast<APS3GameModeS5>(GetWorld()->GetAuthGameMode());
 	if (IsValid(PS3GameModeS5) == false) return;
@@ -94,7 +96,7 @@ void APS3GameStateS5::OnClickedRestartGame()
 	PS3GameModeS5->StageRestart();
 }
 
-void APS3GameStateS5::OnClickedQuitGame()
+void APS3GameStateS5::OnQuitGame()
 {
 	APlayerController* CurrentPlayer = GetWorld()->GetFirstPlayerController();
 	if (CurrentPlayer == nullptr) return;
@@ -103,9 +105,6 @@ void APS3GameStateS5::OnClickedQuitGame()
 	if (IsValid(PS3GameModeS5) == false) return;
 		
 	PS3GameModeS5->OnQuitGame();
-	
-		
-	
 }
 
 

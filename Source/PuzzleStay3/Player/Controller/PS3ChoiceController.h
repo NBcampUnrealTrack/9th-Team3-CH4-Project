@@ -26,30 +26,27 @@ protected:
 public:
 	//TODO 테스트용 BlueprintCallable 임. 나중에 삭제 할 것
 	UFUNCTION(BlueprintCallable, Category = "Test")
-	void OnClickedFieldTypeButton();
+	void OnClickedFieldTypeButton(EPS3PlayerRole SelectType);
 	UFUNCTION(BlueprintCallable, Category = "Test")
-	void OnClickedScreenTypeButton();
+	void OnClickedScreenTypeButton(EPS3PlayerRole SelectType);
 	
 	void ConfigureInputMapping();
 	
-public:
-	UPROPERTY(EditAnywhere, Category = "UI")
-	TArray<TSubclassOf<UUserWidget>> UIWidgetClass;
 	
-	UPROPERTY(VisibleAnywhere, Category = "UI")
-	TObjectPtr<UUserWidget> UIWidgetInstance;
-
+public:
 	UFUNCTION(Server, Reliable)
 	void ServerRPC_SelectedControllerType(EPS3PlayerRole SelectedPlayerRoleType);
 	
 	UPROPERTY()
 	TObjectPtr<class UCameraComponent> FixedCameraComponent;
 	
+	UPROPERTY()
+	TObjectPtr<class UPS3ViewModel> PS3ViewModel;
+	
 protected:
+	FTimerHandle InitTimerHandle;
 	
-	
-	bool bIsSelectedFieldType = false;
-	bool bIsSelectedScreenType = false;
+
 	
 };
 
