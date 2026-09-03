@@ -22,13 +22,17 @@ AJeoul::AJeoul()
 
 	JeoulBaseMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("JeoulBaseMesh"));
 	JeoulBaseMesh->SetupAttachment(RootComponent);
-
+	JeoulBaseMesh->SetCollisionProfileName(TEXT("BlockAllDynamic"));
+	JeoulBaseMesh->SetCollisionResponseToChannel(ECC_Visibility, ECR_Ignore);
+	
 	BeamPivot = CreateDefaultSubobject<USceneComponent>(TEXT("BeamPivot"));
 	BeamPivot->SetupAttachment(JeoulBaseMesh);
 
 	JeoulBeamMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("JeoulBeamMesh"));
 	JeoulBeamMesh->SetupAttachment(BeamPivot);
-
+	JeoulBeamMesh->SetCollisionProfileName(TEXT("BlockAllDynamic"));
+	JeoulBeamMesh->SetCollisionResponseToChannel(ECC_Visibility, ECR_Ignore); // 추가!
+	
 	PlateTrigger = CreateDefaultSubobject<UBoxComponent>(TEXT("PlateTrigger"));
 	PlateTrigger->SetupAttachment(BeamPivot);
 
@@ -39,9 +43,8 @@ AJeoul::AJeoul()
 	// 플레이어가 조준할 버튼 메쉬 생성 및 저울 기둥/몸체에 부착
 	CheckButtonMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("CheckButtonMesh"));
 	CheckButtonMesh->SetupAttachment(JeoulBaseMesh);
-
-	// 라인트레이스 감지를 위해 Collision Profile을 Visibility 채널에 블록(Block)되도록 설정
 	CheckButtonMesh->SetCollisionProfileName(TEXT("BlockAllDynamic"));
+	CheckButtonMesh->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block); // 버튼만 Block!
 
 	// 2. 스위치 컴포넌트 생성 및 저울 전용 설정
 	InteractionSwitchComp = CreateDefaultSubobject<UInteractionSwitchComponent>(TEXT("InteractionSwitchComp"));
