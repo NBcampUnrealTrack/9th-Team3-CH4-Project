@@ -8,8 +8,6 @@
 class APS3PlayerState;
 class UVoicePluginControlComponent;
 
-DECLARE_MULTICAST_DELEGATE(FOnVoiceObjectHeld);
-
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(
 	FOnVoiceTransmissionRequestedChanged,
 	bool,
@@ -27,8 +25,6 @@ public:
 	void BindPlayerState(APS3PlayerState* NewPlayerState);
 	bool TryAcquireVoiceObject();
 	bool TryReleaseVoiceObject();
-
-	FOnVoiceObjectHeld OnVoiceObjectHeld;
 
 	UFUNCTION(BlueprintCallable, Category = "Voice")
 	void StartPushToTalk();
@@ -66,7 +62,6 @@ private:
 	UFUNCTION()
 	void HandleVoiceChatStateChanged(EVoiceChatState NewState);
 
-	void RegisterToStage3GameMode();
 	void UnbindPlayerState();
 	bool SetVoiceObjectHeld(bool bNewIsHeld);
 	void UpdateTransmission();

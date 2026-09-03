@@ -28,23 +28,6 @@ void UCustomVoiceComponent::BeginPlay()
 			PC->GetPlayerState<APS3PlayerState>()
 		);
 	}
-
-	RegisterToStage3GameMode();
-}
-
-void UCustomVoiceComponent::RegisterToStage3GameMode()
-{
-	// GameMode는 서버에만 존재합니다.
-	if (!GetOwner()->HasAuthority())
-	{
-		return;
-	}
-
-	if (APS3GameModeS3* GameMode =
-		GetWorld()->GetAuthGameMode<APS3GameModeS3>())
-	{
-		GameMode->RegisterCustomVoiceComponent(this);
-	}
 }
 
 void UCustomVoiceComponent::BindPlayerState(
@@ -118,8 +101,14 @@ bool UCustomVoiceComponent::SetVoiceObjectHeld(
 
 	BoundPlayerState->SetVoiceObjectHeld(bNewIsHeld);
 
-	// GameModeS3가 전체 보유 인원을 다시 계산합니다.
-	OnVoiceObjectHeld.Broadcast();
+	// 서버에서 변경된 보유 상태를 반영한 뒤 Stage 3 진행 조건을 재평가합니다.
+	if (UWorld* World = GetWorld())
+	{
+		if (APS3GameModeS3* GameMode = World->GetAuthGameMode<APS3GameModeS3>())
+		{
+			GameMode->NotifyVoiceObjectHeldStateChanged();
+		}
+	}
 
 	return true;
 }
@@ -215,7 +204,6 @@ void UCustomVoiceComponent::UpdateTransmission()
 void UCustomVoiceComponent::EndPlay(
 	const EEndPlayReason::Type EndPlayReason)
 {
-	OnVoiceObjectHeld.Clear();
 	UnbindPlayerState();
 	SetVoiceReady(false);
 
