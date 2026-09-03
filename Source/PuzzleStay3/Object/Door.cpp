@@ -1,6 +1,7 @@
 #include "Object/Door.h"
 
 #include "Core/GameMode/PS3GameModeBase.h"
+#include "Core/GameState/PS3GameStateBase.h"
 #include "Net/UnrealNetwork.h"
 
 ADoor::ADoor()
@@ -21,16 +22,19 @@ void ADoor::BeginPlay()
 	
 	InitialRelativeLocation = DoorMesh->GetRelativeLocation();
 	
-	// 서버 권한을 가진 GameMode의 델리게이트 구독
-	if (HasAuthority())
+	// GameStateBase의 델리게이트 구독 (서버 및 클라이언트 모두 바인딩 가능)
+	if (UWorld* World = GetWorld())
 	{
-		if (UWorld* World = GetWorld())
+		if (APS3GameStateBase* GS = World->GetGameState<APS3GameStateBase>())
 		{
-			if (APS3GameModeBase* GM = Cast<APS3GameModeBase>(World->GetAuthGameMode()))
+			// AddDynamic 또는 AddUniqueDynamic 사용
+			GS->OnEscapeDoorOpened.AddDynamic(this, &ADoor::OnOpenDoor);
+			UE_LOG(LogTemp, Warning, TEXT("[Door] GameState OnEscapeDoorOpened 델리게이트 바인딩 완료!"));
+
+			// 만약 이미 문이 열린 상태로 늦게 진입/초기화된 경우를 대비한 초기값 반영
+			if (GS->IsEscapeDoorOpened())
 			{
-				GM->OnEscapeDoorOpened.AddUObject(this, &ADoor::OnOpenDoor);
-				//test dnjsqls
-				UE_LOG(LogTemp, Warning, TEXT("[Door] GameMode OnEscapeDoorOpened 델리게이트 바인딩 완료!"));
+				OnOpenDoor(true);
 			}
 		}
 	}
@@ -60,16 +64,14 @@ void ADoor::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimePro
 	DOREPLIFETIME(ADoor, bIsOpen);
 }
 
-void ADoor::OnOpenDoor()
+void ADoor::OnOpenDoor(bool bOpened)
 {
-	if (!HasAuthority()) return;
-
-	bIsOpen = true;
+	bIsOpen = bOpened;
 	OnRep_bIsOpen();
 	
 	//test dnjsqls
-	UE_LOG(LogTemp, Warning, TEXT("[Door] OnOpenDoor 호출됨! 문이 열립니다."));
-	if (GEngine)
+	UE_LOG(LogTemp, Warning, TEXT("[Door] OnOpenDoor 호출됨! bIsOpen = %s"), bIsOpen ? TEXT("True") : TEXT("False"));
+	if (GEngine && bIsOpen)
 	{
 		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Cyan, TEXT("Door: Opening!"));
 	}

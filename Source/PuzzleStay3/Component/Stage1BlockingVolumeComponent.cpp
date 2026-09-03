@@ -3,7 +3,7 @@
 
 #include "Stage1BlockingVolumeComponent.h"
 
-#include "Kismet/GameplayStatics.h"
+#include "Core/GameState/PS3GameStateS1.h"
 
 
 UStage1BlockingVolumeComponent::UStage1BlockingVolumeComponent()
@@ -17,33 +17,43 @@ UStage1BlockingVolumeComponent::UStage1BlockingVolumeComponent()
 void UStage1BlockingVolumeComponent::BeginPlay()
 {
 	Super::BeginPlay();
+	
+	APS3GameStateS1* GS = GetWorld()->GetGameState<APS3GameStateS1>();
+	if (!IsValid(GS)) return;
 
-	APS3GameModeBase* GameMode = Cast<APS3GameModeBase>(UGameplayStatics::GetGameMode(this));
-	if (!IsValid(GameMode)) return;
+	GS->OnStage1BlockingVolumeDisabled.AddDynamic(
+		this,
+		&UStage1BlockingVolumeComponent::HandleStage1BlockingDisabledChanged
+	);
 
-	BlockingVolumeDisabledHandle =
-		GameMode->OnBlockingVolumeDisabled.AddUObject(
-			this, 
-			&UStage1BlockingVolumeComponent::DisableStage1BlockingVolume
-			);
+	ApplyBlockingDisabled(GS->IsStage1BlockingVolumeDisabled());
 }
 
 void UStage1BlockingVolumeComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-	APS3GameModeBase* GameMode = Cast<APS3GameModeBase>(UGameplayStatics::GetGameMode(this));
-	if (IsValid(GameMode))
-	{
-		GameMode->OnBlockingVolumeDisabled.Remove(BlockingVolumeDisabledHandle);
-	}
-
-	BlockingVolumeDisabledHandle.Reset();
-
 	Super::EndPlay(EndPlayReason);
+	
+	UWorld* World= GetWorld();
+	if (!World) return;
+	
+	APS3GameStateS1* GS = World->GetGameState<APS3GameStateS1>();
+	
+	if (!IsValid(GS)) return;
+	GS->OnStage1BlockingVolumeDisabled.RemoveDynamic(
+			this,
+			&UStage1BlockingVolumeComponent::HandleStage1BlockingDisabledChanged
+		);
+	
+	
 }
 
-void UStage1BlockingVolumeComponent::DisableStage1BlockingVolume(EPS3StageNumber StageNumber)
+void UStage1BlockingVolumeComponent::HandleStage1BlockingDisabledChanged(bool bDisabled)
 {
-	if (StageNumber != EPS3StageNumber::Stage1) return;
-	
-	SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	ApplyBlockingDisabled(bDisabled);
+}
+
+void UStage1BlockingVolumeComponent::ApplyBlockingDisabled(bool bDisabled)
+{
+	SetCollisionEnabled(bDisabled ? ECollisionEnabled::NoCollision : ECollisionEnabled::QueryAndPhysics);
+	SetHiddenInGame(bDisabled);
 }

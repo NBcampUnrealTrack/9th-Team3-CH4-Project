@@ -21,10 +21,9 @@ public:
 protected:
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
-
+	
 	UFUNCTION()
-	void DisableStage3BlockingVolume(EPS3StageNumber StageNumber);
+	void HandleStage3BlockingDisabledChanged(bool bDisabled);
 
-private:
-	FDelegateHandle BlockingVolumeDisabledHandle;
+	void ApplyBlockingDisabled(bool bDisabled);
 };
