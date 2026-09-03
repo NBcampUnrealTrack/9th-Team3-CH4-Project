@@ -5,6 +5,7 @@
 #include "Component/InteractionSwitchComponent.h"
 #include "Components/BoxComponent.h"
 #include "Core/GameMode/PS3GameModeBase.h"
+#include "Core/GameState/PS3GameStateBase.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/PlayerState.h"
 #include "Net/UnrealNetwork.h"
@@ -20,20 +21,29 @@ AJeoul::AJeoul()
 	JeoulBaseMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("JeoulBaseMesh"));
 	JeoulBaseMesh->SetupAttachment(RootComponent);
 
+	BeamPivot = CreateDefaultSubobject<USceneComponent>(TEXT("BeamPivot"));
+	BeamPivot->SetupAttachment(JeoulBaseMesh);
+	
 	JeoulBeamMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("JeoulBeamMesh"));
-	JeoulBeamMesh->SetupAttachment(JeoulBaseMesh);
+	JeoulBeamMesh->SetupAttachment(BeamPivot);
 
 	PlateTrigger = CreateDefaultSubobject<UBoxComponent>(TEXT("PlateTrigger"));
-	PlateTrigger->SetupAttachment(JeoulBeamMesh);
+	PlateTrigger->SetupAttachment(BeamPivot);
 
 	// 컷씬 전경 카메라 배치
 	CutsceneCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("CutsceneCamera"));
 	CutsceneCamera->SetupAttachment(RootComponent);
-
+	
+	// 플레이어가 조준할 버튼 메쉬 생성 및 저울 기둥/몸체에 부착
+	CheckButtonMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("CheckButtonMesh"));
+	CheckButtonMesh->SetupAttachment(JeoulBaseMesh);
+	
+	// 라인트레이스 감지를 위해 Collision Profile을 Visibility 채널에 블록(Block)되도록 설정
+	CheckButtonMesh->SetCollisionProfileName(TEXT("BlockAllDynamic"));
+	
+	// 2. 스위치 컴포넌트 생성 및 저울 전용 설정
 	InteractionSwitchComp = CreateDefaultSubobject<UInteractionSwitchComponent>(TEXT("InteractionSwitchComp"));
-
-	// 저울에 달린 스위치는 GameMode 글로벌 스위치 카운트에서 제외!
-	InteractionSwitchComp->SetRegisterToGameMode(false);
+	InteractionSwitchComp->SetRegisterToGameMode(false); // GM 집계 제외
 }
 
 void AJeoul::BeginPlay()
@@ -41,7 +51,7 @@ void AJeoul::BeginPlay()
 	Super::BeginPlay();
 
 	// 저울대의 초기 회전값(수평 상태) 저장
-	InitialBeamRotation = JeoulBeamMesh->GetRelativeRotation();
+	InitialBeamRotation = BeamPivot->GetRelativeRotation();
 	TargetBeamRotation = InitialBeamRotation;
 
 	if (HasAuthority())
@@ -55,11 +65,11 @@ void AJeoul::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	// 목표 회전각(기울기)으로 부드럽게 보간 연출
-	FRotator CurrentRot = JeoulBeamMesh->GetRelativeRotation();
+	FRotator CurrentRot = BeamPivot->GetRelativeRotation();
 	if (!CurrentRot.Equals(TargetBeamRotation, 0.1f))
 	{
 		FRotator NewRot = FMath::RInterpTo(CurrentRot, TargetBeamRotation, DeltaTime, 3.0f);
-		JeoulBeamMesh->SetRelativeRotation(NewRot);
+		BeamPivot->SetRelativeRotation(NewRot);
 	}
 }
 
@@ -84,7 +94,7 @@ void AJeoul::OnCheckButtonPressed(bool bActivated)
 	}
 }
 
-float AJeoul::CalculateWeightOnPlate(UBoxComponent* InPlateTrigger) const
+float AJeoul::CalculateWeightOnPlate(UBoxComponent* InPlateTrigger)
 {
 	if (!InPlateTrigger) return 0.0f;
 
@@ -103,6 +113,15 @@ float AJeoul::CalculateWeightOnPlate(UBoxComponent* InPlateTrigger) const
 			if (!Dumbbell->IsHeld())
 			{
 				TotalWeight += Dumbbell->GetWeight();
+				
+				// 서버 권한에서 덤벨을 BeamPivot에 부착하여 기울어질 때 함께 이동
+				if (HasAuthority())
+				{
+					Dumbbell->AttachToComponent(
+					   BeamPivot, 
+					   FAttachmentTransformRules::KeepWorldTransform
+					);
+				}
 			}
 		}
 		// 2. 플레이어 무게 합산
@@ -164,12 +183,13 @@ void AJeoul::Server_CheckBalance_Implementation()
 
 		if (bIsSuccess)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("[Jeoul] 수평 완벽! 1차 문 개방"));
+			UE_LOG(LogTemp, Warning, TEXT("[Jeoul] 수평 완벽! GameState의 EscapeDoor 상태를 Open(true)으로 변경"));
 			CurrentState = EJeoulState::Resolved;
 
-			if (APS3GameModeBase* GM = Cast<APS3GameModeBase>(GetWorld()->GetAuthGameMode()))
+			if (APS3GameStateBase* GS = GetWorld()->GetGameState<APS3GameStateBase>())
 			{
-				GM->OnEscapeDoorOpened.Broadcast();
+				// 내부에서 bEscapeDoorOpened 변경 및 OnRep_EscapeDoorOpened(Broadcast)가 실행됨
+				GS->SetEscapeDoorOpened(true);
 			}
 			
 			// 성공 시 모든 클라이언트에 알림

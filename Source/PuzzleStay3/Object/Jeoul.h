@@ -37,7 +37,7 @@ protected:
 	virtual void Tick(float DeltaTime) override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	
-#pragma region Mesh
+#pragma region Mesh & Components
 	// 컴포넌트 구성
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<USceneComponent> DefaultSceneRoot;
@@ -50,6 +50,10 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<UStaticMeshComponent> JeoulBeamMesh;
 	
+	// 회전 축을 담당할 피벗 컴포넌트
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	TObjectPtr<USceneComponent> BeamPivot;
+	
 	// 저울판 감지용 Trigger Box
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<UBoxComponent> PlateTrigger;
@@ -61,6 +65,10 @@ protected:
 	// 확인 버튼용 컴포넌트
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<UInteractionSwitchComponent> InteractionSwitchComp;
+
+	// 플레이어가 F키로 바라보고 누를 버튼 메쉬
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	TObjectPtr<UStaticMeshComponent> CheckButtonMesh;
 	
 #pragma endregion 
 
@@ -69,7 +77,7 @@ public:
 	UCameraComponent* GetCutsceneCamera() const { return CutsceneCamera; }
 	
 	// 좌/우 저울판 위 액터들의 무게 합산
-	float CalculateWeightOnPlate(UBoxComponent* InPlateTrigger) const;
+	float CalculateWeightOnPlate(UBoxComponent* InPlateTrigger);
 	
 	// 서버 권한 균형 검증 RPC (확인 버튼 상호작용 시 호출)
 	UFUNCTION(Server, Reliable)
