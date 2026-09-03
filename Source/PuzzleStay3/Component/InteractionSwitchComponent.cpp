@@ -53,7 +53,7 @@ void UInteractionSwitchComponent::GetLifetimeReplicatedProps(TArray<FLifetimePro
 
 bool UInteractionSwitchComponent::TryInteract(AActor* Requestor)
 {
-	// if(bIsPossibleInteraction == false) return;
+	if(bIsInteracting == false) return false;
 	
 	// 서버 권한 검증
 	if (!GetOwner() || !GetOwner()->HasAuthority())
