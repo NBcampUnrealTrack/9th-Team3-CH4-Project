@@ -31,7 +31,7 @@ APS3PlayerCharacter::APS3PlayerCharacter()
 	Camera->SetupAttachment(SpringArm, USpringArmComponent::SocketName);
 	
 	CarryAnchor = CreateDefaultSubobject<USceneComponent>(TEXT("CarryAnchor"));
-	CarryAnchor->SetupAttachment(GetMesh());
+	CarryAnchor->SetupAttachment(GetMesh(), TEXT("hand_r"));
 }
 
 bool APS3PlayerCharacter::CanUseFieldControls() const
