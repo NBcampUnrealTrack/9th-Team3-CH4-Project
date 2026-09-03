@@ -19,7 +19,7 @@ class UGameOverWidget;
 class UStage5RoleSelectWidget;
 class UPS3ViewModel;
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnHUDReady);
+DECLARE_MULTICAST_DELEGATE(FOnHUDReady);
 
 USTRUCT(BlueprintType)
 struct FPS3HUDWidgets
@@ -80,7 +80,6 @@ public:
 	UFUNCTION(BlueprintPure, Category = "UI")
 	bool IsUIReady() const;
 
-	UPROPERTY(BlueprintAssignable, Category = "UI")
 	FOnHUDReady OnHUDReady;
 
 	UFUNCTION(BlueprintCallable, Category = "UI|TextNotify")
