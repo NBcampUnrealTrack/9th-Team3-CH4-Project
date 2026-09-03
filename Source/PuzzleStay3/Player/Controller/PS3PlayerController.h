@@ -8,6 +8,7 @@
 class UInputAction;
 class UInputMappingContext;
 class UCustomVoiceComponent;
+class UVoicePluginControlComponent;
 
 UCLASS()
 class PUZZLESTAY3_API APS3PlayerController : public APlayerController
@@ -21,6 +22,7 @@ public:
 protected:
 	virtual void BeginPlay() override;
 	virtual void SetupInputComponent() override;
+	virtual void OnRep_PlayerState() override;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PS3|Player Controller|Input")
 	TObjectPtr<UInputMappingContext> InputMappingContext;
@@ -40,16 +42,20 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PS3|Player Controller|Input")
 	TObjectPtr<UInputAction> DropAction;
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Voice")
-	TObjectPtr<UCustomVoiceComponent> VoiceComponent;
-	
 	//말하기 입력 액션
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly,
 		Category = "PS3|Player Controller|Input")
 	TObjectPtr<UInputAction> PushToTalkAction;
+	
+	UPROPERTY(VisibleAnywhere,BlueprintReadOnly,Category = "Voice",meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UCustomVoiceComponent> VoiceComponent;
+
+	UPROPERTY(VisibleAnywhere,BlueprintReadOnly,Category = "Voice",meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UVoicePluginControlComponent> VoicePluginControlComponent;
 
 private:
 	void ConfigureLocalInput();
+	void RefreshVoiceStateBinding();
 
 	bool bLocalInputConfigured = false;
 

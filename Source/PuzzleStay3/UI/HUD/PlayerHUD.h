@@ -19,6 +19,8 @@ class UGameOverWidget;
 class UStage5RoleSelectWidget;
 class UPS3ViewModel;
 
+DECLARE_MULTICAST_DELEGATE(FOnHUDReady);
+
 USTRUCT(BlueprintType)
 struct FPS3HUDWidgets
 {
@@ -74,6 +76,11 @@ public:
 
 	UFUNCTION(BlueprintPure, Category = "UI")
 	UPS3ViewModel* GetViewModel() const;
+
+	UFUNCTION(BlueprintPure, Category = "UI")
+	bool IsUIReady() const;
+
+	FOnHUDReady OnHUDReady;
 
 	UFUNCTION(BlueprintCallable, Category = "UI|TextNotify")
 	void ShowTextNotify(const FText& InDisplayText, float InFontSize, float InDisplayDuration);
@@ -221,6 +228,9 @@ protected:
 
 	UPROPERTY(BlueprintReadOnly, Category = "UI|ViewModel")
 	TObjectPtr<UPS3ViewModel> ViewModel;
+
+	UPROPERTY(BlueprintReadOnly, Category = "UI")
+	bool bIsUIReady = false;
 
 private:
 	void ApplyViewModelToWidgets();

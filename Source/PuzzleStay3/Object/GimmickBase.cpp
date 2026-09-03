@@ -1,4 +1,4 @@
-#include "GimmickBase.h"
+#include "Object/GimmickBase.h"
 
 #include "Components/SceneComponent.h"
 #include "Components/StaticMeshComponent.h"
@@ -71,4 +71,3 @@ void AGimmickBase::GetLifetimeReplicatedProps(
 	DOREPLIFETIME(AGimmickBase, bIsActive);
 	DOREPLIFETIME(AGimmickBase, bIsCompleted);
 }
-
