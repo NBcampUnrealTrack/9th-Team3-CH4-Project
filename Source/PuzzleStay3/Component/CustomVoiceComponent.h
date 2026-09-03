@@ -2,7 +2,13 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "Data/Enum/VoiceChatState.h"
 #include "CustomVoiceComponent.generated.h"
+
+class APS3PlayerState;
+class UVoicePluginControlComponent;
+
+DECLARE_MULTICAST_DELEGATE(FOnVoiceObjectHeld);
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(
 	FOnVoiceTransmissionRequestedChanged,
@@ -17,6 +23,12 @@ class PUZZLESTAY3_API UCustomVoiceComponent : public UActorComponent
 
 public:
 	UCustomVoiceComponent();
+
+	void BindPlayerState(APS3PlayerState* NewPlayerState);
+	bool TryAcquireVoiceObject();
+	bool TryReleaseVoiceObject();
+
+	FOnVoiceObjectHeld OnVoiceObjectHeld;
 
 	UFUNCTION(BlueprintCallable, Category = "Voice")
 	void StartPushToTalk();
@@ -45,11 +57,27 @@ public:
 		OnTransmissionRequestedChanged;
 
 protected:
+	virtual void BeginPlay() override;
+
 	virtual void EndPlay(
 		const EEndPlayReason::Type EndPlayReason) override;
 
 private:
+	UFUNCTION()
+	void HandleVoiceChatStateChanged(EVoiceChatState NewState);
+
+	void RegisterToStage3GameMode();
+	void UnbindPlayerState();
+	bool SetVoiceObjectHeld(bool bNewIsHeld);
 	void UpdateTransmission();
+
+	UPROPERTY()
+	TObjectPtr<APS3PlayerState> BoundPlayerState;
+
+	UPROPERTY()
+	TObjectPtr<UVoicePluginControlComponent> PluginControlComponent;
+
+	EVoiceChatState VoiceChatState = EVoiceChatState::Default;
 
 	bool bVoiceReady = false;
 	bool bPushToTalkHeld = false;
