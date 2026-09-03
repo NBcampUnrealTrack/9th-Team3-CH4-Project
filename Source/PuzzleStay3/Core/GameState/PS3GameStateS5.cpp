@@ -13,11 +13,6 @@ APS3GameStateS5::APS3GameStateS5()
 	
 }
 
-void APS3GameStateS5::BeginPlay()
-{
-	Super::BeginPlay();
-	
-}
 
 void APS3GameStateS5::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {

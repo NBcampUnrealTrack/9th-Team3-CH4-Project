@@ -1,9 +1,8 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
-
+﻿
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/GameStateBase.h"
+#include "PS3GameStateBase.h"
 #include "PS3GameStateS5.generated.h"
 
 
@@ -11,16 +10,12 @@
  * 
  */
 UCLASS()
-class PUZZLESTAY3_API APS3GameStateS5 : public AGameStateBase
+class PUZZLESTAY3_API APS3GameStateS5 : public APS3GameStateBase
 {
 	GENERATED_BODY()
 	
 protected:
 	APS3GameStateS5();
-	
-	
-protected:
-	virtual void BeginPlay() override;
 	
 	
 public:
