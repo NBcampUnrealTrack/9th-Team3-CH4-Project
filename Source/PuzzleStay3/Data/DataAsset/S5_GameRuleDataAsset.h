@@ -4,18 +4,26 @@
 
 #include "CoreMinimal.h"
 #include "Engine/DataAsset.h"
-#include "Stage5ControllerDataAsset.generated.h"
+#include "S5_GameRuleDataAsset.generated.h"
 
 class APS3PlayerCharacter;
 /**
  * 
  */
 UCLASS()
-class PUZZLESTAY3_API UStage5ControllerDataAsset : public UDataAsset
+class PUZZLESTAY3_API US5_GameRuleDataAsset : public UDataAsset
 {
 	GENERATED_BODY()
 	
-public:
+public:	
+	
+	UPROPERTY(EditAnywhere, Category = "GameRule")
+	float ReducedTimeRange = 1.0f;
+	
+	UPROPERTY(EditAnywhere, Category = "GameRule")
+	float MaxGameLimitTime = 60.0f;
+	
+	
 	UPROPERTY(EditDefaultsOnly, Category = "SwapController")
 	TSubclassOf<APS3PlayerCharacter> FieldCharacterClass;
 	
@@ -27,7 +35,7 @@ public:
 	
 	UPROPERTY(EditDefaultsOnly, Category = "SwapController")
 	TSubclassOf<APlayerController> ScreenControllerClass;
-	
+
 	UPROPERTY(EditDefaultsOnly, Category = "SwapTag")
 	FString FieldPlayerTagString = "FieldPlayer";
 	

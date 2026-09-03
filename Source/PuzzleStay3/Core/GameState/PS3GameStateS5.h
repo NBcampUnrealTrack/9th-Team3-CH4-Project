@@ -19,6 +19,7 @@ protected:
 	
 	
 public:
+	virtual void BeginPlay() override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	
@@ -34,12 +35,16 @@ public:
 	void OnQuitGame();
 	
 public:
+	UPROPERTY(EditAnywhere, Category = "GameRule")
+	TObjectPtr<class US5_GameRuleDataAsset> S5_GameRuleDataAsset;
+	
+	
 	UPROPERTY(Replicated)
 	bool bIsSelectedFieldType = false;
 	UPROPERTY(Replicated)
 	bool bIsSelectedScreenType = false;
 	
-	UPROPERTY(ReplicatedUsing = OnRep_GameLimitTime, EditAnywhere, Category = "GameRule")
+	UPROPERTY(ReplicatedUsing = OnRep_GameLimitTime)
 	float GameLimitTime = 60.0f;
 	
 	UPROPERTY(ReplicatedUsing = OnRep_IsGameOver)

@@ -32,17 +32,14 @@ public:
 	virtual void HandleStartingNewPlayer_Implementation(APlayerController* NewPlayer) override;
 	virtual void BeginPlay() override;
 	virtual void StageRestart() override;
-	
-public:
-	UPROPERTY(EditAnywhere, Category = "GameRule")
-	float ReducedTimeRange = 1.0f;
+
 	
 protected:
+	UPROPERTY(EditAnywhere, Category = "GameRule")
+	TObjectPtr<class US5_GameRuleDataAsset> S5_GameRuleDataAsset;
+	
 	UPROPERTY()
 	TArray<TObjectPtr<class UInteractionSwitchComponent>> EscapeGimmickArray;
-	
-	UPROPERTY(EditAnywhere, Category = "GameRule")
-	TObjectPtr<class UStage5ControllerDataAsset> Stage5ControllerDataAsset;
 	
 	UPROPERTY()
 	TArray<TObjectPtr<class APlayerController>> LoginUserArray;
@@ -69,14 +66,17 @@ public:
 
 
 public:
+	FOnIsGameStart OnIsGameStart;
+	
 	int32 RoleSelectedPlayerCount = 0;
 	int32 MaxPlayerCount = 2;
+	
 	bool bIsAllPlayerSelectedRole = false;
 	
 	bool bIsTakeFieldControllerType = false;
 	bool bIsTakeScreenControllerType = false;
 	
-	FOnIsGameStart OnIsGameStart;
+	
 	
 	
 protected:
@@ -96,8 +96,6 @@ protected:
 	FString TargetTag);
 	
 protected:
-	
-	
 	FTimerHandle AllPlayerReadyTimeHandle;
 	FTimerHandle GameLimitTimeHandle;
 

@@ -4,6 +4,7 @@
 #include "PS3GameStateS5.h"
 
 #include "Core/GameMode/PS3GameModeS5.h"
+#include "Data/DataAsset/S5_GameRuleDataAsset.h"
 #include "Net/UnrealNetwork.h"
 
 
@@ -11,6 +12,14 @@ APS3GameStateS5::APS3GameStateS5()
 {
 	bReplicates = true;
 	
+	
+}
+
+void APS3GameStateS5::BeginPlay()
+{
+	Super::BeginPlay();
+	
+	GameLimitTime = S5_GameRuleDataAsset->MaxGameLimitTime;
 }
 
 
