@@ -1,5 +1,25 @@
 #include "GameOverWidget.h"
 
+#include "../HUD/PlayerHUD.h"
+#include "Components/Button.h"
+
+void UGameOverWidget::NativeConstruct()
+{
+	Super::NativeConstruct();
+	BindGameOverButtonDelegates();
+}
+
+void UGameOverWidget::NativeDestruct()
+{
+	UnbindGameOverButtonDelegates();
+	Super::NativeDestruct();
+}
+
+void UGameOverWidget::SetPlayerHUD(APlayerHUD* InPlayerHUD)
+{
+	PlayerHUD = InPlayerHUD;
+}
+
 void UGameOverWidget::ShowGameOver()
 {
 	SetVisibility(ESlateVisibility::Visible);
@@ -8,4 +28,60 @@ void UGameOverWidget::ShowGameOver()
 void UGameOverWidget::HideGameOver()
 {
 	SetVisibility(ESlateVisibility::Collapsed);
+}
+
+void UGameOverWidget::RequestGameRestart()
+{
+	if (!PlayerHUD)
+	{
+		return;
+	}
+
+	PlayerHUD->RequestGameRestart();
+}
+
+void UGameOverWidget::RequestExitToMain()
+{
+	if (!PlayerHUD)
+	{
+		return;
+	}
+
+	PlayerHUD->RequestExitToMain();
+}
+
+void UGameOverWidget::BindGameOverButtonDelegates()
+{
+	if (Button_Restart)
+	{
+		Button_Restart->OnClicked.AddUniqueDynamic(this, &UGameOverWidget::HandleRestartButtonClicked);
+	}
+
+	if (Button_ExitToMain)
+	{
+		Button_ExitToMain->OnClicked.AddUniqueDynamic(this, &UGameOverWidget::HandleExitToMainButtonClicked);
+	}
+}
+
+void UGameOverWidget::UnbindGameOverButtonDelegates()
+{
+	if (Button_Restart)
+	{
+		Button_Restart->OnClicked.RemoveDynamic(this, &UGameOverWidget::HandleRestartButtonClicked);
+	}
+
+	if (Button_ExitToMain)
+	{
+		Button_ExitToMain->OnClicked.RemoveDynamic(this, &UGameOverWidget::HandleExitToMainButtonClicked);
+	}
+}
+
+void UGameOverWidget::HandleRestartButtonClicked()
+{
+	RequestGameRestart();
+}
+
+void UGameOverWidget::HandleExitToMainButtonClicked()
+{
+	RequestExitToMain();
 }
