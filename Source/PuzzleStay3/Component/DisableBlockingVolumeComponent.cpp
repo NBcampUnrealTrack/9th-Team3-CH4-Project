@@ -26,6 +26,8 @@ void UDisableBlockingVolumeComponent::OnOverlapDisableBlockingVolume(
 	const FHitResult& SweepResult
 	)
 {
+	if (!GetOwner() || !GetOwner()->HasAuthority()) return;
+	
 	if (bIsOverlapped) return;
 	
 	APawn* overlappedPawn = Cast<APawn>(OtherActor);

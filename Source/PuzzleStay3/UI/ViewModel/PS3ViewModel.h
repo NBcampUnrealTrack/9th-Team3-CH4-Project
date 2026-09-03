@@ -9,6 +9,14 @@ class APlayerHUD;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnDoorActivationRequested, int32, DoorIndex, bool, bIsActive);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnStage5RoleSelectionRequested, EPS3PlayerRole, SelectedRole);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnExitToMainRequested);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnBGMVolumeChanged, float, Value);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnSFXVolumeChanged, float, Value);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnVoiceChatEnabledChanged, bool, bEnabled);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnResolutionChanged, const FString&, Resolution);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnGameStartRequested);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnGameExitRequested);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnGameRestartRequested);
 
 UCLASS(BlueprintType)
 class PUZZLESTAY3_API UPS3ViewModel : public UMVVMViewModelBase
@@ -142,17 +150,68 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "UI|OptionPopup")
 	void RequestHideOptionPopup();
 
+	UFUNCTION(BlueprintCallable, Category = "UI|OptionPopup")
+	void RequestToggleOptionPopup();
+
+	UFUNCTION(BlueprintCallable, Category = "UI|OptionPopup")
+	void RequestExitToMain();
+
+	UPROPERTY(BlueprintAssignable, Category = "UI|OptionPopup")
+	FOnExitToMainRequested OnExitToMainRequested;
+
+	UFUNCTION(BlueprintCallable, Category = "UI|OptionPopup")
+	void RequestBGMVolumeChanged(float Value);
+
+	UPROPERTY(BlueprintAssignable, Category = "UI|OptionPopup")
+	FOnBGMVolumeChanged OnBGMVolumeChanged;
+
+	UFUNCTION(BlueprintCallable, Category = "UI|OptionPopup")
+	void RequestSFXVolumeChanged(float Value);
+
+	UPROPERTY(BlueprintAssignable, Category = "UI|OptionPopup")
+	FOnSFXVolumeChanged OnSFXVolumeChanged;
+
+	UFUNCTION(BlueprintCallable, Category = "UI|OptionPopup")
+	void RequestVoiceChatEnabledChanged(bool bEnabled);
+
+	UPROPERTY(BlueprintAssignable, Category = "UI|OptionPopup")
+	FOnVoiceChatEnabledChanged OnVoiceChatEnabledChanged;
+
+	UFUNCTION(BlueprintCallable, Category = "UI|OptionPopup")
+	void RequestResolutionChanged(const FString& Resolution);
+
+	UPROPERTY(BlueprintAssignable, Category = "UI|OptionPopup")
+	FOnResolutionChanged OnResolutionChanged;
+
 	UFUNCTION(BlueprintCallable, Category = "UI|Title")
 	void RequestShowTitle();
 
 	UFUNCTION(BlueprintCallable, Category = "UI|Title")
 	void RequestHideTitle();
 
+	UFUNCTION(BlueprintCallable, Category = "UI|Title")
+	void RequestGameStart();
+
+	UPROPERTY(BlueprintAssignable, Category = "UI|Title")
+	FOnGameStartRequested OnGameStartRequested;
+
+	UFUNCTION(BlueprintCallable, Category = "UI|Title")
+	void RequestGameExit();
+
+	UPROPERTY(BlueprintAssignable, Category = "UI|Title")
+	FOnGameExitRequested OnGameExitRequested;
+
 	UFUNCTION(BlueprintCallable, Category = "UI|GameOver")
 	void RequestShowGameOver();
 
 	UFUNCTION(BlueprintCallable, Category = "UI|GameOver")
 	void RequestHideGameOver();
+
+	UFUNCTION(BlueprintCallable, Category = "UI|GameOver")
+	void RequestGameRestart();
+
+	UPROPERTY(BlueprintAssignable, Category = "UI|GameOver")
+	FOnGameRestartRequested OnGameRestartRequested;
 
 	UFUNCTION(BlueprintCallable, Category = "UI|Stage5RoleSelect")
 	void RequestShowStage5RoleSelect();

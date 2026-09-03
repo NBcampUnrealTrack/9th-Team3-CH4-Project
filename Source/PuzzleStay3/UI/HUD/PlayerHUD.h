@@ -155,17 +155,47 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "UI|OptionPopup")
 	void HideOptionPopup();
 
+	UFUNCTION(BlueprintCallable, Category = "UI|OptionPopup")
+	void ToggleOptionPopup();
+
+	UFUNCTION(BlueprintCallable, Category = "UI|OptionPopup")
+	void RequestExitToMain();
+
+	UFUNCTION(BlueprintCallable, Category = "UI|OptionPopup")
+	void RequestBGMVolumeChanged(float Value);
+
+	UFUNCTION(BlueprintCallable, Category = "UI|OptionPopup")
+	void RequestSFXVolumeChanged(float Value);
+
+	UFUNCTION(BlueprintCallable, Category = "UI|OptionPopup")
+	void RequestVoiceChatEnabledChanged(bool bEnabled);
+
+	UFUNCTION(BlueprintCallable, Category = "UI|OptionPopup")
+	void RequestResolutionChanged(const FString& Resolution);
+
 	UFUNCTION(BlueprintCallable, Category = "UI|Title")
 	void ShowTitle();
 
 	UFUNCTION(BlueprintCallable, Category = "UI|Title")
 	void HideTitle();
 
+	UFUNCTION(BlueprintCallable, Category = "UI|Title")
+	void RequestGameStart();
+
+	UFUNCTION(BlueprintCallable, Category = "UI|Title")
+	void RequestTitleOption();
+
+	UFUNCTION(BlueprintCallable, Category = "UI|Title")
+	void RequestGameExit();
+
 	UFUNCTION(BlueprintCallable, Category = "UI|GameOver")
 	void ShowGameOver();
 
 	UFUNCTION(BlueprintCallable, Category = "UI|GameOver")
 	void HideGameOver();
+
+	UFUNCTION(BlueprintCallable, Category = "UI|GameOver")
+	void RequestGameRestart();
 
 	UFUNCTION(BlueprintCallable, Category = "UI|Stage5RoleSelect")
 	void ShowStage5RoleSelect();
@@ -194,23 +224,4 @@ protected:
 
 private:
 	void ApplyViewModelToWidgets();
-
-	// Temporary UI Test Zone. Remove before opening the PR.
-	void StartTemporaryUITest();
-	void StopTemporaryUITest();
-	void ResetTemporaryUITestState();
-	void UpdateTemporaryUITest();
-
-	UFUNCTION()
-	void HandleTemporaryDoorActivationTest(int32 DoorIndex, bool bIsActive);
-
-	UFUNCTION()
-	void HandleTemporaryStage5RoleSelectionRequested(EPS3PlayerRole SelectedRole);
-
-	FTimerHandle TemporaryUITestTimerHandle;
-	int32 TemporaryUITestElapsedSeconds = 0;
-	int32 LifeCountTestCurrentLife = 3;
-	int32 InteractionNotifyTestStep = 0;
-	int32 TimerNotifyTestStep = 0;
-	bool bVoiceChatIconTestSpeaking = false;
 };
