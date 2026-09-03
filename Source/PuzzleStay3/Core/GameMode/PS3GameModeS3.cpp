@@ -1,6 +1,7 @@
 ﻿
 #include "PS3GameModeS3.h"
 
+#include "Core/GameState/PS3GameStateS3.h"
 #include "PuzzleStay3/Component/CustomVoiceComponent.h"
 #include "GameFramework/GameStateBase.h"
 #include "Player/PlayerState/PS3PlayerState.h"
@@ -62,8 +63,11 @@ void APS3GameModeS3::ChangeVoiceChatStateAndBlockingVolumeCollision(int32 Count)
 	
 	//모든 플레이어의 보이스챗 상태를 Conversion으로 변경
 	SetAllPlayersVoiceChatState(EVoiceChatState::Conversion);
-	//PS3GameModeBase의 함수. 델리게이트 함수 호출. Stage3BlockingVolumeCompo가 델리게이트 구독 중.
-	DisableBlockingVolume(EPS3StageNumber::Stage3);
+
+	APS3GameStateS3* GS = GetGameState<APS3GameStateS3>();
+	if (!IsValid(GS)) return;
+
+	GS->SetStage3BlockingVolumeDisabled(true);
 }
 
 //플레이어는 상호작용 성공 시 Enum Class VoiceChatstate의 상태 적용 필요
