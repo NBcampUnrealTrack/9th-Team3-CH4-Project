@@ -4,12 +4,12 @@
 #include "PS3GameModeS5.h"
 
 #include "Component/InteractionSwitchComponent.h"
-#include "Component/Gimmick/GimmickBase.h"
 #include "Core/GameState/PS3GameStateS5.h"
 #include "Data/Enum/PS3PlayerRole.h"
 #include "GameFramework/PlayerStart.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetSystemLibrary.h"
+#include "Object/GimmickBase.h"
 #include "Player/Character/PS3PlayerCharacter.h"
 #include "Player/Controller/PS3ScreenPlayerController.h"
 #include "PuzzleStay3/Player/Controller/PS3ChoiceController.h"

@@ -36,6 +36,7 @@ void APS3ChoiceController::ReceivedPlayer()
 
 void APS3ChoiceController::UpdateRotation(float DeltaTime)
 {
+	//아무것도 없지만 지우면 안되는 함수
 }
 
 void APS3ChoiceController::ConfigureInputMapping()
