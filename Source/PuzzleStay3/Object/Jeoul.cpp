@@ -5,6 +5,7 @@
 #include "Component/InteractionSwitchComponent.h"
 #include "Components/BoxComponent.h"
 #include "Core/GameMode/PS3GameModeBase.h"
+#include "Core/GameState/PS3GameStateBase.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/PlayerState.h"
 #include "Net/UnrealNetwork.h"
@@ -182,12 +183,13 @@ void AJeoul::Server_CheckBalance_Implementation()
 
 		if (bIsSuccess)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("[Jeoul] 수평 완벽! 1차 문 개방"));
+			UE_LOG(LogTemp, Warning, TEXT("[Jeoul] 수평 완벽! GameState의 EscapeDoor 상태를 Open(true)으로 변경"));
 			CurrentState = EJeoulState::Resolved;
 
-			if (APS3GameModeBase* GM = Cast<APS3GameModeBase>(GetWorld()->GetAuthGameMode()))
+			if (APS3GameStateBase* GS = GetWorld()->GetGameState<APS3GameStateBase>())
 			{
-				GM->OnEscapeDoorOpened.Broadcast();
+				// 내부에서 bEscapeDoorOpened 변경 및 OnRep_EscapeDoorOpened(Broadcast)가 실행됨
+				GS->SetEscapeDoorOpened(true);
 			}
 			
 			// 성공 시 모든 클라이언트에 알림
