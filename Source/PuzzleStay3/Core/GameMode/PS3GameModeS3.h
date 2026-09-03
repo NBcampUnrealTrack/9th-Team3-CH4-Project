@@ -7,7 +7,7 @@
 #include "Data/Enum/VoiceChatState.h"
 #include "PS3GameModeS3.generated.h"
 
-class UCustomVoiceComponent;
+class APS3PlayerState;
 
 UCLASS()
 class PUZZLESTAY3_API APS3GameModeS3 : public APS3GameModeBase
@@ -16,11 +16,9 @@ class PUZZLESTAY3_API APS3GameModeS3 : public APS3GameModeBase
 	
 public:
 	virtual void BeginPlay() override;
-
-	void RegisterCustomVoiceComponent(UCustomVoiceComponent* CustomVoiceComponent);
+	virtual void PostLogin(APlayerController* NewPlayer) override;
 	
-	void HandleVoiceObjectHeld();
-
+	void NotifyVoiceObjectHeldStateChanged();
 private:
 	
 	void CheckVoiceObjectHeldPlayerCount();
@@ -28,6 +26,8 @@ private:
 	void ChangeVoiceChatStateAndBlockingVolumeCollision(int32 Count);
 	
 	void SetAllPlayersVoiceChatState(EVoiceChatState NewState);
+
+	void ApplyVoiceChatStateToPlayer(APS3PlayerState* PlayerState);
 
 protected:
 	virtual bool StageRestartIfPlayerDead() const override { return true; }

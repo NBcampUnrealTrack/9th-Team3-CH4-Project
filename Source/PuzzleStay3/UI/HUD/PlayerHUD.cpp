@@ -51,6 +51,8 @@ void APlayerHUD::BeginPlay()
 			InitialWidgets.GameOverWidget = RootHUDWidget->GetGameOverWidget();
 			InitialWidgets.Stage5RoleSelectWidget = RootHUDWidget->GetStage5RoleSelectWidget();
 			SetWidgets(InitialWidgets);
+			bIsUIReady = true;
+			OnHUDReady.Broadcast();
 		}
 	}
 }
@@ -107,6 +109,11 @@ void APlayerHUD::SetViewModel(UPS3ViewModel* InViewModel)
 UPS3ViewModel* APlayerHUD::GetViewModel() const
 {
 	return ViewModel;
+}
+
+bool APlayerHUD::IsUIReady() const
+{
+	return bIsUIReady;
 }
 
 void APlayerHUD::ShowTextNotify(const FText& InDisplayText, float InFontSize, float InDisplayDuration)

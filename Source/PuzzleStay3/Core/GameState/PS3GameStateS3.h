@@ -7,12 +7,14 @@
 #include "PS3GameStateS3.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnStage3BlockingVolumeDisabled, bool, bDisabled);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnStage3VoiceChatActivated, bool, bActivated);
 
 UCLASS()
 class PUZZLESTAY3_API APS3GameStateS3 : public APS3GameStateBase
 {
 	GENERATED_BODY()
 
+	//BlockingVolume
 public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
@@ -31,4 +33,22 @@ protected:
 
 	UFUNCTION()
 	void OnRep_Stage3BlockingVolumeDisabled();
+	
+	//VoiceChat
+public:
+	UFUNCTION(BlueprintPure)
+	bool IsStage3VoiceChatActivated() const { return bStage3VoiceChatActivated; }
+
+	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly)
+	void SetStage3VoiceChatActivated(bool bDisabled);
+
+	UPROPERTY(BlueprintAssignable)
+	FOnStage3VoiceChatActivated OnStage3VoiceChatActivated;
+
+protected:
+	UPROPERTY(ReplicatedUsing = OnRep_Stage3VoiceChatActivated)
+	bool bStage3VoiceChatActivated = false;
+
+	UFUNCTION()
+	void OnRep_Stage3VoiceChatActivated();
 };
