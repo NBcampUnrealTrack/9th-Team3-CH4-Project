@@ -5,7 +5,9 @@
 #include "Component/InteractionSwitchComponent.h"
 #include "Components/BoxComponent.h"
 #include "Core/GameMode/PS3GameModeBase.h"
+#include "Core/GameMode/PS3GameModeS4.h"
 #include "Core/GameState/PS3GameStateBase.h"
+#include "Core/GameState/PS3GameStateS4.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/PlayerState.h"
 #include "Net/UnrealNetwork.h"
@@ -23,7 +25,7 @@ AJeoul::AJeoul()
 
 	BeamPivot = CreateDefaultSubobject<USceneComponent>(TEXT("BeamPivot"));
 	BeamPivot->SetupAttachment(JeoulBaseMesh);
-	
+
 	JeoulBeamMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("JeoulBeamMesh"));
 	JeoulBeamMesh->SetupAttachment(BeamPivot);
 
@@ -33,14 +35,14 @@ AJeoul::AJeoul()
 	// 컷씬 전경 카메라 배치
 	CutsceneCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("CutsceneCamera"));
 	CutsceneCamera->SetupAttachment(RootComponent);
-	
+
 	// 플레이어가 조준할 버튼 메쉬 생성 및 저울 기둥/몸체에 부착
 	CheckButtonMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("CheckButtonMesh"));
 	CheckButtonMesh->SetupAttachment(JeoulBaseMesh);
-	
+
 	// 라인트레이스 감지를 위해 Collision Profile을 Visibility 채널에 블록(Block)되도록 설정
 	CheckButtonMesh->SetCollisionProfileName(TEXT("BlockAllDynamic"));
-	
+
 	// 2. 스위치 컴포넌트 생성 및 저울 전용 설정
 	InteractionSwitchComp = CreateDefaultSubobject<UInteractionSwitchComponent>(TEXT("InteractionSwitchComp"));
 	InteractionSwitchComp->SetRegisterToGameMode(false); // GM 집계 제외
@@ -107,21 +109,18 @@ float AJeoul::CalculateWeightOnPlate(UBoxComponent* InPlateTrigger)
 	{
 		if (!Actor) continue;
 
-		// 1. Dumbbell 무게 합산 (캐릭터가 들고 있는 상태면 제외)
+		// 1. Dumbbell 무게 합산 (안고 있는 상태여도 포함)
 		if (ADumbbell* Dumbbell = Cast<ADumbbell>(Actor))
 		{
-			if (!Dumbbell->IsHeld())
+			TotalWeight += Dumbbell->GetWeight();
+
+			// 서버 권한에서 덤벨을 BeamPivot에 부착하여 저울대가 기울어질 때 함께 이동
+			if (HasAuthority())
 			{
-				TotalWeight += Dumbbell->GetWeight();
-				
-				// 서버 권한에서 덤벨을 BeamPivot에 부착하여 기울어질 때 함께 이동
-				if (HasAuthority())
-				{
-					Dumbbell->AttachToComponent(
-					   BeamPivot, 
-					   FAttachmentTransformRules::KeepWorldTransform
-					);
-				}
+				Dumbbell->AttachToComponent(
+					BeamPivot,
+					FAttachmentTransformRules::KeepWorldTransform
+				);
 			}
 		}
 		// 2. 플레이어 무게 합산
@@ -158,13 +157,11 @@ void AJeoul::Server_CheckBalance_Implementation()
 	// 스위치를 누른 순간의 무게 스냅샷 측정
 	const float TotalWeight = CalculateWeightOnPlate(PlateTrigger);
 
-	// GameMode에서 이번 스테이지/저울의 목표 정답 무게 가져오기
+	// GameStateS4에서 이번 스테이지의 목표 정답 무게 가져오기
 	float JudgeWeight = 0.0f;
-	if (APS3GameModeBase* GM = Cast<APS3GameModeBase>(GetWorld()->GetAuthGameMode()))
+	if (APS3GameStateS4* GS = GetWorld()->GetGameState<APS3GameStateS4>())
 	{
-		// TODO GameMode에 선언된 TargetBalancedWeight (또는 정답 무게 Getter) 참조
-		JudgeWeight = 3.f;
-		//JudgeWeight = GM->GetTargetBalancedWeight(); 
+		JudgeWeight = GS->GetTargetBalancedWeight();
 	}
 
 	//무게 차이 계산
@@ -174,6 +171,10 @@ void AJeoul::Server_CheckBalance_Implementation()
 	float TargetRoll = FMath::Clamp(WeightDifference * TiltSensitivity, -MaxTiltAngle, MaxTiltAngle);
 	TargetBeamRotation = InitialBeamRotation + FRotator(0.0f, 0.0f, TargetRoll);
 
+	//dnjsqls
+	UE_LOG(LogTemp, Warning, TEXT("[Jeoul] 무게 차이: %f, TargetRoll: %f, 현재 무게: %f, 목표 무게: %f"), WeightDifference,
+	       TargetRoll, TotalWeight, JudgeWeight);
+
 	// CutSceneTime 후 컷씬 종료 및 결과 판단 타이머
 	FTimerHandle ResultTimer;
 	GetWorldTimerManager().SetTimer(ResultTimer, [this, TotalWeight, JudgeWeight]()
@@ -181,23 +182,23 @@ void AJeoul::Server_CheckBalance_Implementation()
 		// 수평(동일 무게) 판정: 오차 허용 범위 0.01f 적용
 		bool bIsSuccess = FMath::IsNearlyEqual(TotalWeight, JudgeWeight, 0.01f) && TotalWeight > 0.0f;
 
+		//GameModeS4에 판정 결과 통보 (GameMode가 문 개방 로직을 구동함)
+		if (APS3GameModeS4* GM = Cast<APS3GameModeS4>(GetWorld()->GetAuthGameMode()))
+		{
+			GM->NotifyJeoulResult(bIsSuccess);
+		}
+
 		if (bIsSuccess)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("[Jeoul] 수평 완벽! GameState의 EscapeDoor 상태를 Open(true)으로 변경"));
+			UE_LOG(LogTemp, Warning, TEXT("[Jeoul] 판정 성공! 저울 완료 처리"));
 			CurrentState = EJeoulState::Resolved;
 
-			if (APS3GameStateBase* GS = GetWorld()->GetGameState<APS3GameStateBase>())
-			{
-				// 내부에서 bEscapeDoorOpened 변경 및 OnRep_EscapeDoorOpened(Broadcast)가 실행됨
-				GS->SetEscapeDoorOpened(true);
-			}
-			
 			// 성공 시 모든 클라이언트에 알림
 			Multicast_OnJeoulCheckFinished(true);
-			
+
 			if (InteractionSwitchComp)
 			{
-				InteractionSwitchComp->ResetSwitch();   // 컷씬 종료 시점에 리셋
+				InteractionSwitchComp->ResetSwitch(); // 컷씬 종료 시점에 리셋
 			}
 		}
 		else
@@ -209,9 +210,9 @@ void AJeoul::Server_CheckBalance_Implementation()
 
 			if (InteractionSwitchComp)
 			{
-				InteractionSwitchComp->ResetSwitch();   // 컷씬 종료 시점에 리셋
+				InteractionSwitchComp->ResetSwitch(); // 컷씬 종료 시점에 리셋
 			}
-			
+
 			// 원위치로 돌아가는 연출 시간을 위해 ResetBeamTime 후 카메라 복구 요청
 			FTimerHandle ResetTimer;
 			GetWorldTimerManager().SetTimer(ResetTimer, [this]()
