@@ -14,11 +14,23 @@ UCLASS()
 class PUZZLESTAY3_API APS3ChoiceController : public APlayerController
 {
 	GENERATED_BODY()
+	
+	APS3ChoiceController();
+	
 protected:
 	virtual void BeginPlay() override;
+	virtual void ReceivedPlayer() override;
+	virtual void UpdateRotation(float DeltaTime) override;
 	
-	bool bIsSelectedFieldType = false;
-	bool bIsSelectedScreenType = false;
+	
+public:
+	//TODO 테스트용 BlueprintCallable 임. 나중에 삭제 할 것
+	UFUNCTION(BlueprintCallable, Category = "Test")
+	void OnClickedFieldTypeButton();
+	UFUNCTION(BlueprintCallable, Category = "Test")
+	void OnClickedScreenTypeButton();
+	
+	void ConfigureInputMapping();
 	
 public:
 	UPROPERTY(EditAnywhere, Category = "UI")
@@ -30,12 +42,14 @@ public:
 	UFUNCTION(Server, Reliable)
 	void ServerRPC_SelectedControllerType(EPS3PlayerRole SelectedPlayerRoleType);
 	
-	UFUNCTION(BlueprintCallable, Category = "Test")
-	void OnClickedFieldTypeButton();
+	UPROPERTY()
+	TObjectPtr<class UCameraComponent> FixedCameraComponent;
 	
-	UFUNCTION(BlueprintCallable, Category = "Test")
-	void OnClickedScreenTypeButton();
+protected:
 	
+	
+	bool bIsSelectedFieldType = false;
+	bool bIsSelectedScreenType = false;
 	
 };
 

@@ -1,28 +1,28 @@
 ﻿#include "OverlapVolumeTimeDeductionComponent.h"
 
-#include "Components/BoxComponent.h"
 #include "Core/GameMode/PS3GameModeS5.h"
-#include "Gimmick/GimmickBase.h"
 #include "Player/Character/PS3PlayerCharacter.h"
 
 
 UOverlapVolumeTimeDeductionComponent::UOverlapVolumeTimeDeductionComponent()
 {
-	
 }
 
 void UOverlapVolumeTimeDeductionComponent::BeginPlay()
 {
 	Super::BeginPlay();
-
+	
 	OnGameStartedBind();
 }
 
+
+
 void UOverlapVolumeTimeDeductionComponent::OnGameStartedBind()
 {
-	if (GetValidPS3GameModeS5() == nullptr) return;
-	GetValidPS3GameModeS5()->OnIsGameStart.AddUObject(this, &ThisClass::OnBindFunctionToComponent);
+	if (GetCastPS3GameModeS5() == nullptr) return;
+	GetCastPS3GameModeS5()->OnIsGameStart.AddUObject(this, &ThisClass::OnBindFunctionToComponent);
 	
+	//OnBindFunctionToComponent(true);
 }
 
 void UOverlapVolumeTimeDeductionComponent::OnBindFunctionToComponent(bool bIsGameStart)
@@ -38,7 +38,7 @@ void UOverlapVolumeTimeDeductionComponent::OnBindFunctionToComponent(bool bIsGam
 }
 
 
-APS3GameModeS5* UOverlapVolumeTimeDeductionComponent::GetValidPS3GameModeS5()
+APS3GameModeS5* UOverlapVolumeTimeDeductionComponent::GetCastPS3GameModeS5()
 {
 	if (IsValid(GetOwner()) == false) return nullptr;
 	
@@ -48,8 +48,6 @@ APS3GameModeS5* UOverlapVolumeTimeDeductionComponent::GetValidPS3GameModeS5()
 		if (World == nullptr) return nullptr;
 		
 		PS3GameModeS5 = Cast<APS3GameModeS5>(World->GetAuthGameMode());
-		if (IsValid(PS3GameModeS5) == false) return nullptr;
-		
 		return PS3GameModeS5;
 	}
 	
@@ -69,8 +67,8 @@ void UOverlapVolumeTimeDeductionComponent::OnCharacterOverLapped(UPrimitiveCompo
 		if (OverlappedCharacters.Contains(PS3PlayerCharacter) == true) return;
 		OverlappedCharacters.Add(PS3PlayerCharacter);
 		
-		if (GetValidPS3GameModeS5() == nullptr) return;
-		GetValidPS3GameModeS5()->OnTimeDeduction(DeductedTimeRange);
+		if (GetCastPS3GameModeS5() == nullptr) return;
+		GetCastPS3GameModeS5()->OnTimeDeduction(DeductedTimeRange);
 	}
 }
 
@@ -87,4 +85,5 @@ void UOverlapVolumeTimeDeductionComponent::OnCharacterEndOverlap(UPrimitiveCompo
 		OverlappedCharacters.Remove(OtherActor);
 	}
 }
+
 

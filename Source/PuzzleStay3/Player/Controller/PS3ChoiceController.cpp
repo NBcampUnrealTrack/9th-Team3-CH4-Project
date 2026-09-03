@@ -4,19 +4,39 @@
 #include "PS3ChoiceController.h"
 
 #include "Blueprint/UserWidget.h"
+#include "Camera/CameraComponent.h"
 #include "Core/GameMode/PS3GameModeS5.h"
 #include "Core/GameState/PS3GameStateS5.h"
 #include "Data/Enum/PS3PlayerRole.h"
-#include "GameFramework/PlayerState.h"
-#include "Kismet/GameplayStatics.h"
-#include "PuzzleStay3/Core/GameInstance/PS3GameInstance.h"
 
 
+APS3ChoiceController::APS3ChoiceController()
+{
+	FixedCameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("FixedChoiceCamera"));
+	SetRootComponent(FixedCameraComponent);
+}
 
 void APS3ChoiceController::BeginPlay()
 {
 	Super::BeginPlay();
+	SetViewTarget(this);
 	
+	ConfigureInputMapping();
+}
+
+void APS3ChoiceController::ReceivedPlayer()
+{
+	Super::ReceivedPlayer();
+	
+	ConfigureInputMapping();
+}
+
+void APS3ChoiceController::UpdateRotation(float DeltaTime)
+{
+}
+
+void APS3ChoiceController::ConfigureInputMapping()
+{
 	if (IsLocalController() == false) return;
 	
 	if (UIWidgetClass.IsValidIndex(0) == false) return;
@@ -25,14 +45,16 @@ void APS3ChoiceController::BeginPlay()
 	
 	UIWidgetInstance = CreateWidget<UUserWidget>(this, UIWidgetClass[0]);
 	if (IsValid(UIWidgetInstance) == false) return;
-		
+	
 	UIWidgetInstance->AddToViewport();
 
-	FInputModeUIOnly Mode;
-	Mode.SetWidgetToFocus(UIWidgetInstance->GetCachedWidget());
-	SetInputMode(Mode);
+	FInputModeUIOnly UIOnlyMode;
+	UIOnlyMode.SetWidgetToFocus(UIWidgetInstance->GetCachedWidget());
+	SetInputMode(UIOnlyMode);
 
 	bShowMouseCursor = true;
+	
+
 }
 
 void APS3ChoiceController::ServerRPC_SelectedControllerType_Implementation(EPS3PlayerRole SelectedPlayerRoleType)
@@ -50,6 +72,7 @@ void APS3ChoiceController::ServerRPC_SelectedControllerType_Implementation(EPS3P
 
 void APS3ChoiceController::OnClickedFieldTypeButton()
 {
+	
 	if (bIsSelectedFieldType == true) return;
 	bIsSelectedFieldType = true;
 	
@@ -63,4 +86,6 @@ void APS3ChoiceController::OnClickedScreenTypeButton()
 	
 	ServerRPC_SelectedControllerType(EPS3PlayerRole::Screen);
 }
+
+
 

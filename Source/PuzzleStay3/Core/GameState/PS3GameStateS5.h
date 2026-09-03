@@ -32,16 +32,19 @@ public:
 	void OnReduceGameTime(float ReducedTimeRange);
 	void OnTimeDeduction(float TimeToDeducted);
 	
+	//TODO 테스트용 BlueprintCallable 임. 나중에 삭제 할 것
+	UFUNCTION(BlueprintCallable)
+	void OnClickedRestartGame();
+	UFUNCTION(BlueprintCallable)
+	void OnClickedQuitGame();
+	
 public:
 	UPROPERTY(ReplicatedUsing = OnRep_GameLimitTime, EditAnywhere, Category = "GameRule")
 	float GameLimitTime = 60.0f;
 	
-	
-
 	UPROPERTY(ReplicatedUsing = OnRep_IsGameOver)
 	bool bIsGameOver = false;
 
-	
 protected:
 	UFUNCTION()
 	void OnRep_IsGameOver();
@@ -50,6 +53,5 @@ protected:
 	UFUNCTION()
 	void OnRep_GameLimitTime();
 	void SetDeductGameLimitTime_AuthorityOnRep(float TimeToDeducted);
-
-
+	
 };

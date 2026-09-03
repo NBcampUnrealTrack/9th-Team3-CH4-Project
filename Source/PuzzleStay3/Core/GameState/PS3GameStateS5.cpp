@@ -10,6 +10,7 @@
 APS3GameStateS5::APS3GameStateS5()
 {
 	bReplicates = true;
+	
 }
 
 void APS3GameStateS5::BeginPlay()
@@ -46,9 +47,11 @@ void APS3GameStateS5::OnRep_IsGameOver()
 
 void APS3GameStateS5::OnRep_GameLimitTime()
 {
-	//TODO 남은 제한시간 UI 업데이트 함수 구현하기
+	//TODO 남은 제한시간 UI 업데이트 함수 구현하기 / 쓰러지고 일어나는 몽타주나 폭발 특수효과?
 	UE_LOG(LogTemp, Error, TEXT("(UI표시 업데이트 예정) 남은 제한시간: %f"), GameLimitTime);
+	
 }
+
 void APS3GameStateS5::SetDeductGameLimitTime_AuthorityOnRep(float TimeToDeducted)
 {
 	if (HasAuthority() == true)
@@ -68,8 +71,6 @@ void APS3GameStateS5::SetIsGameOver_AuthorityOnRep(bool SetIsGameOver)
 	}
 }
 
-
-
 void APS3GameStateS5::OnGameOver()
 {
 	SetIsGameOver_AuthorityOnRep(true);
@@ -83,6 +84,28 @@ void APS3GameStateS5::OnReduceGameTime(float ReducedTimeRange)
 void APS3GameStateS5::OnTimeDeduction(float TimeToDeducted)
 {
 	SetDeductGameLimitTime_AuthorityOnRep(TimeToDeducted);
+}
+
+void APS3GameStateS5::OnClickedRestartGame()
+{
+	auto* PS3GameModeS5 = Cast<APS3GameModeS5>(GetWorld()->GetAuthGameMode());
+	if (IsValid(PS3GameModeS5) == false) return;
+	
+	PS3GameModeS5->StageRestart();
+}
+
+void APS3GameStateS5::OnClickedQuitGame()
+{
+	APlayerController* CurrentPlayer = GetWorld()->GetFirstPlayerController();
+	if (CurrentPlayer == nullptr) return;
+	
+	auto* PS3GameModeS5 = Cast<APS3GameModeS5>(GetWorld()->GetAuthGameMode());
+	if (IsValid(PS3GameModeS5) == false) return;
+		
+	PS3GameModeS5->OnQuitGame();
+	
+		
+	
 }
 
 
