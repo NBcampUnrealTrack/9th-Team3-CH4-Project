@@ -41,20 +41,11 @@ protected:
 	UPROPERTY()
 	TArray<TObjectPtr<class UInteractionSwitchComponent>> EscapeGimmickArray;
 	
+	UPROPERTY(EditAnywhere, Category = "GameRule")
+	TObjectPtr<class UStage5ControllerDataAsset> Stage5ControllerDataAsset;
+	
 	UPROPERTY()
 	TArray<TObjectPtr<class APlayerController>> LoginUserArray;
-	
-	UPROPERTY(EditDefaultsOnly, Category = "GameRule|SwapController")
-	TSubclassOf<APS3PlayerCharacter> FieldCharacterClass;
-	
-	UPROPERTY(EditDefaultsOnly, Category = "GameRule|SwapController")
-	TSubclassOf<APlayerController> FieldControllerClass;
-	
-	UPROPERTY(EditDefaultsOnly, Category = "GameRule|SwapController")
-	TSubclassOf<APS3PlayerCharacter> ScreenCharacterClass;
-	
-	UPROPERTY(EditDefaultsOnly, Category = "GameRule|SwapController")
-	TSubclassOf<APlayerController> ScreenControllerClass;
 	
 public:
 	void SetPlayerControllerRole(APlayerController* CurrentController, EPS3PlayerRole SelectedPlayerRoleType);
@@ -114,7 +105,6 @@ protected:
 private:
 	FName EscapeGimmickTagName = "EscapeGimmick" ;
 	
-	FString FieldPlayerTagString = "FieldPlayer";
-	FString ScreenPlayerTagString = "ScreenPlayer" ;
+
 };
 

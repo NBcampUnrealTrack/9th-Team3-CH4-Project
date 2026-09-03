@@ -5,6 +5,7 @@
 
 #include "Component/InteractionSwitchComponent.h"
 #include "Core/GameState/PS3GameStateS5.h"
+#include "Data/DataAsset/Stage5ControllerDataAsset.h"
 #include "Data/Enum/PS3PlayerRole.h"
 #include "GameFramework/PlayerStart.h"
 #include "Kismet/GameplayStatics.h"
@@ -13,7 +14,6 @@
 #include "Player/Character/PS3PlayerCharacter.h"
 #include "Player/Controller/PS3ScreenPlayerController.h"
 #include "PuzzleStay3/Player/Controller/PS3ChoiceController.h"
-#include "UI/ViewModel/PS3ViewModel.h"
 
 APS3GameModeS5::APS3GameModeS5()
 {
@@ -61,13 +61,7 @@ void APS3GameModeS5::BeginPlay()
 
 void APS3GameModeS5::StageRestart()
 {
-	ResetAllPlayersDeadState();
-    
-	FString CurrentLevel = UGameplayStatics::GetCurrentLevelName(this, true);
-	if (CurrentLevel.IsEmpty()) return;
-    
-	FString TravelURL = FString::Printf(TEXT("%s?listen"), *CurrentLevel);
-	GetWorld()->ServerTravel(TravelURL);
+	Super::StageRestart();
 }
 
 void APS3GameModeS5::OnGameStart()
@@ -180,7 +174,7 @@ void APS3GameModeS5::OnEscapeGimmickUnlocked()
 	if (EscapeGimmickArray.Num() >= (LoginUserArray.Num()-1))
 	{
 		auto* PS3ScreenPlayerController = Cast<APS3ScreenPlayerController>(GetWorld()->GetFirstPlayerController());
-		ScreenPlayerSpawnCharacter(PS3ScreenPlayerController, FieldControllerClass, FieldCharacterClass, ScreenPlayerTagString);
+		ScreenPlayerSpawnCharacter(PS3ScreenPlayerController, Stage5ControllerDataAsset->FieldControllerClass, Stage5ControllerDataAsset->FieldCharacterClass, Stage5ControllerDataAsset->ScreenPlayerTagString);
 	}
 	
 	if (EscapeGimmickArray.Num() >= LoginUserArray.Num())
@@ -232,7 +226,7 @@ void APS3GameModeS5::SetPlayerControllerRole(APlayerController* CurrentControlle
 	{
 		bIsTakeFieldControllerType = true;
 		UE_LOG(LogTemp, Warning, TEXT("3인칭조작 플레이어 생성"));
-		ConfigureControllerAndSpawn(CurrentController, FieldControllerClass, FieldCharacterClass);
+		ConfigureControllerAndSpawn(CurrentController, Stage5ControllerDataAsset->FieldControllerClass, Stage5ControllerDataAsset->FieldCharacterClass);
 		
 	}
 	
@@ -240,7 +234,7 @@ void APS3GameModeS5::SetPlayerControllerRole(APlayerController* CurrentControlle
 	{
 		bIsTakeScreenControllerType = true;
 		UE_LOG(LogTemp, Warning, TEXT("스크린조작 플레이어 생성"));
-		ConfigureControllerAndSpawn(CurrentController, ScreenControllerClass, nullptr);
+		ConfigureControllerAndSpawn(CurrentController, Stage5ControllerDataAsset->ScreenControllerClass, nullptr);
 	}	
 	
 	if (CurrentPlayerRoleType == EPS3PlayerRole::Unassigned)
@@ -269,11 +263,11 @@ void APS3GameModeS5::ConfigureControllerAndSpawn(
 		OldPawn->Destroy();
 	}
 	
-	if (NewControllerClass == FieldControllerClass)
+	if (NewControllerClass == Stage5ControllerDataAsset->FieldControllerClass)
 	{
-		FieldPlayerConfigureAndSpawn(OldController, NewControllerClass, NewCharacterClass, FieldPlayerTagString);
+		FieldPlayerConfigureAndSpawn(OldController, NewControllerClass, NewCharacterClass, Stage5ControllerDataAsset->FieldPlayerTagString);
 	}
-	else if (NewControllerClass == ScreenControllerClass)
+	else if (NewControllerClass == Stage5ControllerDataAsset->ScreenControllerClass)
 	{
 		ScreenPlayerConfigure(OldController, NewControllerClass);
 	}
