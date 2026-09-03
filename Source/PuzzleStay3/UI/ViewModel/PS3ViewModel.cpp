@@ -281,6 +281,39 @@ void UPS3ViewModel::RequestHideOptionPopup()
 	}
 }
 
+void UPS3ViewModel::RequestToggleOptionPopup()
+{
+	if (PlayerHUD)
+	{
+		PlayerHUD->ToggleOptionPopup();
+	}
+}
+
+void UPS3ViewModel::RequestExitToMain()
+{
+	OnExitToMainRequested.Broadcast();
+}
+
+void UPS3ViewModel::RequestBGMVolumeChanged(float Value)
+{
+	OnBGMVolumeChanged.Broadcast(Value);
+}
+
+void UPS3ViewModel::RequestSFXVolumeChanged(float Value)
+{
+	OnSFXVolumeChanged.Broadcast(Value);
+}
+
+void UPS3ViewModel::RequestVoiceChatEnabledChanged(bool bEnabled)
+{
+	OnVoiceChatEnabledChanged.Broadcast(bEnabled);
+}
+
+void UPS3ViewModel::RequestResolutionChanged(const FString& Resolution)
+{
+	OnResolutionChanged.Broadcast(Resolution);
+}
+
 void UPS3ViewModel::RequestShowTitle()
 {
 	if (PlayerHUD)
@@ -297,6 +330,16 @@ void UPS3ViewModel::RequestHideTitle()
 	}
 }
 
+void UPS3ViewModel::RequestGameStart()
+{
+	OnGameStartRequested.Broadcast();
+}
+
+void UPS3ViewModel::RequestGameExit()
+{
+	OnGameExitRequested.Broadcast();
+}
+
 void UPS3ViewModel::RequestShowGameOver()
 {
 	if (PlayerHUD)
@@ -311,6 +354,11 @@ void UPS3ViewModel::RequestHideGameOver()
 	{
 		PlayerHUD->HideGameOver();
 	}
+}
+
+void UPS3ViewModel::RequestGameRestart()
+{
+	OnGameRestartRequested.Broadcast();
 }
 
 void UPS3ViewModel::RequestShowStage5RoleSelect()

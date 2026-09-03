@@ -53,14 +53,10 @@ void APlayerHUD::BeginPlay()
 			SetWidgets(InitialWidgets);
 		}
 	}
-
-	StartTemporaryUITest();
 }
 
 void APlayerHUD::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-	StopTemporaryUITest();
-
 	Super::EndPlay(EndPlayReason);
 }
 
@@ -76,6 +72,21 @@ void APlayerHUD::SetWidgets(const FPS3HUDWidgets& InWidgets)
 	if (Widgets.Stage5RoleSelectWidget)
 	{
 		Widgets.Stage5RoleSelectWidget->SetPlayerHUD(this);
+	}
+
+	if (Widgets.OptionPopupWidget)
+	{
+		Widgets.OptionPopupWidget->SetPlayerHUD(this);
+	}
+
+	if (Widgets.TitleWidget)
+	{
+		Widgets.TitleWidget->SetPlayerHUD(this);
+	}
+
+	if (Widgets.GameOverWidget)
+	{
+		Widgets.GameOverWidget->SetPlayerHUD(this);
 	}
 
 	ApplyViewModelToWidgets();
@@ -358,6 +369,66 @@ void APlayerHUD::HideOptionPopup()
 	Widgets.OptionPopupWidget->HideOptionPopup();
 }
 
+void APlayerHUD::ToggleOptionPopup()
+{
+	if (!Widgets.OptionPopupWidget)
+	{
+		return;
+	}
+
+	Widgets.OptionPopupWidget->ToggleOptionPopup();
+}
+
+void APlayerHUD::RequestExitToMain()
+{
+	if (!ViewModel)
+	{
+		return;
+	}
+
+	ViewModel->RequestExitToMain();
+}
+
+void APlayerHUD::RequestBGMVolumeChanged(float Value)
+{
+	if (!ViewModel)
+	{
+		return;
+	}
+
+	ViewModel->RequestBGMVolumeChanged(Value);
+}
+
+void APlayerHUD::RequestSFXVolumeChanged(float Value)
+{
+	if (!ViewModel)
+	{
+		return;
+	}
+
+	ViewModel->RequestSFXVolumeChanged(Value);
+}
+
+void APlayerHUD::RequestVoiceChatEnabledChanged(bool bEnabled)
+{
+	if (!ViewModel)
+	{
+		return;
+	}
+
+	ViewModel->RequestVoiceChatEnabledChanged(bEnabled);
+}
+
+void APlayerHUD::RequestResolutionChanged(const FString& Resolution)
+{
+	if (!ViewModel)
+	{
+		return;
+	}
+
+	ViewModel->RequestResolutionChanged(Resolution);
+}
+
 void APlayerHUD::ShowTitle()
 {
 	if (!Widgets.TitleWidget)
@@ -378,6 +449,36 @@ void APlayerHUD::HideTitle()
 	Widgets.TitleWidget->HideTitle();
 }
 
+void APlayerHUD::RequestGameStart()
+{
+	if (!ViewModel)
+	{
+		return;
+	}
+
+	ViewModel->RequestGameStart();
+}
+
+void APlayerHUD::RequestTitleOption()
+{
+	if (!ViewModel)
+	{
+		return;
+	}
+
+	ViewModel->RequestShowOptionPopup();
+}
+
+void APlayerHUD::RequestGameExit()
+{
+	if (!ViewModel)
+	{
+		return;
+	}
+
+	ViewModel->RequestGameExit();
+}
+
 void APlayerHUD::ShowGameOver()
 {
 	if (!Widgets.GameOverWidget)
@@ -396,6 +497,16 @@ void APlayerHUD::HideGameOver()
 	}
 
 	Widgets.GameOverWidget->HideGameOver();
+}
+
+void APlayerHUD::RequestGameRestart()
+{
+	if (!ViewModel)
+	{
+		return;
+	}
+
+	ViewModel->RequestGameRestart();
 }
 
 void APlayerHUD::ShowStage5RoleSelect()
@@ -440,156 +551,4 @@ void APlayerHUD::ApplyViewModelToWidgets()
 		Widgets.DoorOpenButtonWidget->SetViewModel(ViewModel);
 	}
 
-}
-
-// Temporary UI Test Zone. Remove before opening the PR.
-void APlayerHUD::StartTemporaryUITest()
-{
-	ResetTemporaryUITestState();
-
-	if (ViewModel)
-	{
-		ViewModel->OnDoorActivationRequested.AddUniqueDynamic(this, &APlayerHUD::HandleTemporaryDoorActivationTest);
-		ViewModel->OnStage5RoleSelectionRequested.AddUniqueDynamic(this, &APlayerHUD::HandleTemporaryStage5RoleSelectionRequested);
-	}
-
-	GetWorldTimerManager().SetTimer(
-		TemporaryUITestTimerHandle,
-		this,
-		&APlayerHUD::UpdateTemporaryUITest,
-		1.0f,
-		true
-	);
-}
-
-void APlayerHUD::StopTemporaryUITest()
-{
-	GetWorldTimerManager().ClearTimer(TemporaryUITestTimerHandle);
-
-	if (ViewModel)
-	{
-		ViewModel->OnDoorActivationRequested.RemoveDynamic(this, &APlayerHUD::HandleTemporaryDoorActivationTest);
-		ViewModel->OnStage5RoleSelectionRequested.RemoveDynamic(this, &APlayerHUD::HandleTemporaryStage5RoleSelectionRequested);
-	}
-}
-
-void APlayerHUD::ResetTemporaryUITestState()
-{
-	TemporaryUITestElapsedSeconds = 0;
-	LifeCountTestCurrentLife = 3;
-	InteractionNotifyTestStep = 0;
-	TimerNotifyTestStep = 0;
-	bVoiceChatIconTestSpeaking = false;
-}
-
-void APlayerHUD::UpdateTemporaryUITest()
-{
-	if (!ViewModel)
-	{
-		GetWorldTimerManager().ClearTimer(TemporaryUITestTimerHandle);
-		return;
-	}
-
-	++TemporaryUITestElapsedSeconds;
-
-	if (TemporaryUITestElapsedSeconds % 3 == 0)
-	{
-		bVoiceChatIconTestSpeaking = !bVoiceChatIconTestSpeaking;
-		ViewModel->RequestVoiceChatSpeaking(bVoiceChatIconTestSpeaking);
-	}
-
-	if (TemporaryUITestElapsedSeconds % 5 == 0)
-	{
-		LifeCountTestCurrentLife = LifeCountTestCurrentLife == 3 ? 2 : 3;
-		ViewModel->RequestUpdateLifeCount(LifeCountTestCurrentLife, 5);
-
-		float TimerNotifyTestDuration = 10.0f;
-		switch (TimerNotifyTestStep)
-		{
-		case 0:
-			TimerNotifyTestDuration = 10.0f;
-			break;
-		case 1:
-			TimerNotifyTestDuration = 6.0f;
-			break;
-		case 2:
-			TimerNotifyTestDuration = 3.0f;
-			break;
-		default:
-			break;
-		}
-
-		ViewModel->RequestTimerNotify(TimerNotifyTestDuration);
-		TimerNotifyTestStep = (TimerNotifyTestStep + 1) % 3;
-	}
-
-	if (TemporaryUITestElapsedSeconds % 5 == 0)
-	{
-		switch (InteractionNotifyTestStep)
-		{
-		case 0:
-			ViewModel->RequestShowInteractionNotify(TEXT("TestF"), FText::FromString(TEXT("F")));
-			break;
-		case 1:
-			ViewModel->RequestHideInteractionNotify(TEXT("TestF"));
-			break;
-		case 2:
-			ViewModel->RequestShowInteractionNotify(TEXT("TestG"), FText::FromString(TEXT("G")));
-			break;
-		case 3:
-			ViewModel->RequestHideInteractionNotify(TEXT("TestG"));
-			break;
-		default:
-			break;
-		}
-
-		InteractionNotifyTestStep = (InteractionNotifyTestStep + 1) % 4;
-	}
-
-	if (TemporaryUITestElapsedSeconds == 7)
-	{
-		ViewModel->RequestTextNotify(FText::FromString(TEXT("TextNotify Test")), 32.0f, 3.0f);
-	}
-	else if (TemporaryUITestElapsedSeconds == 10)
-	{
-		ViewModel->RequestShowTutorialNotify();
-	}
-	else if (TemporaryUITestElapsedSeconds == 15)
-	{
-		ViewModel->RequestShowStage5RoleSelect();
-	}
-	else if (TemporaryUITestElapsedSeconds == 18)
-	{
-		ViewModel->RequestHideStage5RoleSelect();
-	}
-	else if (TemporaryUITestElapsedSeconds == 20)
-	{
-		ViewModel->RequestHideTutorialNotify();
-	}
-}
-
-void APlayerHUD::HandleTemporaryDoorActivationTest(int32 DoorIndex, bool bIsActive)
-{
-	UE_LOG(
-		LogTemp,
-		Log,
-		TEXT("Door %d %s"),
-		DoorIndex,
-		bIsActive ? TEXT("Pressed") : TEXT("Released")
-	);
-}
-
-void APlayerHUD::HandleTemporaryStage5RoleSelectionRequested(EPS3PlayerRole SelectedRole)
-{
-	const TCHAR* RoleName = TEXT("Unknown");
-	if (SelectedRole == EPS3PlayerRole::Field)
-	{
-		RoleName = TEXT("Field");
-	}
-	else if (SelectedRole == EPS3PlayerRole::Screen)
-	{
-		RoleName = TEXT("Screen");
-	}
-
-	UE_LOG(LogTemp, Log, TEXT("Stage5 Role Requested: %s"), RoleName);
 }
