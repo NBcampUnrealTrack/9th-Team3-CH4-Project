@@ -18,10 +18,10 @@ void APS3GameModeS5::BeginPlay()
 	
 }
 
-
-
 void APS3GameModeS5::OnGameStart()
 {
+	OnIsGameStart.Broadcast(true);
+	
 	UE_LOG(LogTemp, Warning, TEXT("게임이 시작되었습니다."));
 	GetWorld()->GetTimerManager().SetTimer(GameLimitTimeHandle, this, &ThisClass::OnReduceGameTime, 1.f, true);
 }
@@ -44,6 +44,7 @@ void APS3GameModeS5::OnGameOver()
 	auto* PS3GameStateS5 = GetGameState<APS3GameStateS5>();
 	if (IsValid(PS3GameStateS5) == false) return;
 	
+	OnIsGameStart.Broadcast(false);
 	PS3GameStateS5->OnGameOver();
 }
 
@@ -52,7 +53,7 @@ void APS3GameModeS5::OnReduceGameTime()
 	auto* PS3GameStateS5 = GetGameState<APS3GameStateS5>();
 	if (IsValid(PS3GameStateS5) == false) return;
 		
-	PS3GameStateS5->OnReduceGameTime();
+	PS3GameStateS5->OnReduceGameTime(ReducedTimeRange);
 	
 	if (PS3GameStateS5->GameLimitTime <= 0.0f)
 	{
@@ -61,6 +62,14 @@ void APS3GameModeS5::OnReduceGameTime()
 		
 		OnGameOver();
 	}
+}
+
+void APS3GameModeS5::OnTimeDeduction(float TimeToDeducted)
+{
+	auto* PS3GameStateS5 = GetGameState<APS3GameStateS5>();
+	if (IsValid(PS3GameStateS5) == false) return;
+	
+	PS3GameStateS5->OnTimeDeduction(TimeToDeducted);
 }
 
 
@@ -129,6 +138,9 @@ void APS3GameModeS5::PossessedControllerAndSpawn(APlayerController* OldControlle
 		TargetTag = ScreenTagString;
 	}
 	
+	//bool bWasLocalController = OldController->IsLocalController();
+	
+	
 	APawn* OldPawn = OldController->GetPawn();
 	if (IsValid(OldPawn) == true)
 	{
@@ -141,7 +153,26 @@ void APS3GameModeS5::PossessedControllerAndSpawn(APlayerController* OldControlle
 	auto* NewController = GetWorld()->SpawnActor<APlayerController>(NewControllerClass, ControllerSpawnParams);
 	if (IsValid(NewController) == false) return;
 	
+	
+	/*if (bWasLocalController == true)
+	{
+		NewController->SetAsLocalPlayerController();
+	}*/
+	
 	SwapPlayerControllers(OldController, NewController);
+	
+	/*if (bWasLocalController == true)
+	{
+		FInputModeGameOnly InputMode;
+		NewController->SetInputMode(InputMode);
+		NewController->bShowMouseCursor = false;
+
+		NewController->SetIgnoreMoveInput(false);
+		NewController->SetIgnoreLookInput(false);
+
+		NewController->InitInputSystem();
+	}*/
+	
 	OldController->Destroy();
 	
 	
