@@ -16,6 +16,7 @@ AGimmickBase::AGimmickBase()
 	GimmickMesh->SetupAttachment(Root);
 	// 각 기믹의 실제 충돌은 전용 컴포넌트가 담당합니다.
 	GimmickMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	
 }
 
 void AGimmickBase::BeginPlay()

@@ -17,7 +17,6 @@ protected:
 protected:
 	virtual void BeginPlay() override;
 	
-	
 protected:
 	UFUNCTION()
 	void OnCharacterOverLapped
@@ -49,10 +48,9 @@ protected:
 	
 	UPROPERTY(EditAnywhere, Category = "GameRule")
 	float DeductedTimeRange = 3.0f;
-
-
+	
 private:
-	APS3GameModeS5* GetValidPS3GameModeS5();
+	APS3GameModeS5* GetCastPS3GameModeS5();
 	void OnGameStartedBind();
 	void OnBindFunctionToComponent(bool bIsGameStart);
 	

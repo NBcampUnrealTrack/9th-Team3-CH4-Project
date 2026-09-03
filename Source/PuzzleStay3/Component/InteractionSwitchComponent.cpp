@@ -49,17 +49,11 @@ void UInteractionSwitchComponent::GetLifetimeReplicatedProps(TArray<FLifetimePro
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(UInteractionSwitchComponent, bIsActivated);
-	DOREPLIFETIME(UInteractionSwitchComponent, bIsInteracting); 
-}
-
-void UInteractionSwitchComponent::OnRep_IsInteracting()
-{
-	
 }
 
 bool UInteractionSwitchComponent::TryInteract(AActor* Requestor)
 {
-	if (bIsInteracting == false) return false;
+	// if(bIsPossibleInteraction == false) return;
 	
 	// 서버 권한 검증
 	if (!GetOwner() || !GetOwner()->HasAuthority())
