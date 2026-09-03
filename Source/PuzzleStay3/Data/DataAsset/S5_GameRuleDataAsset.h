@@ -36,9 +36,9 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "SwapController")
 	TSubclassOf<APlayerController> ScreenControllerClass;
 
-	UPROPERTY(EditDefaultsOnly, Category = "SwapTag")
+	UPROPERTY(EditDefaultsOnly, Category = "SwapControllerTag")
 	FString FieldPlayerTagString = "FieldPlayer";
 	
-	UPROPERTY(EditDefaultsOnly, Category = "SwapTag")
+	UPROPERTY(EditDefaultsOnly, Category = "SwapControllerTag")
 	FString ScreenPlayerTagString = "ScreenPlayer" ;
 };

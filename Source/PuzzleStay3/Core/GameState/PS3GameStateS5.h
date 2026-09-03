@@ -38,14 +38,13 @@ public:
 	UPROPERTY(EditAnywhere, Category = "GameRule")
 	TObjectPtr<class US5_GameRuleDataAsset> S5_GameRuleDataAsset;
 	
+	UPROPERTY(ReplicatedUsing = OnRep_GameLimitTime)
+	float GameLimitTime = 60.0f;
 	
 	UPROPERTY(Replicated)
 	bool bIsSelectedFieldType = false;
 	UPROPERTY(Replicated)
 	bool bIsSelectedScreenType = false;
-	
-	UPROPERTY(ReplicatedUsing = OnRep_GameLimitTime)
-	float GameLimitTime = 60.0f;
 	
 	UPROPERTY(ReplicatedUsing = OnRep_IsGameOver)
 	bool bIsGameOver = false;
