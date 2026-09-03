@@ -89,6 +89,18 @@ bool ADumbbell::TryDrop(APS3PlayerCharacter* Requestor)
 	return true;
 }
 
+void ADumbbell::OnConstruction(const FTransform& Transform)
+{
+	Super::OnConstruction(Transform);
+	
+	switch (DumbbellType)
+	{
+	case EDumbbellType::Heavy:  Weight = 200.0f; break;
+	case EDumbbellType::Medium: Weight = 180.0f; break;
+	case EDumbbellType::Light:  Weight = 150.0f; break;
+	}
+}
+
 void ADumbbell::OnRep_HoldingPlayer()
 {
 	
