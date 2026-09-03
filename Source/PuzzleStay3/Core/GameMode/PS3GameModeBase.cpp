@@ -5,6 +5,7 @@
 #include "GameFramework/PlayerState.h"
 #include "Kismet/GameplayStatics.h"
 #include "Component/InteractionSwitchComponent.h"
+#include "Core/GameState/PS3GameStateBase.h"
 #include "Player/PlayerState/PS3PlayerState.h"
 
 
@@ -77,18 +78,19 @@ void APS3GameModeBase::OpenEscapeDoor()
 {
 	
 	if (AllInteractionSwitchActivated() == false) return;
-	if (bEscapeDoorOpened) return;
 	
-	bEscapeDoorOpened = true;
-	//OnEscapeDoorOpened.Broadcast(EDoorType::StageAllFinalDoor);
-	OnEscapeDoorOpened.Broadcast();
+	APS3GameStateBase* GS = GetGameState<APS3GameStateBase>();
+	if (!IsValid(GS)) return;
+	if (GS->IsEscapeDoorOpened()) return;
+
+	GS->SetEscapeDoorOpened(true);
 	
 	CallStageClearIfTimerOver();
 }
 
 void APS3GameModeBase::DisableBlockingVolume(EPS3StageNumber StageNumber)
 {
-	OnBlockingVolumeDisabled.Broadcast(StageNumber);
+
 }
 
 //플레이어 죽음 델리게이트 구독 함수
@@ -116,6 +118,8 @@ void APS3GameModeBase::HandlePlayerDeadState(bool bNewIsDead)
 
 void APS3GameModeBase::StageRestart()
 {
+	if (!HasAuthority()) return;
+	
 	//PlayerState의 IsDead 값을 False로 초기화
 	ResetAllPlayersDeadState();
 	
@@ -123,7 +127,7 @@ void APS3GameModeBase::StageRestart()
 
 	if (CurrentLevel.IsEmpty()) return;
 
-	UGameplayStatics::OpenLevel(this, FName(*CurrentLevel));
+	GetWorld()->ServerTravel(CurrentLevel);
 }
 
 void APS3GameModeBase::ResetAllPlayersDeadState()
@@ -139,9 +143,10 @@ void APS3GameModeBase::ResetAllPlayersDeadState()
 
 void APS3GameModeBase::StageClear()
 {
-	if (NextStageLevelName.IsNone()) return;
+	if (!HasAuthority()) return;
+	if (NextStageLevelName.IsEmpty()) return;
 
-	UGameplayStatics::OpenLevel(this, NextStageLevelName);
+	GetWorld()->ServerTravel(NextStageLevelName);
 }
 
 void APS3GameModeBase::CallStageClearIfTimerOver()
