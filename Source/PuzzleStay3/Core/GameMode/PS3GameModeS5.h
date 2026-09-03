@@ -74,7 +74,7 @@ public:
 	void EscapeGimmickDetection();
 	void OnEscapeGimmickUnlocked();
 	
-	void OnCollectLoginUser(APlayerController* NewPlayer);
+	void OnCollectLoginUser();
 
 
 public:

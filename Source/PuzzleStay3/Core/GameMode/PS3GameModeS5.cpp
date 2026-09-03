@@ -13,6 +13,7 @@
 #include "Player/Character/PS3PlayerCharacter.h"
 #include "Player/Controller/PS3ScreenPlayerController.h"
 #include "PuzzleStay3/Player/Controller/PS3ChoiceController.h"
+#include "UI/ViewModel/PS3ViewModel.h"
 
 APS3GameModeS5::APS3GameModeS5()
 {
@@ -25,7 +26,7 @@ void APS3GameModeS5::PostLogin(APlayerController* NewPlayer)
 	
 	if (NewPlayer == nullptr) return;
 	
-	OnCollectLoginUser(NewPlayer);
+	LoginUserArray.AddUnique(NewPlayer);
 	
 	auto* PS3ChoiceController = Cast<APS3ChoiceController>(NewPlayer);
 	if (IsValid(PS3ChoiceController) == true)
@@ -34,8 +35,6 @@ void APS3GameModeS5::PostLogin(APlayerController* NewPlayer)
 		
 		UE_LOG(LogTemp, Warning, TEXT("[GameMode] ChoiceController PostLogin 완료: %s"), *PS3ChoiceController->GetName());
 	}
-	
-	
 }
 
 void APS3GameModeS5::HandleStartingNewPlayer_Implementation(APlayerController* NewPlayer)
@@ -191,13 +190,17 @@ void APS3GameModeS5::OnEscapeGimmickUnlocked()
 	}
 }
 
-void APS3GameModeS5::OnCollectLoginUser(APlayerController* NewPlayer)
+void APS3GameModeS5::OnCollectLoginUser()
 {
-	auto* PlayerController = Cast<APlayerController>(NewPlayer);
-	if (IsValid(PlayerController) == false) return;
-	for (APlayerController* LoginUser : PlayerController)
+	LoginUserArray.Empty();
+	
+	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
 	{
+		APlayerController* LoginUser = It->Get();
+		if (IsValid(LoginUser) == false) continue;
+		
 		LoginUserArray.Add(LoginUser);
+		
 		int32 Count = LoginUserArray.Num();
 		UE_LOG(LogTemp, Warning, TEXT("현재 로그인 인원: %d명"), Count);
 	}
