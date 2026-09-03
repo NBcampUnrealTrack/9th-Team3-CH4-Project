@@ -37,7 +37,7 @@ protected:
 	virtual void Tick(float DeltaTime) override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	
-#pragma region Mesh
+#pragma region Mesh & Components
 	// 컴포넌트 구성
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<USceneComponent> DefaultSceneRoot;
@@ -50,6 +50,10 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<UStaticMeshComponent> JeoulBeamMesh;
 	
+	// 회전 축을 담당할 피벗 컴포넌트
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	TObjectPtr<USceneComponent> BeamPivot;
+	
 	// 저울판 감지용 Trigger Box
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<UBoxComponent> PlateTrigger;
@@ -61,6 +65,10 @@ protected:
 	// 확인 버튼용 컴포넌트
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<UInteractionSwitchComponent> InteractionSwitchComp;
+
+	// 플레이어가 F키로 바라보고 누를 버튼 메쉬
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	TObjectPtr<UStaticMeshComponent> CheckButtonMesh;
 	
 #pragma endregion 
 
