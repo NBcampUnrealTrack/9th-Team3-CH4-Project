@@ -68,7 +68,6 @@ bool APS3GameModeBase::AllInteractionSwitchActivated() const
 	return true;
 }
 
-//델리게이트 듣는 중간함수
 void APS3GameModeBase::HandleSwitchActivatedChanged(bool bActivated)
 {
 	OpenEscapeDoor();
