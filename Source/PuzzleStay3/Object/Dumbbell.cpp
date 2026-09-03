@@ -45,7 +45,7 @@ bool ADumbbell::TryInteract(APS3PlayerCharacter* Requestor)
 	AttachToComponent(
 		CarryAnchor,
 		FAttachmentTransformRules::SnapToTargetNotIncludingScale
-	)
+	);
 
 	// 캐릭터와 너무 붙지 않도록 GrabOffset 적용 (X, Y, Z 거리 조절)
 	SetActorRelativeLocation(GrabOffset);
