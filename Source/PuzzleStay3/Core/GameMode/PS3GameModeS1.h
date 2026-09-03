@@ -11,4 +11,7 @@ UCLASS()
 class PUZZLESTAY3_API APS3GameModeS1 : public APS3GameModeBase
 {
 	GENERATED_BODY()
+	
+public:
+	virtual void DisableBlockingVolume(EPS3StageNumber StageNumber) override;
 };
