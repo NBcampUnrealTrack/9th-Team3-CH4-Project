@@ -4,33 +4,121 @@
 #include "PS3ChoiceController.h"
 
 #include "Blueprint/UserWidget.h"
-#include "Kismet/GameplayStatics.h"
+#include "Camera/CameraComponent.h"
+#include "Core/GameMode/PS3GameModeS5.h"
+#include "Core/GameState/PS3GameStateS5.h"
+#include "Data/Enum/PS3PlayerRole.h"
+#include "UI/HUD/PlayerHUD.h"
+#include "UI/ViewModel/PS3ViewModel.h"
+
+
+APS3ChoiceController::APS3ChoiceController()
+{
+	FixedCameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("FixedChoiceCamera"));
+	SetRootComponent(FixedCameraComponent);
+}
 
 void APS3ChoiceController::BeginPlay()
 {
 	Super::BeginPlay();
 	
+	GetWorld()->GetTimerManager().SetTimer(InitTimerHandle, this, &APS3ChoiceController::ConfigureInputMapping, 0.01f, false);
+	
+	SetViewTarget(this);
+}
+
+void APS3ChoiceController::ReceivedPlayer()
+{
+	Super::ReceivedPlayer();
+	
+	ConfigureInputMapping();
+}
+
+void APS3ChoiceController::UpdateRotation(float DeltaTime)
+{
+	//아무것도 없지만 지우면 안되는 함수
+}
+
+void APS3ChoiceController::ConfigureInputMapping()
+{
 	if (IsLocalController() == false) return;
 	
-	if (UIWidgetClass.IsValidIndex(0) == false) return;
+	GetWorld()->GetTimerManager().ClearTimer(InitTimerHandle);
 	
-	if (UIWidgetClass[0] == nullptr) return;
-	
-	UIWidgetInstance = CreateWidget<UUserWidget>(this, UIWidgetClass[0]);
-	if (IsValid(UIWidgetInstance) == false) return;
-		
-	UIWidgetInstance->AddToViewport();
+	auto* HUD = Cast<APlayerHUD>(GetHUD());
+	if (HUD == nullptr) return;
 
-	FInputModeUIOnly Mode;
-	Mode.SetWidgetToFocus(UIWidgetInstance->GetCachedWidget());
-	SetInputMode(Mode);
+	PS3ViewModel = Cast<UPS3ViewModel>(HUD->GetViewModel());
+	if (PS3ViewModel == nullptr) return;
+
+	PS3ViewModel->OnStage5RoleSelectionRequested.AddDynamic(this, &ThisClass::OnClickedFieldTypeButton);
+	PS3ViewModel->OnStage5RoleSelectionRequested.AddDynamic(this, &ThisClass::OnClickedScreenTypeButton);
+	PS3ViewModel->RequestShowStage5RoleSelect();
+
+	FInputModeUIOnly UIOnlyMode;
+	SetInputMode(UIOnlyMode);
 
 	bShowMouseCursor = true;
-	
 }
 
-void APS3ChoiceController::JoinServer(const FString& InIPAddress)
+
+void APS3ChoiceController::ServerRPC_SelectedControllerType_Implementation(EPS3PlayerRole SelectedPlayerRoleType)
 {
-	FName NextLevelName = FName(*InIPAddress);
-	UGameplayStatics::OpenLevel(GetWorld(), NextLevelName, true);
+	auto* PS3GameStateS5 = Cast<APS3GameStateS5>(GetWorld()->GetGameState());
+	if (IsValid(PS3GameStateS5) == false) return;
+	
+	if (SelectedPlayerRoleType == EPS3PlayerRole::Field)
+	{
+		PS3GameStateS5->bIsSelectedFieldType = true;
+	}
+	
+	else if (SelectedPlayerRoleType == EPS3PlayerRole::Screen)
+	{
+		PS3GameStateS5->bIsSelectedScreenType = true;
+	}
+	
+	auto* PS3GameModeS5 = Cast<APS3GameModeS5>(GetWorld()->GetAuthGameMode());
+	if (IsValid(PS3GameModeS5) == false) return;
+	
+	PS3GameModeS5->SetPlayerControllerRole(this, SelectedPlayerRoleType);
+	
+	if (PS3GameModeS5->RoleSelectedPlayerCount >= PS3GameModeS5->MaxPlayerCount)
+	{
+		PS3GameModeS5->OnGameStart();
+	}
 }
+
+void APS3ChoiceController::OnClickedFieldTypeButton(EPS3PlayerRole SelectType)
+{
+	if (SelectType == EPS3PlayerRole::Field)
+	{
+		auto* PS3GameStateS5 = Cast<APS3GameStateS5>(GetWorld()->GetGameState());
+		if (IsValid(PS3GameStateS5) == false) return;
+		
+		if (PS3GameStateS5->bIsSelectedFieldType == true) return;
+	
+		ServerRPC_SelectedControllerType(SelectType);
+		
+		if (IsValid(PS3ViewModel) == false) return;
+		PS3ViewModel->RequestHideStage5RoleSelect();
+	}
+}
+
+void APS3ChoiceController::OnClickedScreenTypeButton(EPS3PlayerRole SelectType)
+{
+	if (SelectType == EPS3PlayerRole::Screen)
+	{
+		auto* PS3GameStateS5 = Cast<APS3GameStateS5>(GetWorld()->GetGameState());
+		if (IsValid(PS3GameStateS5) == false) return;
+		
+		if (PS3GameStateS5->bIsSelectedScreenType == true) return;
+	
+		ServerRPC_SelectedControllerType(SelectType);
+		
+		if (IsValid(PS3ViewModel) == false) return;
+		PS3ViewModel->RequestHideStage5RoleSelect();
+	}
+}
+
+
+

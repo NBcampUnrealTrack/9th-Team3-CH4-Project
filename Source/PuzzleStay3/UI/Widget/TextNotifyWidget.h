@@ -2,7 +2,10 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "TimerManager.h"
 #include "TextNotifyWidget.generated.h"
+
+class UTextBlock;
 
 UCLASS()
 class PUZZLESTAY3_API UTextNotifyWidget : public UUserWidget
@@ -10,9 +13,16 @@ class PUZZLESTAY3_API UTextNotifyWidget : public UUserWidget
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI|TextNotify")
-	FText DisplayText;
+	UFUNCTION(BlueprintCallable, Category = "UI|TextNotify")
+	void ShowTextNotify(const FText& InDisplayText, float InFontSize, float InDisplayDuration);
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI|TextNotify")
-	float DisplayDuration = 0.0f;
+	UFUNCTION(BlueprintCallable, Category = "UI|TextNotify")
+	void HideTextNotify();
+
+protected:
+	UPROPERTY(BlueprintReadOnly, meta = (BindWidget))
+	TObjectPtr<UTextBlock> TextNotifyText;
+
+private:
+	FTimerHandle TextNotifyTimerHandle;
 };

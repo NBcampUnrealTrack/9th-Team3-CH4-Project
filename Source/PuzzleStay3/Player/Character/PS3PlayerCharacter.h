@@ -2,7 +2,6 @@
 #pragma once
 
 #include "GameFramework/Character.h"
-#include "InputActionValue.h"
 #include "PS3PlayerCharacter.generated.h"
 
 class UUW_HPText;
@@ -10,8 +9,8 @@ class UDXHPTextWidgetComponent;
 class UDXStatusComponent;
 class UCameraComponent;
 class USpringArmComponent;
-class UInputMappingContext;
-class UInputAction;
+class ADumbbell;
+class USceneComponent;
 
 UCLASS()
 class PUZZLESTAY3_API APS3PlayerCharacter : public ACharacter
@@ -22,40 +21,45 @@ class PUZZLESTAY3_API APS3PlayerCharacter : public ACharacter
 public:
 	APS3PlayerCharacter();
 
-	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
+	UFUNCTION(BlueprintPure, Category = "PS3|Character")
+	bool CanUseFieldControls() const;
+	
+	UFUNCTION(BlueprintPure, Category = "PS3|Character|Interaction")
+	USceneComponent* GetCarryAnchor() const
+	{
+		return CarryAnchor;
+	}
 
-	virtual void BeginPlay() override;
+	void Move(const FVector2D& InMovementVector);
+	void Look(const FVector2D& InLookVector);
+	void StartJump();
+	void StopJump();
+	void TryInteract();
+	void TryDropHeldObject();
 	
 
 protected:
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "DXPlayerCharacter|Components")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "PS3|Character|Components")
 	TObjectPtr<USpringArmComponent> SpringArm;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "DXPlayerCharacter|Components")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "PS3|Character|Components")
 	TObjectPtr<UCameraComponent> Camera;
 
+	//상호작용할 라인트레이스 거리
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PS3|Character|Interaction")
+	float InteractionDistance = 300.0f;
 
-private:
-	void HandleMoveInput(const FInputActionValue& InValue);
-
-	void HandleLookInput(const FInputActionValue& InValue);
-
-
-
-protected:
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "DXPlayerCharacter|Input")
-	TObjectPtr<UInputMappingContext> InputMappingContext;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "DXPlayerCharacter|Input")
-	TObjectPtr<UInputAction> MoveAction;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "DXPlayerCharacter|Input")
-	TObjectPtr<UInputAction> LookAction;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "DXPlayerCharacter|Input")
-	TObjectPtr<UInputAction> JumpAction;
-
-
-
+	//덤벨 held, drop을 위한 변수
+	UPROPERTY(Transient)
+	TObjectPtr<ADumbbell> HeldDumbbell;
 	
+	UPROPERTY(VisibleAnywhere,BlueprintReadOnly,Category = "PS3|Character|Interaction")
+	TObjectPtr<USceneComponent> CarryAnchor;
+	
+private:
+	UFUNCTION(Server, Reliable)
+	void Server_TryInteract();
+
+	UFUNCTION(Server, Reliable)
+	void Server_TryDropHeldObject();
 };

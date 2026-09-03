@@ -10,3 +10,7 @@ enum class EInteractionState : uint8
 	IsNotInteracting UMETA(DisplayName = "Is Not Interacting"),
 	IsInteracting UMETA(DisplayName = "Is Interacting")
 };
+
+
+
+
