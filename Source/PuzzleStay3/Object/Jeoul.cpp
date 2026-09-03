@@ -94,7 +94,7 @@ void AJeoul::OnCheckButtonPressed(bool bActivated)
 	}
 }
 
-float AJeoul::CalculateWeightOnPlate(UBoxComponent* InPlateTrigger) const
+float AJeoul::CalculateWeightOnPlate(UBoxComponent* InPlateTrigger)
 {
 	if (!InPlateTrigger) return 0.0f;
 

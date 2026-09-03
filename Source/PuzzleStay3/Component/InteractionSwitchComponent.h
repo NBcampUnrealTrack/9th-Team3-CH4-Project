@@ -30,6 +30,13 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Gimmick")
 	bool bRegisterToGameMode = true;
 	
+	// 서버-클라이언트 간 동기화 추가
+	UPROPERTY(ReplicatedUsing = OnRep_IsInteracting, VisibleAnywhere, BlueprintReadOnly, Category = "Gimmick")
+	bool bIsInteracting = true;
+
+	// 클라이언트에서 상호작용 가능 여부가 바뀔 때 연출 처리용 함수
+	UFUNCTION()
+	void OnRep_IsInteracting();
 public:
 	// GameMode가 바인딩할 델리게이트
 	FOnSwitchActivatedChanged OnSwitchActivatedChanged;

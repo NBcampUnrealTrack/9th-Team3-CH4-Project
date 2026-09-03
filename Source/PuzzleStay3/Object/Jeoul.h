@@ -77,7 +77,7 @@ public:
 	UCameraComponent* GetCutsceneCamera() const { return CutsceneCamera; }
 	
 	// 좌/우 저울판 위 액터들의 무게 합산
-	float CalculateWeightOnPlate(UBoxComponent* InPlateTrigger) const;
+	float CalculateWeightOnPlate(UBoxComponent* InPlateTrigger);
 	
 	// 서버 권한 균형 검증 RPC (확인 버튼 상호작용 시 호출)
 	UFUNCTION(Server, Reliable)
