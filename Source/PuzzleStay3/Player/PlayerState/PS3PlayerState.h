@@ -68,6 +68,18 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "PS3|Player State|Voice")
 	FPS3VoiceObjectHeldChangedSignature OnVoiceObjectHeldChanged;
 
+	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category = "PS3|Player State|Life")
+	void InitializeLifeCount(int32 NewLifeCount);
+
+	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category = "PS3|Player State|Life")
+	bool TryConsumeLife();
+
+	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category = "PS3|Player State|Life")
+	void FinishRespawn();
+
+	UFUNCTION(BlueprintPure, Category = "PS3|Player State|Life")
+	bool IsRespawning() const { return bIsRespawning; }
+
 protected:
 	UFUNCTION()
 	void OnRep_LifeChanged();
@@ -98,4 +110,8 @@ protected:
 
 	UPROPERTY(VisibleInstanceOnly, ReplicatedUsing = OnRep_VoiceObjectHeld, Category = "PS3|Player State|Voice")
 	bool bIsVoiceObjectHeld = false;
+
+	// 서버에서 중복 차감을 방지하기 위한 처리 상태
+	UPROPERTY(Transient)
+	bool bIsRespawning = false;
 };

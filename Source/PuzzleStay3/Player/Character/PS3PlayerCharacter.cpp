@@ -78,6 +78,31 @@ void APS3PlayerCharacter::StopJump()
 	StopJumping();
 }
 
+void APS3PlayerCharacter::PrepareForRespawn()
+{
+	if (!HasAuthority())
+	{
+		return;
+	}
+
+	if (UCharacterMovementComponent* MovementComponent = GetCharacterMovement())
+	{
+		MovementComponent->StopMovementImmediately();
+		MovementComponent->DisableMovement();
+	}
+
+	if (IsValid(HeldDumbbell))
+	{
+		ADumbbell* DumbbellToDrop = HeldDumbbell;
+		if (DumbbellToDrop->TryDrop(this))
+		{
+			HeldDumbbell = nullptr;
+		}
+	}
+
+	SetActorEnableCollision(false);
+}
+
 void APS3PlayerCharacter::TryDropHeldObject()
 {
 	if (!IsLocallyControlled() || !CanUseFieldControls())
