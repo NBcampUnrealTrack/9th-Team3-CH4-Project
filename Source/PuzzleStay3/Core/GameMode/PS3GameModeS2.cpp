@@ -32,7 +32,7 @@ void APS3GameModeS2::ReSpawnPlayer(APlayerController* TargetPlayerController)
 	UnPossessedAndDestroyOldPawn(TargetPlayerController);
 	RestartPlayer(TargetPlayerController);
 	
-	APS3PlayerState* PS = TargetPlayerController->GetPlayerState<APS3PlayerState>()
+	APS3PlayerState* PS = TargetPlayerController->GetPlayerState<APS3PlayerState>();
 	if (!IsValid(PS)) return;
 	PS->FinishRespawn();
 }
