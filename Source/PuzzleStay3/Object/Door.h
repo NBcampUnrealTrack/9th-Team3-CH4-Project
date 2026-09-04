@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "Data/Enum/DoorType.h"
 #include "Door.generated.h"
 
 UCLASS()
@@ -19,6 +20,10 @@ protected:
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<UStaticMeshComponent> DoorMesh;
+	
+	// 문 타입 선택 (에디터 디테일 창에서 설정)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Door|Settings")
+	EDoorType DoorType = EDoorType::StageAllFinalDoor;
 	
 	// 문이 열릴 때 이동할 상대 위치 (에디터에서 설정)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Door|Movement")
