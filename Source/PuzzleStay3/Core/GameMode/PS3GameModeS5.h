@@ -44,6 +44,7 @@ public:
 	
 #pragma endregion
 	
+	
 protected:
 	UPROPERTY(EditAnywhere, Category = "GameRule")
 	TObjectPtr<class US5_GameRuleDataAsset> S5_GameRuleDataAsset;
