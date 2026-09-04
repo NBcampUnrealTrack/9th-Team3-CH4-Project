@@ -20,7 +20,13 @@ public:
 	FOnTimerNotifyEntryFinished OnTimerFinished;
 
 	UFUNCTION(BlueprintCallable, Category = "UI|TimerNotify")
-	void StartTimer(float InDuration);
+	void StartTimer(FName InTimerId, float InDuration);
+
+	UFUNCTION(BlueprintCallable, Category = "UI|TimerNotify")
+	void ReduceRemainingTime(float InReduceTime);
+
+	UFUNCTION(BlueprintPure, Category = "UI|TimerNotify")
+	FName GetTimerId() const;
 
 	void StopTimer();
 
@@ -40,6 +46,8 @@ private:
 	TObjectPtr<UMaterialInstanceDynamic> TimerProgressMaterial;
 
 	FTimerHandle TimerUpdateTimerHandle;
-	float TimerDuration = 0.0f;
-	float TimerStartTime = 0.0f;
+	FName TimerId;
+	float TotalTime = 0.0f;
+	float RemainingTime = 0.0f;
+	float LastUpdateTime = 0.0f;
 };

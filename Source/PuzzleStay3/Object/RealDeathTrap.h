@@ -4,6 +4,11 @@
 #include "GameFramework/Actor.h"
 #include "RealDeathTrap.generated.h"
 
+class APawn;
+class UPrimitiveComponent;
+class UShapeComponent;
+class UStaticMeshComponent;
+
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(
 	FOnRealDeathTrapTriggered,
 	APawn*,

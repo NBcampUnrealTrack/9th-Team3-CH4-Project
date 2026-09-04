@@ -1,5 +1,6 @@
 #include "Component/RandomCollisionTrapComponent.h"
-#include "Components/StaticMeshComponent.h"
+#include "Core/GameMode/PS3GameModeS2.h"
+#include "Engine/World.h"
 #include "Net/UnrealNetwork.h"
 
 URandomCollisionTrapComponent::URandomCollisionTrapComponent()
@@ -7,146 +8,114 @@ URandomCollisionTrapComponent::URandomCollisionTrapComponent()
 	SetIsReplicatedByDefault(true);
 
 	SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	SetCollisionResponseToAllChannels(ECR_Ignore);
+	SetCollisionResponseToChannel(ECC_Pawn, ECR_Block);
+}
+
+void URandomCollisionTrapComponent::OnRegister()
+{
+    Super::OnRegister();
+
+    UWorld* World = GetWorld();
+    AActor* Owner = GetOwner();
+    if (!World || !World->IsGameWorld() || !Owner || !Owner->HasAuthority())
+    {
+        return;
+    }
+
+    APS3GameModeS2* GameMode =
+        Cast<APS3GameModeS2>(World->GetAuthGameMode());
+    if (!GameMode)
+    {
+        return;
+    }
+
+    GameMode->RegisterRandomCollisionTrapCompo(this);
+    bRegisteredToStage2GameMode = true;
 }
 
 void URandomCollisionTrapComponent::BeginPlay()
 {
     Super::BeginPlay();
-    
-    SpawnPlatforms();
-    ApplyCollisionLayoutToPlatforms();
-    
-    //테스트용--
-    if (GetOwner() && GetOwner()->HasAuthority())
-    {
-        const TArray<bool> TestCollisionLayout =
-        {
-            true, false,
-            false, true,
-            true, false,
-            true, false,
-            false, true,
-            false, true,
-            true, false,
-            false, true,
-            true, false,
-            false, true
-        };
 
-        ApplyCollisionLayout(TestCollisionLayout);
+    if (!GetOwner() || !GetOwner()->HasAuthority())
+    {
+        return;
     }
-    //테스트용--
+
+    ApplyCollisionFromStage2GameMode();
 }
 
-void URandomCollisionTrapComponent::ApplyCollisionLayout(
-    const TArray<bool>& InCollisionLayout)
+void URandomCollisionTrapComponent::EndPlay(
+    const EEndPlayReason::Type EndPlayReason)
+{
+    if (bRegisteredToStage2GameMode)
+    {
+        if (UWorld* World = GetWorld())
+        {
+            if (APS3GameModeS2* GameMode =
+                Cast<APS3GameModeS2>(World->GetAuthGameMode()))
+            {
+                GameMode->UnregisterRandomCollisionTrapCompo(this);
+            }
+        }
+
+        bRegisteredToStage2GameMode = false;
+    }
+
+    Super::EndPlay(EndPlayReason);
+}
+
+void URandomCollisionTrapComponent::ApplyCollisionFromStage2GameMode()
+{
+    UWorld* World = GetWorld();
+    if (!World || !World->IsGameWorld() || LayoutIndex == INDEX_NONE)
+    {
+        return;
+    }
+
+    APS3GameModeS2* GameMode =
+        Cast<APS3GameModeS2>(World->GetAuthGameMode());
+    if (!GameMode)
+    {
+        return;
+    }
+
+    const TArray<bool> CollisionLayout =
+        GameMode->GetRandomCollisionLayoutResults();
+    if (!CollisionLayout.IsValidIndex(LayoutIndex))
+    {
+        return;
+    }
+
+    ApplyCollisionState(CollisionLayout[LayoutIndex]);
+}
+
+void URandomCollisionTrapComponent::ApplyCollisionState(
+    const bool bShouldHaveCollision)
 {
     if (!GetOwner() || !GetOwner()->HasAuthority())
     {
         return;
     }
 
-    const int32 ExpectedPlatformCount = RowCount * ColumnCount;
-    if (InCollisionLayout.Num() != ExpectedPlatformCount)
-    {
-        return;
-    }
+    bHasCollision = bShouldHaveCollision;
+    UpdateCollisionState();
 
-    SpawnPlatforms();
-
-    CollisionLayout.SetNum(ExpectedPlatformCount);
-    for (int32 Index = 0; Index < ExpectedPlatformCount; ++Index)
-    {
-        CollisionLayout[Index] = InCollisionLayout[Index] ? 1 : 0;
-    }
-
-    ApplyCollisionLayoutToPlatforms();
     GetOwner()->ForceNetUpdate();
 }
 
-void URandomCollisionTrapComponent::OnRep_CollisionLayout()
+void URandomCollisionTrapComponent::OnRep_HasCollision()
 {
-    SpawnPlatforms();
-    ApplyCollisionLayoutToPlatforms();
+    UpdateCollisionState();
 }
 
-void URandomCollisionTrapComponent::SpawnPlatforms()
+void URandomCollisionTrapComponent::UpdateCollisionState()
 {
-    if (PlatformMeshes.Num() > 0 || PlatformCollisions.Num() > 0)
-    {
-        return;
-    }
-
-    AActor* Owner = GetOwner();
-    if (!Owner)
-    {
-        return;
-    }
-
-    const int32 PlatformCount = RowCount * ColumnCount;
-    PlatformMeshes.Reserve(PlatformCount);
-    PlatformCollisions.Reserve(PlatformCount);
-
-    for (int32 Row = 0; Row < RowCount; ++Row)
-    {
-        for (int32 Column = 0; Column < ColumnCount; ++Column)
-        {
-            const int32 Index = Row * ColumnCount + Column;
-            const FVector LocalLocation =
-                StartLocalLocation
-                + RowLocalOffset * Row
-                + ColumnLocalOffset * Column;
-
-            const FName MeshName(*FString::Printf(TEXT("PlatformMesh_%02d"), Index));
-            UStaticMeshComponent* PlatformMesh =
-                NewObject<UStaticMeshComponent>(Owner, MeshName);
-
-            PlatformMesh->SetStaticMesh(PlatformMeshAsset);
-            PlatformMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-            PlatformMesh->SetupAttachment(this);
-            PlatformMesh->SetRelativeLocation(LocalLocation);
-            PlatformMesh->RegisterComponent();
-
-            const FName CollisionName(
-                *FString::Printf(TEXT("PlatformCollision_%02d"), Index));
-            UBoxComponent* PlatformCollision =
-                NewObject<UBoxComponent>(Owner, CollisionName);
-
-            PlatformCollision->SetupAttachment(PlatformMesh);
-
-            if (PlatformMeshAsset)
-            {
-                const FBoxSphereBounds MeshBounds = PlatformMeshAsset->GetBounds();
-
-                PlatformCollision->SetBoxExtent(MeshBounds.BoxExtent);
-                PlatformCollision->SetRelativeLocation(MeshBounds.Origin);
-            }
-
-            PlatformCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-            PlatformCollision->SetCollisionResponseToAllChannels(ECR_Ignore);
-            PlatformCollision->SetCollisionResponseToChannel(ECC_Pawn, ECR_Block);
-            PlatformCollision->RegisterComponent();
-
-            PlatformMeshes.Add(PlatformMesh);
-            PlatformCollisions.Add(PlatformCollision);
-        }
-    }
-}
-
-void URandomCollisionTrapComponent::ApplyCollisionLayoutToPlatforms()
-{
-    if (CollisionLayout.Num() != PlatformCollisions.Num())
-    {
-        return;
-    }
-
-    for (int32 Index = 0; Index < PlatformCollisions.Num(); ++Index)
-    {
-        PlatformCollisions[Index]->SetCollisionEnabled(
-            CollisionLayout[Index] == 1
-                ? ECollisionEnabled::QueryAndPhysics
-                : ECollisionEnabled::NoCollision);
-    }
+    SetCollisionEnabled(
+        bHasCollision
+            ? ECollisionEnabled::QueryAndPhysics
+            : ECollisionEnabled::NoCollision);
 }
 
 void URandomCollisionTrapComponent::GetLifetimeReplicatedProps(
@@ -154,5 +123,5 @@ void URandomCollisionTrapComponent::GetLifetimeReplicatedProps(
 {
     Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-    DOREPLIFETIME(URandomCollisionTrapComponent, CollisionLayout);
+    DOREPLIFETIME(URandomCollisionTrapComponent, bHasCollision);
 }

@@ -52,7 +52,6 @@ void APlayerHUD::BeginPlay()
 			InitialWidgets.Stage5RoleSelectWidget = RootHUDWidget->GetStage5RoleSelectWidget();
 			SetWidgets(InitialWidgets);
 			bIsUIReady = true;
-			OnHUDReady.Broadcast();
 		}
 	}
 }
@@ -236,14 +235,24 @@ void APlayerHUD::HideTimerNotifyWidget()
 	Widgets.TimerNotifyWidget->HideTimerNotifyWidget();
 }
 
-void APlayerHUD::UpdateTimerNotify(float InDuration)
+void APlayerHUD::UpdateTimerNotify(FName InTimerId, float InDuration)
 {
 	if (!Widgets.TimerNotifyWidget)
 	{
 		return;
 	}
 
-	Widgets.TimerNotifyWidget->UpdateTimerNotify(InDuration);
+	Widgets.TimerNotifyWidget->UpdateTimerNotify(InTimerId, InDuration);
+}
+
+void APlayerHUD::ReduceTimerNotify(FName InTimerId, float InReduceTime)
+{
+	if (!Widgets.TimerNotifyWidget)
+	{
+		return;
+	}
+
+	Widgets.TimerNotifyWidget->ReduceTimerNotify(InTimerId, InReduceTime);
 }
 
 void APlayerHUD::HideTimerNotify()

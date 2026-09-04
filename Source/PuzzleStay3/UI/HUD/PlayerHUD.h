@@ -19,8 +19,6 @@ class UGameOverWidget;
 class UStage5RoleSelectWidget;
 class UPS3ViewModel;
 
-DECLARE_MULTICAST_DELEGATE(FOnHUDReady);
-
 USTRUCT(BlueprintType)
 struct FPS3HUDWidgets
 {
@@ -80,8 +78,6 @@ public:
 	UFUNCTION(BlueprintPure, Category = "UI")
 	bool IsUIReady() const;
 
-	FOnHUDReady OnHUDReady;
-
 	UFUNCTION(BlueprintCallable, Category = "UI|TextNotify")
 	void ShowTextNotify(const FText& InDisplayText, float InFontSize, float InDisplayDuration);
 
@@ -119,7 +115,10 @@ public:
 	void HideTimerNotifyWidget();
 
 	UFUNCTION(BlueprintCallable, Category = "UI|TimerNotify")
-	void UpdateTimerNotify(float InDuration);
+	void UpdateTimerNotify(FName InTimerId, float InDuration);
+
+	UFUNCTION(BlueprintCallable, Category = "UI|TimerNotify")
+	void ReduceTimerNotify(FName InTimerId, float InReduceTime);
 
 	UFUNCTION(BlueprintCallable, Category = "UI|TimerNotify")
 	void HideTimerNotify();
