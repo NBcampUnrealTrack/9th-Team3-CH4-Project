@@ -7,6 +7,7 @@
 #include "Data/Enum/VoiceChatState.h"
 #include "PS3GameModeS3.generated.h"
 
+class UFakeDeathTrapComponent;
 class APS3PlayerState;
 
 UCLASS()
@@ -31,4 +32,13 @@ private:
 
 protected:
 	virtual bool StageRestartIfPlayerDead() const override { return true; }
+	
+	void MakeRandomVisibleResults();
+	
+	// true  = P1이 Visible, P2는 Invisible
+	// false = P1이 Invisible, P2는 Visible
+	bool RandomVisibleResults = true;
+
+public:
+	bool GetRandomVisibleResults();
 };
