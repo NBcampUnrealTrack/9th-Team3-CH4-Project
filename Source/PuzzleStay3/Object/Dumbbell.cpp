@@ -75,8 +75,14 @@ bool ADumbbell::TryDrop(APS3PlayerCharacter* Requestor)
 	QueryParams.AddIgnoredActor(this); // 자기 자신 제외
 	QueryParams.AddIgnoredActor(Requestor);
 
+	// ★ 기존 ECC_Visibility 대신 ECC_WorldStatic 또는 ObjectTypeQuery 사용
+	// 저울 메쉬가 BlockAllDynamic 프로필이므로 WorldStatic/WorldDynamic을 모두 감지하는 ObjectType/Trace Channel을 이용합니다.
+	FCollisionObjectQueryParams ObjectQueryParams;
+	ObjectQueryParams.AddObjectTypesToQuery(ECC_WorldStatic);
+	ObjectQueryParams.AddObjectTypesToQuery(ECC_WorldDynamic);
+	
 	// ECC_WorldStatic 및 WorldDynamic 채널 탐색
-	if (GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_Visibility, QueryParams))
+	if (GetWorld()->LineTraceSingleByObjectType(HitResult, Start, End, ObjectQueryParams, QueryParams))
 	{
 		// 메쉬 바운드 절반 높이만큼 띄워서 바닥에 파묻히지 않게 보정
 		const float HalfHeight = DumbbellMesh->Bounds.BoxExtent.Z;
