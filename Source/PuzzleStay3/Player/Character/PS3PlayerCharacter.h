@@ -30,6 +30,9 @@ public:
 		return CarryAnchor;
 	}
 
+	UFUNCTION(BlueprintPure, Category = "PS3|Character|Interaction")
+	ADumbbell* GetHeldDumbbell() const { return HeldDumbbell; }
+
 	void Move(const FVector2D& InMovementVector);
 	void Look(const FVector2D& InLookVector);
 	void StartJump();
@@ -62,10 +65,10 @@ protected:
 	//덤벨 held, drop을 위한 변수
 	UPROPERTY(Transient)
 	TObjectPtr<ADumbbell> HeldDumbbell;
-	
+
 	UPROPERTY(VisibleAnywhere,BlueprintReadOnly,Category = "PS3|Character|Interaction")
 	TObjectPtr<USceneComponent> CarryAnchor;
-	
+
 private:
 	UFUNCTION(Server, Reliable)
 	void Server_TryInteract();
@@ -75,4 +78,6 @@ private:
 
 	UFUNCTION(Server, Reliable)
 	void Server_TryDropHeldObject();
+
+	UObject* FindInteractableTarget(AActor* HitActor) const;
 };
