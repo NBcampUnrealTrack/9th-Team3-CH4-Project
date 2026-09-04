@@ -182,11 +182,6 @@ int32 APS3GameModeS5::OnCollectEscapeGimmick()
 		TargetEscapeGimmickArray.Add(InstancedEscapeSwitchComp);
 	}
 	
-	for ()
-	{
-		
-	}
-	
 	
 	UE_LOG(LogTemp, Warning, TEXT("감지된 EscapeGimmick 컴포넌트 개수: %d개"), TargetEscapeGimmickArray.Num());
 	return TargetEscapeGimmickArray.Num();
