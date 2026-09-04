@@ -51,6 +51,9 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "GameRule")
 	float DeductedTimeRange = 3.0f;
 	
+public:
+	bool IsEscapeDoor = true;
+	
 private:
 	APS3GameModeS5* GetCastPS3GameModeS5();
 	void OnBindWhenGameStarted(bool bIsGameStart);
