@@ -1,5 +1,6 @@
 #include "Component/OverlapVolumeDeathComponent.h"
 #include "Engine/Engine.h"
+#include "Player/PlayerState/PS3PlayerState.h"
 
 UOverlapVolumeDeathComponent::UOverlapVolumeDeathComponent()
 {
@@ -44,6 +45,20 @@ void UOverlapVolumeDeathComponent::HandleBeginOverlap(
 		return;
 	}
 
+	APS3PlayerState* PlayerState =
+	PlayerPawn->GetPlayerState<APS3PlayerState>();
+
+	if (!IsValid(PlayerState))
+	{
+		return;
+	}
+
+	const bool bLifeWasConsumed = PlayerState->TryConsumeLife();
+	if (!bLifeWasConsumed)
+	{
+		return;
+	}
+	
 	ProcessedPawns.Add(PlayerPawn);
 
 	OnPlayerEnteredDeathVolume.Broadcast(PlayerPawn);
