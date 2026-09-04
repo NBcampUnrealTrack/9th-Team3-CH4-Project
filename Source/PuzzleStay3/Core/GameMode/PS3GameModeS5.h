@@ -55,6 +55,7 @@ public:
 	void OnReduceGameTime();
 	void OnTimeDeduction(float TimeToDeducted);
 
+	UFUNCTION(CallInEditor, Category = "Test")
 	void OnInteractedEscapeDoor();
 	void RandomInitializeEscapeDoor();
 	void OnCollectLoginUser();

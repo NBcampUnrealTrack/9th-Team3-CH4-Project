@@ -244,13 +244,15 @@ void APS3GameModeS5::OnInteractedEscapeDoor()
 	if (ActivatedEscapeDoorCount <= 0) return;
 	
 	int32 ScreenPlayerSpawnConditionCount = GoalEscapeDoorCount - (GoalEscapeDoorCount - 1);
+	
 	if (ActivatedEscapeDoorCount >= ScreenPlayerSpawnConditionCount)
 	{
 		auto* PS3ScreenPlayerController = Cast<APS3ScreenPlayerController>(GetWorld()->GetFirstPlayerController());
 		ConfigureControllerAndSpawn(PS3ScreenPlayerController,S5_GameRuleDataAsset->FieldControllerClass);
+		
 	}
 	
-	if (ActivatedEscapeDoorCount >= GoalEscapeDoorCount)
+	else if (ActivatedEscapeDoorCount >= GoalEscapeDoorCount)
 	{
 		//TODO 다음스테이지 입장하는 부분 구현해야함
 		UE_LOG(LogTemp, Warning, TEXT("구현 예정 기능 예시) 5초 뒤 다음 스테이지 입장."));
@@ -321,6 +323,10 @@ AActor* APS3GameModeS5::FindPlayerStart_Implementation(AController* Player, cons
 	else if (Player->GetClass() == S5_GameRuleDataAsset->FieldControllerClass)
 	{
 		TargetPlayerStartType = EPlayerStartType::FieldPlayer;
+	}
+	else if (Player->GetClass() == S5_GameRuleDataAsset->SpawnScreenControllerClass)
+	{
+		TargetPlayerStartType = EPlayerStartType::ScreenPlayer;
 	}
 	
 	
