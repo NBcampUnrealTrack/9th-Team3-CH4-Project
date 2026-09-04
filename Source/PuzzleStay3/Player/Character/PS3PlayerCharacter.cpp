@@ -8,6 +8,10 @@
 #include "Component/InteractionSwitchComponent.h"
 #include "Object/Dumbbell.h"
 #include "Components/SceneComponent.h"
+#include "DrawDebugHelpers.h"
+#include "Player/Interaction/PS3InteractableInterface.h"
+#include "Components/ActorComponent.h"
+
 
 
 APS3PlayerCharacter::APS3PlayerCharacter()
@@ -160,61 +164,100 @@ void APS3PlayerCharacter::Server_TryInteract_Implementation()
 	}
 
 	const FVector TraceStart = GetPawnViewLocation();
-	const FRotator TraceRotation = Controller->GetControlRotation();
+	const FVector TraceEnd = TraceStart + Controller->GetControlRotation().Vector() * InteractionDistance;
 
-	const FVector TraceEnd =
-		TraceStart + TraceRotation.Vector() * InteractionDistance;
-
-	FCollisionQueryParams QueryParams(
-		SCENE_QUERY_STAT(PlayerInteractionTrace),
-		false,
-		this
-	);
+	FCollisionQueryParams QueryParams(SCENE_QUERY_STAT(PlayerInteractionTrace), false, this);
 
 	FHitResult HitResult;
-	const bool bHit = World->LineTraceSingleByChannel(
-		HitResult,
-		TraceStart,
-		TraceEnd,
-		ECC_Visibility,
-		QueryParams
-	);
+	const bool bHit = World->LineTraceSingleByChannel(HitResult, TraceStart, TraceEnd, ECC_Visibility, QueryParams);
 
-	if (!bHit || !IsValid(HitResult.GetActor()))
+#if !(UE_BUILD_SHIPPING || UE_BUILD_TEST)
+	if (bDrawInteractionTrace)
+	{
+		Client_DrawInteractionTrace(TraceStart, TraceEnd, bHit, bHit ? HitResult.ImpactPoint : TraceEnd);
+	}
+#endif
+
+	AActor* HitActor = HitResult.GetActor();
+
+	if (!bHit || !IsValid(HitActor))
 	{
 		return;
 	}
-	
-	AActor* HitActor = HitResult.GetActor();
+
+	ADumbbell* HitDumbbell = Cast<ADumbbell>(HitActor);
+	if (IsValid(HitDumbbell) && IsValid(HeldDumbbell))
+	{
+		return;
+	}
+
+	UObject* InteractableTarget = FindInteractableTarget(HitActor);
+
+	if (!IsValid(InteractableTarget))
+	{
+		return;
+	}
+
+	if (!IPS3InteractableInterface::Execute_CanInteract(InteractableTarget, this))
+	{
+		return;
+	}
+
+	const bool bSucceeded = IPS3InteractableInterface::Execute_Interact(InteractableTarget, this);
+
+	if (!bSucceeded)
+	{
+		return;
+	}
+
+	// 임시 덤벨 호환 처리
+	if (IsValid(HitDumbbell))
+	{
+		HeldDumbbell = HitDumbbell;
+	}
+}
+
+void APS3PlayerCharacter::Client_DrawInteractionTrace_Implementation(const FVector TraceStart, const FVector TraceEnd, const bool bHit, const FVector ImpactPoint)
+{
+#if !(UE_BUILD_SHIPPING || UE_BUILD_TEST)
+	UWorld* World = GetWorld();
+	if (!IsValid(World))
+	{
+		return;
+	}
+
+	DrawDebugLine(World, TraceStart, TraceEnd, bHit ? FColor::Green : FColor::Red, false, InteractionTraceDebugDuration, 0, 2.0f);
+
+	if (bHit)
+	{
+		DrawDebugSphere(World, ImpactPoint, 10.0f, 12, FColor::Yellow, false, InteractionTraceDebugDuration, 0, 1.5f);
+	}
+#endif
+}
+
+UObject* APS3PlayerCharacter::FindInteractableTarget(AActor* HitActor) const
+{
 	if (!IsValid(HitActor))
 	{
-		return;
+		return nullptr;
 	}
 
-	// 이미 덤벨을 들고 있으면 다른 덤벨을 집지 않음
-	if (IsValid(HeldDumbbell))
+	// Actor가 직접 인터페이스를 구현한 경우
+	if (HitActor->Implements<UPS3InteractableInterface>())
 	{
-		return;
+		return HitActor;
 	}
 
-	if (ADumbbell* HitDumbbell = Cast<ADumbbell>(HitActor))
+	// Actor에 붙은 Component가 인터페이스를 구현한 경우
+	TInlineComponentArray<UActorComponent*> Components(HitActor);
+
+	for (UActorComponent* Component : Components)
 	{
-		// Dumbbell에서 서버 권한, 다른 플레이어가 들고 있는지 등을 검사
-		if (HitDumbbell->TryInteract(this))
+		if (IsValid(Component) && Component->Implements<UPS3InteractableInterface>())
 		{
-			HeldDumbbell = HitDumbbell;
+			return Component;
 		}
-
-		// 덤벨이었으면 성공 여부와 관계없이 상호작용 처리 종료
-		return;
-	}
-	
-	UInteractionSwitchComponent* InteractionComponent = HitActor->FindComponentByClass<UInteractionSwitchComponent>();
-
-	if (!IsValid(InteractionComponent))
-	{
-		return;
 	}
 
-	InteractionComponent->TryInteract(this);
+	return nullptr;
 }
