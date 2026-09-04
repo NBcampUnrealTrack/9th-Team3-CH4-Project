@@ -21,8 +21,6 @@ protected:
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
-	// GameMode의 20칸 결과 배열에서 이 발판이 사용할 위치입니다.
-	// 0 = 0행 Column 0, 1 = 0행 Column 1, ..., 19 = 9행 Column 1
 	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "Random Collision Trap",
 		meta = (ClampMin = "0", ClampMax = "19"))
 	int32 LayoutIndex = INDEX_NONE;
