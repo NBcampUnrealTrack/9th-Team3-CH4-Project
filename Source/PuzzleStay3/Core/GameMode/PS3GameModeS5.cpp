@@ -147,7 +147,7 @@ void APS3GameModeS5::OnTimeDeduction(float TimeToDeducted)
 }
 
 
-int32 APS3GameModeS5::OnCollectLoginUser()
+void APS3GameModeS5::OnCollectLoginUser()
 {
 	LoginUserArray.Empty();
 	
@@ -160,14 +160,13 @@ int32 APS3GameModeS5::OnCollectLoginUser()
 	}
 	
 	UE_LOG(LogTemp, Warning, TEXT("현재 로그인 인원: %d명"), LoginUserArray.Num());
-	return LoginUserArray.Num();
 }
 
 
-int32 APS3GameModeS5::OnCollectEscapeGimmick()
+void APS3GameModeS5::OnCollectEscapeGimmick()
 {
-	TargetEscapeGimmickArray.Empty();
-	
+	TargetEscapeDoorArray.Empty();
+
 	TArray<AActor*> GimmickBaseActorArray;
 	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AGimmickBase::StaticClass(), GimmickBaseActorArray);
 
@@ -179,12 +178,20 @@ int32 APS3GameModeS5::OnCollectEscapeGimmick()
 		auto* InstancedEscapeSwitchComp = InstancedGimmickBaseActor->FindComponentByClass<UInteractionSwitchComponent>();
 		if (IsValid(InstancedEscapeSwitchComp) == false) continue;
 			
-		TargetEscapeGimmickArray.Add(InstancedEscapeSwitchComp);
+		TargetEscapeDoorArray.Add(InstancedEscapeSwitchComp);
+	}
+	
+	int32 CurrentEscapeDoorCount = 0;
+	for (UInteractionSwitchComponent* EscapeDoor : TargetEscapeDoorArray)
+	{
+		if (IsValid(EscapeDoor) == false) continue;
+		if (CurrentEscapeDoorCount == S5_GameRuleDataAsset->MaxEscapeDoorCount) return;
+		
+		++CurrentEscapeDoorCount;
 	}
 	
 	
-	UE_LOG(LogTemp, Warning, TEXT("감지된 EscapeGimmick 컴포넌트 개수: %d개"), TargetEscapeGimmickArray.Num());
-	return TargetEscapeGimmickArray.Num();
+	UE_LOG(LogTemp, Warning, TEXT("감지된 EscapeGimmick 컴포넌트 개수: %d개"), TargetEscapeDoorArray.Num());
 }
 
 
@@ -192,16 +199,16 @@ void APS3GameModeS5::OnEscapeGimmickUnlocked()
 {
 	int32 SuccessConditionsNumber = 2;
 	
-	if (TargetEscapeGimmickArray.Num() < SuccessConditionsNumber) return;
+	if (TargetEscapeDoorArray.Num() < SuccessConditionsNumber) return;
 	if (LoginUserArray.Num() < SuccessConditionsNumber) return;
 	
-	if (TargetEscapeGimmickArray.Num() >= (LoginUserArray.Num()-1))
+	if (TargetEscapeDoorArray.Num() >= (LoginUserArray.Num()-1))
 	{
 		auto* PS3ScreenPlayerController = Cast<APS3ScreenPlayerController>(GetWorld()->GetFirstPlayerController());
 		ConfigureControllerAndSpawn(PS3ScreenPlayerController,S5_GameRuleDataAsset->FieldControllerClass);
 	}
 	
-	if (TargetEscapeGimmickArray.Num() >= LoginUserArray.Num())
+	if (TargetEscapeDoorArray.Num() >= LoginUserArray.Num())
 	{
 		//TODO 다음스테이지 입장하는 부분 구현해야함
 		UE_LOG(LogTemp, Warning, TEXT("구현 예정 기능 예시) 5초 뒤 다음 스테이지 입장."));

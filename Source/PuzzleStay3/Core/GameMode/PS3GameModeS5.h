@@ -38,7 +38,7 @@ protected:
 	UPROPERTY()
 	TArray<TObjectPtr<class APlayerController>> LoginUserArray;
 	UPROPERTY()
-	TArray<TObjectPtr<class UInteractionSwitchComponent>> TargetEscapeGimmickArray;
+	TArray<TObjectPtr<class UInteractionSwitchComponent>> TargetEscapeDoorArray;
 	
 	UPROPERTY(EditAnywhere, Category = "GameRule")
 	TObjectPtr<class US5_GameRuleDataAsset> S5_GameRuleDataAsset;
@@ -56,8 +56,8 @@ public:
 	void OnTimeDeduction(float TimeToDeducted);
 
 	void OnEscapeGimmickUnlocked();
-	int32 OnCollectLoginUser();
-	int32 OnCollectEscapeGimmick();
+	void OnCollectLoginUser();
+	void OnCollectEscapeGimmick();
 	
 
 	

@@ -23,6 +23,8 @@ public:
 	UPROPERTY(EditAnywhere, Category = "GameRule")
 	float MaxGameLimitTime = 60.0f;
 	
+	UPROPERTY(EditAnywhere, Category = "GameRule")
+	int32 MaxEscapeDoorCount = 2;
 	
 	UPROPERTY(EditDefaultsOnly, Category = "SwapController")
 	TSubclassOf<APS3PlayerCharacter> FieldCharacterClass;
