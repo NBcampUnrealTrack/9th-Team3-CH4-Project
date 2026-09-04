@@ -11,6 +11,9 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FPS3DeadStateChangedSignature, bool,
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FPS3PlayerRoleChangedSignature, EPS3PlayerRole, NewRole);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FPS3VoiceChatStateChangedSignature, EVoiceChatState, NewState);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FPS3VoiceObjectHeldChangedSignature, bool, bNewIsHeld);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FPS3RespawnRequestedSignature, AController*, TargetController);
+
+class AController;
 
 UCLASS()
 class PUZZLESTAY3_API APS3PlayerState : public APlayerState
@@ -79,6 +82,10 @@ public:
 
 	UFUNCTION(BlueprintPure, Category = "PS3|Player State|Life")
 	bool IsRespawning() const { return bIsRespawning; }
+	
+	UPROPERTY(BlueprintAssignable, Category = "PS3|Player State|Events")
+	FPS3RespawnRequestedSignature OnRespawnRequested;
+	
 
 protected:
 	UFUNCTION()
@@ -97,7 +104,7 @@ protected:
 	void OnRep_VoiceObjectHeld();
 
 	UPROPERTY(EditDefaultsOnly, ReplicatedUsing = OnRep_LifeChanged, Category = "PS3|Player State", meta = (ClampMin = "0"))
-	int32 CurrentLifeCount = 3;
+	int32 CurrentLifeCount = 4;
 
 	UPROPERTY(VisibleInstanceOnly, ReplicatedUsing = OnRep_DeadChanged, Category = "PS3|Player State")
 	bool bIsDead = false;

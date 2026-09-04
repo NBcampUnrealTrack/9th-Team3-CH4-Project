@@ -83,8 +83,18 @@ bool APS3PlayerState::TryConsumeLife()
 		SetIsDead(true);
 		return true;
 	}
-
+	
 	bIsRespawning = true;
+	AController* TargetController = Cast<AController>(GetOwner());
+	
+	if (!IsValid(TargetController))
+	{
+		bIsRespawning = false;
+		return false;
+	}
+
+	OnRespawnRequested.Broadcast(TargetController);
+
 	return true;
 }
 
