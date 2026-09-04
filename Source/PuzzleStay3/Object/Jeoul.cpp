@@ -37,6 +37,10 @@ AJeoul::AJeoul()
 	PlateTrigger = CreateDefaultSubobject<UBoxComponent>(TEXT("PlateTrigger"));
 	PlateTrigger->SetupAttachment(BeamPivot);
 
+	// ★ 추가: PlateTrigger가 라인트레이스 감지를 막지 않도록 설정
+	PlateTrigger->SetCollisionProfileName(TEXT("Trigger")); // 기본 Trigger 프로필 적용 (모든 채널 Overlap)
+	PlateTrigger->SetGenerateOverlapEvents(true);
+	
 	// 컷씬 전경 카메라 배치
 	CutsceneCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("CutsceneCamera"));
 	CutsceneCamera->SetupAttachment(RootComponent);
@@ -155,17 +159,17 @@ float AJeoul::CalculateWeightOnPlate(UBoxComponent* InPlateTrigger)
 			}
 		}
 		// 플레이어가 저울판 위에 올라와 있고, 덤벨을 들고 있는 경우
-		else if (APS3PlayerCharacter* PlayerChar = Cast<APS3PlayerCharacter>(Actor))
-		{
-			if (ADumbbell* HeldDumbbell = PlayerChar->GetHeldDumbbell()) // 또는 HeldDumbbell 멤버변수 접근
-			{
-				if (!CountedDumbbells.Contains(HeldDumbbell))
-				{
-					TotalWeight += HeldDumbbell->GetWeight();
-					CountedDumbbells.Add(HeldDumbbell);
-				}
-			}
-		}
+		// else if (APS3PlayerCharacter* PlayerChar = Cast<APS3PlayerCharacter>(Actor))
+		// {
+		// 	if (ADumbbell* HeldDumbbell = PlayerChar->GetHeldDumbbell()) // 또는 HeldDumbbell 멤버변수 접근
+		// 	{
+		// 		if (!CountedDumbbells.Contains(HeldDumbbell))
+		// 		{
+		// 			TotalWeight += HeldDumbbell->GetWeight();
+		// 			CountedDumbbells.Add(HeldDumbbell);
+		// 		}
+		// 	}
+		// }
 	}
 	return TotalWeight;
 }
