@@ -25,13 +25,13 @@ class PUZZLESTAY3_API APS3GameModeS2 : public APS3GameModeBase
 	// true  = 왼쪽이 BlockAll, 오른쪽이 NoCollision
 	// false = 왼쪽이 NoCollision, 오른쪽이 BlockAll
 	TArray<bool> RandomCollisionResults;
-	
+	TArray<bool> RandomCollisionLayoutResults;
 	//월드의 발판액터 개수 확인용
 	TArray<TObjectPtr<URandomCollisionTrapComponent>> RandomCollisionTrapComponent;
 
 public:
 	void RegisterRandomCollisionTrapCompo(URandomCollisionTrapComponent* TrapComponent);
-	void UnregisterRandomCollisionTrapCompo(URandomCollisionTrapComponent* TrapCompo);
+	void UnregisterRandomCollisionTrapCompo(URandomCollisionTrapComponent* TrapComponent);
 	
-	bool GetRandomCollisionResult(int32 RowIndex);
+	TArray<bool> GetRandomCollisionLayoutResults();
 };
