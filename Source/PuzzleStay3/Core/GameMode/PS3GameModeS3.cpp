@@ -10,6 +10,8 @@ void APS3GameModeS3::BeginPlay()
 {
 	Super::BeginPlay();
 
+	MakeRandomVisibleResults();
+	
 	//스테이지 시작 시 모든 플레이어의 기본 보이스챗 비활성화
 	SetAllPlayersVoiceChatState(EVoiceChatState::Inactive);
 	
@@ -109,6 +111,18 @@ void APS3GameModeS3::ApplyVoiceChatStateToPlayer(APS3PlayerState* PlayerState)
 	PlayerState->SetVoiceChatState(
 		bActivated ? EVoiceChatState::Conversion : EVoiceChatState::Inactive);
 }
+
+void APS3GameModeS3::MakeRandomVisibleResults()
+{
+	RandomVisibleResults = FMath::RandBool();
+}
+
+bool APS3GameModeS3::GetRandomVisibleResults()
+{
+	return RandomVisibleResults;
+}
+
+
 
 	
 
