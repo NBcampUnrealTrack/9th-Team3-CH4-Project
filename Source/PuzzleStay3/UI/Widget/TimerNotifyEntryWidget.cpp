@@ -9,14 +9,16 @@ namespace
 	constexpr float TimerNotifyEntryUpdateInterval = 1.0f / 60.0f;
 }
 
-void UTimerNotifyEntryWidget::StartTimer(float InDuration)
+void UTimerNotifyEntryWidget::StartTimer(FName InTimerId, float InDuration)
 {
 	ClearTimerUpdateTimer();
 
-	TimerDuration = InDuration;
-	TimerStartTime = 0.0f;
+	TimerId = InTimerId;
+	TotalTime = InDuration;
+	RemainingTime = InDuration;
+	LastUpdateTime = 0.0f;
 
-	if (TimerDuration <= 0.0f)
+	if (TotalTime <= 0.0f)
 	{
 		FinishTimer();
 		return;
@@ -35,7 +37,7 @@ void UTimerNotifyEntryWidget::StartTimer(float InDuration)
 		return;
 	}
 
-	TimerStartTime = World->GetTimeSeconds();
+	LastUpdateTime = World->GetTimeSeconds();
 	TimerProgressImage->SetVisibility(ESlateVisibility::Visible);
 	SetTimerProgress(1.0f);
 
@@ -48,11 +50,42 @@ void UTimerNotifyEntryWidget::StartTimer(float InDuration)
 	);
 }
 
+void UTimerNotifyEntryWidget::ReduceRemainingTime(float InReduceTime)
+{
+	if (InReduceTime <= 0.0f || TotalTime <= 0.0f)
+	{
+		return;
+	}
+
+	if (UWorld* World = GetWorld())
+	{
+		const float CurrentTime = World->GetTimeSeconds();
+		const float DeltaTime = FMath::Max(CurrentTime - LastUpdateTime, 0.0f);
+		LastUpdateTime = CurrentTime;
+		RemainingTime = FMath::Max(RemainingTime - DeltaTime, 0.0f);
+	}
+
+	RemainingTime = FMath::Max(RemainingTime - InReduceTime, 0.0f);
+	SetTimerProgress(RemainingTime / TotalTime);
+
+	if (RemainingTime <= 0.0f)
+	{
+		FinishTimer();
+	}
+}
+
+FName UTimerNotifyEntryWidget::GetTimerId() const
+{
+	return TimerId;
+}
+
 void UTimerNotifyEntryWidget::StopTimer()
 {
 	ClearTimerUpdateTimer();
-	TimerDuration = 0.0f;
-	TimerStartTime = 0.0f;
+	TimerId = NAME_None;
+	TotalTime = 0.0f;
+	RemainingTime = 0.0f;
+	LastUpdateTime = 0.0f;
 
 	if (TimerProgressImage)
 	{
@@ -69,17 +102,20 @@ void UTimerNotifyEntryWidget::NativeDestruct()
 void UTimerNotifyEntryWidget::UpdateTimerProgress()
 {
 	UWorld* World = GetWorld();
-	if (!World || TimerDuration <= 0.0f)
+	if (!World || TotalTime <= 0.0f)
 	{
 		FinishTimer();
 		return;
 	}
 
-	const float ElapsedTime = World->GetTimeSeconds() - TimerStartTime;
-	const float Progress = FMath::Clamp(1.0f - (ElapsedTime / TimerDuration), 0.0f, 1.0f);
-	SetTimerProgress(Progress);
+	const float CurrentTime = World->GetTimeSeconds();
+	const float DeltaTime = FMath::Max(CurrentTime - LastUpdateTime, 0.0f);
+	LastUpdateTime = CurrentTime;
 
-	if (ElapsedTime >= TimerDuration)
+	RemainingTime = FMath::Max(RemainingTime - DeltaTime, 0.0f);
+	SetTimerProgress(RemainingTime / TotalTime);
+
+	if (RemainingTime <= 0.0f)
 	{
 		FinishTimer();
 	}
