@@ -52,7 +52,7 @@ protected:
 	float DeductedTimeRange = 3.0f;
 	
 public:
-	bool IsEscapeDoor = true;
+	bool bIsEscapeDoor = true;
 	
 private:
 	APS3GameModeS5* GetCastPS3GameModeS5();
