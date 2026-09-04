@@ -57,6 +57,47 @@ void APS3PlayerState::SetPlayerRole(const EPS3PlayerRole NewRole)
 	OnPlayerRoleChanged.Broadcast(PlayerRole);
 }
 
+void APS3PlayerState::InitializeLifeCount(const int32 NewLifeCount)
+{
+	if (!HasAuthority())
+	{
+		return;
+	}
+
+	bIsRespawning = false;
+	SetIsDead(false);
+	SetCurrentLifeCount(NewLifeCount);
+}
+
+bool APS3PlayerState::TryConsumeLife()
+{
+	if (!HasAuthority() || bIsDead || bIsRespawning || CurrentLifeCount <= 0)
+	{
+		return false;
+	}
+
+	SetCurrentLifeCount(CurrentLifeCount - 1);
+
+	if (CurrentLifeCount <= 0)
+	{
+		SetIsDead(true);
+		return true;
+	}
+
+	bIsRespawning = true;
+	return true;
+}
+
+void APS3PlayerState::FinishRespawn()
+{
+	if (!HasAuthority())
+	{
+		return;
+	}
+
+	bIsRespawning = false;
+}
+
 void APS3PlayerState::SetVoiceChatState(
 	const EVoiceChatState NewState
 )

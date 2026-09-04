@@ -36,6 +36,9 @@ public:
 	void StopJump();
 	void TryInteract();
 	void TryDropHeldObject();
+
+	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category = "PS3|Character|Respawn")
+	void PrepareForRespawn();
 	
 
 protected:
