@@ -1,6 +1,7 @@
 #include "Object/RealDeathTrap.h"
 #include "Components/BoxComponent.h"
 #include "Components/StaticMeshComponent.h"
+#include "Player/PlayerState/PS3PlayerState.h"
 #include "Engine/Engine.h"
 
 ARealDeathTrap::ARealDeathTrap()
@@ -38,6 +39,16 @@ void ARealDeathTrap::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor*
 	{
 		return;
 	}
+	
+	APS3PlayerState* PlayerState =
+	PlayerPawn->GetPlayerState<APS3PlayerState>();
+
+	if (!IsValid(PlayerState) || PlayerState->IsDead())
+	{
+		return;
+	}
+
+	PlayerState->SetIsDead(true);
 
 	bTriggered = true;
 
