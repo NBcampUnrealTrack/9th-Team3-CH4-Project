@@ -11,9 +11,9 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FPS3DeadStateChangedSignature, bool,
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FPS3PlayerRoleChangedSignature, EPS3PlayerRole, NewRole);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FPS3VoiceChatStateChangedSignature, EVoiceChatState, NewState);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FPS3VoiceObjectHeldChangedSignature, bool, bNewIsHeld);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FPS3RespawnRequestedSignature, AController*, TargetController);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FPS3RespawnRequestedSignature, APlayerController*, TargetController);
 
-class AController;
+class APlayerController;
 
 UCLASS()
 class PUZZLESTAY3_API APS3PlayerState : public APlayerState
