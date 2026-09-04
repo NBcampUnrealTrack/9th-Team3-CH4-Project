@@ -57,7 +57,7 @@ void UInteractionSwitchComponent::OnRep_IsInteracting()
 
 bool UInteractionSwitchComponent::TryInteract(AActor* Requestor)
 {
-	if(bIsInteracting == false) return false;
+	if(bIsEscapeDoor == false) return false;
 	
 	// 서버 권한 검증
 	if (!GetOwner() || !GetOwner()->HasAuthority())
