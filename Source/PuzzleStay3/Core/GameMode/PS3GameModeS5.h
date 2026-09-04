@@ -55,12 +55,11 @@ public:
 	void OnReduceGameTime();
 	void OnTimeDeduction(float TimeToDeducted);
 
+	void OnInteractedEscapeDoor();
 	void RandomInitializeEscapeDoor();
-	void OnEscapeDoorUnlocked();
 	void OnCollectLoginUser();
 	int32 OnCollectEscapeDoor();
 	
-	void OnInteractedEscapeDoor();
 
 	
 public:

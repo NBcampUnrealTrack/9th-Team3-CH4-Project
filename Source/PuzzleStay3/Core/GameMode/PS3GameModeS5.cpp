@@ -238,22 +238,12 @@ void APS3GameModeS5::RandomInitializeEscapeDoor()
 
 void APS3GameModeS5::OnInteractedEscapeDoor()
 {
-	++ActivatedEscapeDoorCount;
 	UE_LOG(LogTemp, Warning, TEXT("상호작용 완료 됨"));
+	++ActivatedEscapeDoorCount;
 	
-	if (ActivatedEscapeDoorCount >= GoalEscapeDoorCount)
-	{
-		//바인드 지우기
-	}
-}
-
-
-void APS3GameModeS5::OnEscapeDoorUnlocked()
-{
+	if (ActivatedEscapeDoorCount <= 0) return;
+	
 	int32 ScreenPlayerSpawnConditionCount = GoalEscapeDoorCount - (GoalEscapeDoorCount - 1);
-	
-	if (ActivatedEscapeDoorCount < GoalEscapeDoorCount) return;
-	
 	if (ActivatedEscapeDoorCount >= ScreenPlayerSpawnConditionCount)
 	{
 		auto* PS3ScreenPlayerController = Cast<APS3ScreenPlayerController>(GetWorld()->GetFirstPlayerController());
