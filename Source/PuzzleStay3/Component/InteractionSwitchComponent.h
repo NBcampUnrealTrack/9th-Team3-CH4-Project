@@ -6,6 +6,7 @@
 
 // GameModeBase에서 바인딩하는 델리게이트 
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnSwitchActivatedChanged, bool);
+DECLARE_MULTICAST_DELEGATE(FOnInteractionSuccessed);
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class PUZZLESTAY3_API UInteractionSwitchComponent : public UActorComponent
@@ -33,6 +34,8 @@ public:
 	// GameMode가 바인딩할 델리게이트
 	FOnSwitchActivatedChanged OnSwitchActivatedChanged;
 
+	FOnInteractionSuccessed OnInteractionSuccessed;
+	
 	// GameMode의 AllInteractionSwitchActivated()에서 사용되는 Getter
 	UFUNCTION(BlueprintCallable, Category = "Gimmick")
 	bool IsActivated() const { return bIsActivated; }
