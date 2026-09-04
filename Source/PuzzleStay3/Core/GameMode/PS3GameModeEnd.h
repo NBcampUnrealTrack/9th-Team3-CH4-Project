@@ -12,6 +12,6 @@ class PUZZLESTAY3_API APS3GameModeEnd : public APS3GameModeBase
 {
 	GENERATED_BODY()
 	
-	UFUNCTION()
+protected:
 	virtual void HandleSwitchActivatedChanged(bool bActivated) override;
 };
