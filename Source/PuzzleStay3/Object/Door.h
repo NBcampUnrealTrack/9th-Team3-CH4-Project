@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "Data/Enum/DoorType.h"
 #include "Door.generated.h"
 
 UCLASS()
@@ -20,6 +21,10 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<UStaticMeshComponent> DoorMesh;
 	
+	// 문 타입 선택 (에디터 디테일 창에서 설정)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Door|Settings")
+	EDoorType DoorType = EDoorType::StageAllFinalDoor;
+	
 	// 문이 열릴 때 이동할 상대 위치 (에디터에서 설정)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Door|Movement")
 	FVector TargetRelativeLocation = FVector(0.f, 0.f, 300.f);
@@ -30,16 +35,16 @@ protected:
 	
 #pragma endregion 
 	
-protected:
-	// GameMode 델리게이트 수신 시 호출될 함수
-	UFUNCTION()
-	void OnOpenDoor();
-	
+protected:	
 	UPROPERTY(ReplicatedUsing = OnRep_bIsOpen)
 	bool bIsOpen = false;
 	
 	UFUNCTION()
 	void OnRep_bIsOpen();
+	
+	// GameState의 OnEscapeDoorOpened 델리게이트 수신 콜백 (bool bOpened 매개변수 추가)
+	UFUNCTION()
+	void OnOpenDoor(bool bOpened);
 protected:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;

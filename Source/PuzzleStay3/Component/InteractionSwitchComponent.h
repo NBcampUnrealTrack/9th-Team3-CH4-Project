@@ -15,7 +15,6 @@ class PUZZLESTAY3_API UInteractionSwitchComponent : public UActorComponent
 public:
 	UInteractionSwitchComponent();
 
-	
 protected:
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
@@ -29,7 +28,7 @@ protected:
 	// 일반 퍼즐 스위치는 true, 저울 버튼 등 독립 기믹 스위치는 false로 설정
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Gimmick")
 	bool bRegisterToGameMode = true;
-	
+
 public:
 	// GameMode가 바인딩할 델리게이트
 	FOnSwitchActivatedChanged OnSwitchActivatedChanged;
@@ -45,6 +44,8 @@ public:
 
 	// 수동으로 스위치 상태를 Off(false)로 리셋하는 함수
 	void ResetSwitch();
+	
+	bool bIsEscapeDoor = true;
 	
 protected:
 	UFUNCTION()

@@ -1,6 +1,8 @@
 #include "Object/Door.h"
 
 #include "Core/GameMode/PS3GameModeBase.h"
+#include "Core/GameState/PS3GameStateBase.h"
+#include "Core/GameState/PS3GameStateS4.h"
 #include "Net/UnrealNetwork.h"
 
 ADoor::ADoor()
@@ -21,17 +23,67 @@ void ADoor::BeginPlay()
 	
 	InitialRelativeLocation = DoorMesh->GetRelativeLocation();
 	
-	// 서버 권한을 가진 GameMode의 델리게이트 구독
-	if (HasAuthority())
+	// GameStateBase의 델리게이트 구독 (서버 및 클라이언트 모두 바인딩 가능)
+	if (UWorld* World = GetWorld())
 	{
-		if (UWorld* World = GetWorld())
+		switch (DoorType)
 		{
-			if (APS3GameModeBase* GM = Cast<APS3GameModeBase>(World->GetAuthGameMode()))
+			// 1. 전 스테이지 공통 최종 탈출문
+		case EDoorType::StageAllFinalDoor:
+			if (APS3GameStateBase* GS = World->GetGameState<APS3GameStateBase>())
 			{
-				GM->OnEscapeDoorOpened.AddUObject(this, &ADoor::OnOpenDoor);
-				//test dnjsqls
-				UE_LOG(LogTemp, Warning, TEXT("[Door] GameMode OnEscapeDoorOpened 델리게이트 바인딩 완료!"));
+				GS->OnEscapeDoorOpened.AddDynamic(this, &ADoor::OnOpenDoor);
+				UE_LOG(LogTemp, Warning, TEXT("[Door] StageAllFinalDoor 델리게이트 바인딩 완료!"));
+
+				if (GS->IsEscapeDoorOpened())
+				{
+					OnOpenDoor(true);
+				}
 			}
+			break;
+
+			// 2. Stage 1 일반문
+		case EDoorType::Stage1NormalDoor:
+			// TODO: Stage 1 전용 GameState(예: APS3GameStateS1)의 문 열림 델리게이트 연동
+			/*
+			if (APS3GameStateS1* GS = World->GetGameState<APS3GameStateS1>())
+			{
+				GS->OnStage1DoorOpenedChanged.AddDynamic(this, &ADoor::OnOpenDoor);
+				if (GS->IsStage1DoorOpened()) OnOpenDoor(true);
+			}
+			*/
+			UE_LOG(LogTemp, Warning, TEXT("[Door] Stage1NormalDoor 세팅됨 (GameStateS1 연동 준비 완료)"));
+			break;
+
+			// 3. Stage 4 첫 번째 문 (저울 기믹 완료 문)
+		case EDoorType::Stage4FirstDoor:
+			if (APS3GameStateS4* GS = World->GetGameState<APS3GameStateS4>())
+			{
+				GS->OnStage4FirstDoorOpenedChanged.AddDynamic(this, &ADoor::OnOpenDoor);
+				UE_LOG(LogTemp, Warning, TEXT("[Door] Stage4FirstDoor 델리게이트 바인딩 완료!"));
+
+				if (GS->IsStage4FirstDoorOpened())
+				{
+					OnOpenDoor(true);
+				}
+			}
+			break;
+
+			// 4. Stage 5 일반문
+		case EDoorType::Stage5NormalDoor:
+			// TODO: Stage 5 전용 GameState(예: APS3GameStateS5)의 문 열림 델리게이트 연동
+			/*
+			if (APS3GameStateS5* GS = World->GetGameState<APS3GameStateS5>())
+			{
+				GS->OnStage5DoorOpenedChanged.AddDynamic(this, &ADoor::OnOpenDoor);
+				if (GS->IsStage5DoorOpened()) OnOpenDoor(true);
+			}
+			*/
+			UE_LOG(LogTemp, Warning, TEXT("[Door] Stage5NormalDoor 세팅됨 (GameStateS5 연동 준비 완료)"));
+			break;
+
+		default:
+			break;
 		}
 	}
 }
@@ -60,16 +112,14 @@ void ADoor::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimePro
 	DOREPLIFETIME(ADoor, bIsOpen);
 }
 
-void ADoor::OnOpenDoor()
+void ADoor::OnOpenDoor(bool bOpened)
 {
-	if (!HasAuthority()) return;
-
-	bIsOpen = true;
+	bIsOpen = bOpened;
 	OnRep_bIsOpen();
 	
 	//test dnjsqls
-	UE_LOG(LogTemp, Warning, TEXT("[Door] OnOpenDoor 호출됨! 문이 열립니다."));
-	if (GEngine)
+	UE_LOG(LogTemp, Warning, TEXT("[Door] OnOpenDoor 호출됨! bIsOpen = %s"), bIsOpen ? TEXT("True") : TEXT("False"));
+	if (GEngine && bIsOpen)
 	{
 		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Cyan, TEXT("Door: Opening!"));
 	}

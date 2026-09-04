@@ -6,7 +6,8 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Player/Controller/PS3PlayerController.h"
 #include "Component/InteractionSwitchComponent.h"
-
+#include "Object/Dumbbell.h"
+#include "Components/SceneComponent.h"
 
 
 APS3PlayerCharacter::APS3PlayerCharacter()
@@ -28,6 +29,9 @@ APS3PlayerCharacter::APS3PlayerCharacter()
 	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	Camera->bUsePawnControlRotation = false;
 	Camera->SetupAttachment(SpringArm, USpringArmComponent::SocketName);
+	
+	CarryAnchor = CreateDefaultSubobject<USceneComponent>(TEXT("CarryAnchor"));
+	CarryAnchor->SetupAttachment(GetMesh(), TEXT("hand_r"));
 }
 
 bool APS3PlayerCharacter::CanUseFieldControls() const
@@ -74,6 +78,31 @@ void APS3PlayerCharacter::StopJump()
 	StopJumping();
 }
 
+void APS3PlayerCharacter::PrepareForRespawn()
+{
+	if (!HasAuthority())
+	{
+		return;
+	}
+
+	if (UCharacterMovementComponent* MovementComponent = GetCharacterMovement())
+	{
+		MovementComponent->StopMovementImmediately();
+		MovementComponent->DisableMovement();
+	}
+
+	if (IsValid(HeldDumbbell))
+	{
+		ADumbbell* DumbbellToDrop = HeldDumbbell;
+		if (DumbbellToDrop->TryDrop(this))
+		{
+			HeldDumbbell = nullptr;
+		}
+	}
+
+	SetActorEnableCollision(false);
+}
+
 void APS3PlayerCharacter::TryDropHeldObject()
 {
 	if (!IsLocallyControlled() || !CanUseFieldControls())
@@ -87,13 +116,24 @@ void APS3PlayerCharacter::TryDropHeldObject()
 
 void APS3PlayerCharacter::Server_TryDropHeldObject_Implementation()
 {
+
 	if (!CanUseFieldControls())
 	{
 		return;
 	}
 
-	// 실제 드롭 컴포넌트가 생기면:
-	// GrabComponent->TryDropHeldObject();
+	if (!IsValid(HeldDumbbell))
+	{
+		HeldDumbbell = nullptr;
+		return;
+	}
+
+	ADumbbell* DumbbellToDrop = HeldDumbbell;
+
+	if (DumbbellToDrop->TryDrop(this))
+	{
+		HeldDumbbell = nullptr;
+	}
 }
 
 void APS3PlayerCharacter::TryInteract()
@@ -144,9 +184,32 @@ void APS3PlayerCharacter::Server_TryInteract_Implementation()
 	{
 		return;
 	}
+	
+	AActor* HitActor = HitResult.GetActor();
+	if (!IsValid(HitActor))
+	{
+		return;
+	}
 
-	UInteractionSwitchComponent* InteractionComponent =
-		HitResult.GetActor()->FindComponentByClass<UInteractionSwitchComponent>();
+	// 이미 덤벨을 들고 있으면 다른 덤벨을 집지 않음
+	if (IsValid(HeldDumbbell))
+	{
+		return;
+	}
+
+	if (ADumbbell* HitDumbbell = Cast<ADumbbell>(HitActor))
+	{
+		// Dumbbell에서 서버 권한, 다른 플레이어가 들고 있는지 등을 검사
+		if (HitDumbbell->TryInteract(this))
+		{
+			HeldDumbbell = HitDumbbell;
+		}
+
+		// 덤벨이었으면 성공 여부와 관계없이 상호작용 처리 종료
+		return;
+	}
+	
+	UInteractionSwitchComponent* InteractionComponent = HitActor->FindComponentByClass<UInteractionSwitchComponent>();
 
 	if (!IsValid(InteractionComponent))
 	{

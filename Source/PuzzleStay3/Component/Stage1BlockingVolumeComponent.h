@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "Components/BoxComponent.h"
-#include "Core/GameMode/PS3GameModeBase.h"
 #include "Stage1BlockingVolumeComponent.generated.h"
 
 //모드한테 명령받아서 콜리전을 nocollision으로 전환
@@ -23,8 +22,8 @@ protected:
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 	UFUNCTION()
-	void DisableStage1BlockingVolume(EPS3StageNumber StageNumber);
+	void HandleStage1BlockingDisabledChanged(bool bDisabled);
 
-private:
-	FDelegateHandle BlockingVolumeDisabledHandle;
+	void ApplyBlockingDisabled(bool bDisabled);
+
 };

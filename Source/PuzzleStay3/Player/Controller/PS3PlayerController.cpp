@@ -6,22 +6,64 @@
 #include "InputMappingContext.h"
 #include "Player/Character/PS3PlayerCharacter.h"
 #include "Component/CustomVoiceComponent.h"
+#include "Component/VoicePluginControlComponent.h"
+#include "Player/PlayerState/PS3PlayerState.h"
 
 
 APS3PlayerController::APS3PlayerController()
 {
 	bShowMouseCursor = false;
 	
+	VoicePluginControlComponent =
+	CreateDefaultSubobject<UVoicePluginControlComponent>(
+	TEXT("VoicePluginControlComponent"));
+	
 	VoiceComponent = CreateDefaultSubobject<UCustomVoiceComponent>(
 	TEXT("VoiceComponent"));
+	
+
+	
 	
 }
 
 void APS3PlayerController::BeginPlay()
 {
 	Super::BeginPlay();
+	ConfigureLocalInput();
+	RefreshVoiceStateBinding();
 
-	if (!IsLocalController())
+}
+
+void APS3PlayerController::ReceivedPlayer()
+{
+	Super::ReceivedPlayer();
+	ConfigureLocalInput();
+	RefreshVoiceStateBinding();
+
+}
+
+void APS3PlayerController::OnRep_PlayerState()
+{
+	Super::OnRep_PlayerState();
+
+	RefreshVoiceStateBinding();
+}
+
+void APS3PlayerController::RefreshVoiceStateBinding()
+{
+	if (!IsValid(VoiceComponent))
+	{
+		return;
+	}
+
+	VoiceComponent->BindPlayerState(
+		GetPlayerState<APS3PlayerState>()
+	);
+}
+
+void APS3PlayerController::ConfigureLocalInput()
+{
+	if (bLocalInputConfigured || !IsLocalController())
 	{
 		return;
 	}
@@ -36,6 +78,7 @@ void APS3PlayerController::BeginPlay()
 			ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer()))
 		{
 			InputSubsystem->AddMappingContext(InputMappingContext, 0);
+			bLocalInputConfigured = true;
 		}
 	}
 }
@@ -118,6 +161,8 @@ void APS3PlayerController::HandleJumpCompleted()
 
 void APS3PlayerController::HandleInteractStarted()
 {
+	UE_LOG(LogTemp, Warning, TEXT("[Input] Interact pressed"));
+
 	if (APS3PlayerCharacter* PlayerCharacter = GetPawn<APS3PlayerCharacter>())
 	{
 		PlayerCharacter->TryInteract();
@@ -126,6 +171,8 @@ void APS3PlayerController::HandleInteractStarted()
 
 void APS3PlayerController::HandleDropStarted()
 {
+	UE_LOG(LogTemp, Warning, TEXT("[Input] Drop pressed"));
+
 	if (APS3PlayerCharacter* PlayerCharacter = GetPawn<APS3PlayerCharacter>())
 	{
 		PlayerCharacter->TryDropHeldObject();
@@ -136,11 +183,17 @@ void APS3PlayerController::HandleDropStarted()
 void APS3PlayerController::HandleVoiceStarted()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Voice: V pressed"));
-	VoiceComponent->StartPushToTalk();
+	if (IsValid(VoiceComponent))
+	{
+		VoiceComponent->StartPushToTalk();
+	}
 }
 
 void APS3PlayerController::HandleVoiceStopped()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Voice: V released"));
-	VoiceComponent->StopPushToTalk();
+	if (IsValid(VoiceComponent))
+	{
+		VoiceComponent->StopPushToTalk();
+	}
 }

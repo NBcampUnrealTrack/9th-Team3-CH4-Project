@@ -4,19 +4,24 @@
 #include "PS3GameStateS5.h"
 
 #include "Core/GameMode/PS3GameModeS5.h"
+#include "Data/DataAsset/S5_GameRuleDataAsset.h"
 #include "Net/UnrealNetwork.h"
 
 
 APS3GameStateS5::APS3GameStateS5()
 {
 	bReplicates = true;
+	
+	
 }
 
 void APS3GameStateS5::BeginPlay()
 {
 	Super::BeginPlay();
 	
+	GameLimitTime = S5_GameRuleDataAsset->MaxGameLimitTime;
 }
+
 
 void APS3GameStateS5::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
@@ -24,6 +29,8 @@ void APS3GameStateS5::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutL
 	
 	DOREPLIFETIME(ThisClass, GameLimitTime);
 	DOREPLIFETIME(ThisClass, bIsGameOver);
+	DOREPLIFETIME(ThisClass, bIsSelectedFieldType);
+	DOREPLIFETIME(ThisClass, bIsSelectedScreenType);
 }
 
 void APS3GameStateS5::OnRep_IsGameOver()
@@ -44,22 +51,64 @@ void APS3GameStateS5::OnRep_IsGameOver()
 	UE_LOG(LogTemp, Warning, TEXT("게임 종료 UI 띄어야함. MVVM현준님과 상의하기"));
 }
 
-void APS3GameStateS5::OnGameOver()
+void APS3GameStateS5::OnRep_GameLimitTime()
+{
+	//TODO 남은 제한시간 UI 업데이트 함수 구현하기 / 쓰러지고 일어나는 몽타주나 폭발 특수효과?
+	UE_LOG(LogTemp, Error, TEXT("(UI표시 업데이트 예정) 남은 제한시간: %f"), GameLimitTime);
+	
+}
+
+void APS3GameStateS5::SetDeductGameLimitTime_AuthorityOnRep(float TimeToDeducted)
 {
 	if (HasAuthority() == true)
 	{
-		bIsGameOver = true;
+		GameLimitTime = GameLimitTime - TimeToDeducted;
+		OnRep_GameLimitTime(); //서버가 읽을때는 수동으로 OnRep를 써야함
+	}
+	
+}
+
+void APS3GameStateS5::SetIsGameOver_AuthorityOnRep(bool SetIsGameOver)
+{
+	if (HasAuthority() == true)
+	{
+		bIsGameOver = SetIsGameOver;
 		OnRep_IsGameOver();
 	}
 }
 
-void APS3GameStateS5::OnReduceGameTime()
+void APS3GameStateS5::OnGameOver()
 {
-	if (HasAuthority() == true)
-	{
-		--GameLimitTime;
-		UE_LOG(LogTemp, Error, TEXT("남은 제한시간: %f"), GameLimitTime);
-	}
+	SetIsGameOver_AuthorityOnRep(true);
+}
+
+void APS3GameStateS5::OnReduceGameTime(float ReducedTimeRange)
+{
+	SetDeductGameLimitTime_AuthorityOnRep(ReducedTimeRange);
+}
+
+void APS3GameStateS5::OnTimeDeduction(float TimeToDeducted)
+{
+	SetDeductGameLimitTime_AuthorityOnRep(TimeToDeducted);
+}
+
+void APS3GameStateS5::StageRestart()
+{
+	auto* PS3GameModeS5 = Cast<APS3GameModeS5>(GetWorld()->GetAuthGameMode());
+	if (IsValid(PS3GameModeS5) == false) return;
+	
+	PS3GameModeS5->StageRestart();
+}
+
+void APS3GameStateS5::OnQuitGame()
+{
+	APlayerController* CurrentPlayer = GetWorld()->GetFirstPlayerController();
+	if (CurrentPlayer == nullptr) return;
+	
+	auto* PS3GameModeS5 = Cast<APS3GameModeS5>(GetWorld()->GetAuthGameMode());
+	if (IsValid(PS3GameModeS5) == false) return;
+		
+	PS3GameModeS5->OnQuitGame();
 }
 
 

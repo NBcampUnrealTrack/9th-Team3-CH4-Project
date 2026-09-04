@@ -9,6 +9,7 @@ class UButton;
 class UCheckBox;
 class UComboBoxString;
 class USlider;
+class APlayerHUD;
 
 UCLASS()
 class PUZZLESTAY3_API UOptionPopupWidget : public UUserWidget
@@ -21,6 +22,27 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "UI|OptionPopup")
 	void HideOptionPopup();
+
+	UFUNCTION(BlueprintCallable, Category = "UI|OptionPopup")
+	void ToggleOptionPopup();
+
+	UFUNCTION(BlueprintCallable, Category = "UI|HUD")
+	void SetPlayerHUD(APlayerHUD* InPlayerHUD);
+
+	UFUNCTION(BlueprintCallable, Category = "UI|OptionPopup")
+	void RequestExitToMain();
+
+	UFUNCTION(BlueprintCallable, Category = "UI|OptionPopup")
+	void RequestBGMVolumeChanged(float Value);
+
+	UFUNCTION(BlueprintCallable, Category = "UI|OptionPopup")
+	void RequestSFXVolumeChanged(float Value);
+
+	UFUNCTION(BlueprintCallable, Category = "UI|OptionPopup")
+	void RequestVoiceChatEnabledChanged(bool bEnabled);
+
+	UFUNCTION(BlueprintCallable, Category = "UI|OptionPopup")
+	void RequestResolutionChanged(const FString& Resolution);
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI|OptionPopup")
 	bool bIsOpen = false;
@@ -55,6 +77,9 @@ protected:
 
 	UPROPERTY(BlueprintReadOnly, Category = "UI|OptionPopup")
 	FString SelectedResolution;
+
+	UPROPERTY(BlueprintReadOnly, Category = "UI|HUD")
+	TObjectPtr<APlayerHUD> PlayerHUD;
 
 private:
 	void InitializeResolutionOptions();

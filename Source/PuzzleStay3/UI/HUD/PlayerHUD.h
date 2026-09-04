@@ -19,6 +19,8 @@ class UGameOverWidget;
 class UStage5RoleSelectWidget;
 class UPS3ViewModel;
 
+DECLARE_MULTICAST_DELEGATE(FOnHUDReady);
+
 USTRUCT(BlueprintType)
 struct FPS3HUDWidgets
 {
@@ -74,6 +76,11 @@ public:
 
 	UFUNCTION(BlueprintPure, Category = "UI")
 	UPS3ViewModel* GetViewModel() const;
+
+	UFUNCTION(BlueprintPure, Category = "UI")
+	bool IsUIReady() const;
+
+	FOnHUDReady OnHUDReady;
 
 	UFUNCTION(BlueprintCallable, Category = "UI|TextNotify")
 	void ShowTextNotify(const FText& InDisplayText, float InFontSize, float InDisplayDuration);
@@ -155,17 +162,47 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "UI|OptionPopup")
 	void HideOptionPopup();
 
+	UFUNCTION(BlueprintCallable, Category = "UI|OptionPopup")
+	void ToggleOptionPopup();
+
+	UFUNCTION(BlueprintCallable, Category = "UI|OptionPopup")
+	void RequestExitToMain();
+
+	UFUNCTION(BlueprintCallable, Category = "UI|OptionPopup")
+	void RequestBGMVolumeChanged(float Value);
+
+	UFUNCTION(BlueprintCallable, Category = "UI|OptionPopup")
+	void RequestSFXVolumeChanged(float Value);
+
+	UFUNCTION(BlueprintCallable, Category = "UI|OptionPopup")
+	void RequestVoiceChatEnabledChanged(bool bEnabled);
+
+	UFUNCTION(BlueprintCallable, Category = "UI|OptionPopup")
+	void RequestResolutionChanged(const FString& Resolution);
+
 	UFUNCTION(BlueprintCallable, Category = "UI|Title")
 	void ShowTitle();
 
 	UFUNCTION(BlueprintCallable, Category = "UI|Title")
 	void HideTitle();
 
+	UFUNCTION(BlueprintCallable, Category = "UI|Title")
+	void RequestGameStart();
+
+	UFUNCTION(BlueprintCallable, Category = "UI|Title")
+	void RequestTitleOption();
+
+	UFUNCTION(BlueprintCallable, Category = "UI|Title")
+	void RequestGameExit();
+
 	UFUNCTION(BlueprintCallable, Category = "UI|GameOver")
 	void ShowGameOver();
 
 	UFUNCTION(BlueprintCallable, Category = "UI|GameOver")
 	void HideGameOver();
+
+	UFUNCTION(BlueprintCallable, Category = "UI|GameOver")
+	void RequestGameRestart();
 
 	UFUNCTION(BlueprintCallable, Category = "UI|Stage5RoleSelect")
 	void ShowStage5RoleSelect();
@@ -192,25 +229,9 @@ protected:
 	UPROPERTY(BlueprintReadOnly, Category = "UI|ViewModel")
 	TObjectPtr<UPS3ViewModel> ViewModel;
 
+	UPROPERTY(BlueprintReadOnly, Category = "UI")
+	bool bIsUIReady = false;
+
 private:
 	void ApplyViewModelToWidgets();
-
-	// Temporary UI Test Zone. Remove before opening the PR.
-	void StartTemporaryUITest();
-	void StopTemporaryUITest();
-	void ResetTemporaryUITestState();
-	void UpdateTemporaryUITest();
-
-	UFUNCTION()
-	void HandleTemporaryDoorActivationTest(int32 DoorIndex, bool bIsActive);
-
-	UFUNCTION()
-	void HandleTemporaryStage5RoleSelectionRequested(EPS3PlayerRole SelectedRole);
-
-	FTimerHandle TemporaryUITestTimerHandle;
-	int32 TemporaryUITestElapsedSeconds = 0;
-	int32 LifeCountTestCurrentLife = 3;
-	int32 InteractionNotifyTestStep = 0;
-	int32 TimerNotifyTestStep = 0;
-	bool bVoiceChatIconTestSpeaking = false;
 };
