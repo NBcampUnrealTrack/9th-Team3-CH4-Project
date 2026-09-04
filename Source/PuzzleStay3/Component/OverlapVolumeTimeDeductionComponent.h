@@ -39,6 +39,8 @@ protected:
 	);
 	
 	
+	void ReSpawnPlayer(APlayerController* TargetPlayerController);
+	
 protected:
 	UPROPERTY()
 	TObjectPtr<APS3GameModeS5> PS3GameModeS5;
@@ -51,7 +53,6 @@ protected:
 	
 private:
 	APS3GameModeS5* GetCastPS3GameModeS5();
-	void OnGameStartedBind();
-	void OnBindFunctionToComponent(bool bIsGameStart);
+	void OnBindWhenGameStarted(bool bIsGameStart);
 	
 };
