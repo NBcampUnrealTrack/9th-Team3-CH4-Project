@@ -31,14 +31,6 @@ public:
 	TSubclassOf<APlayerController> FieldControllerClass;
 	
 	UPROPERTY(EditDefaultsOnly, Category = "SwapController")
-	TSubclassOf<APS3PlayerCharacter> ScreenCharacterClass;
-	
-	UPROPERTY(EditDefaultsOnly, Category = "SwapController")
 	TSubclassOf<APlayerController> ScreenControllerClass;
 
-	UPROPERTY(EditDefaultsOnly, Category = "SwapControllerTag")
-	FString FieldPlayerTagString = "FieldPlayer";
-	
-	UPROPERTY(EditDefaultsOnly, Category = "SwapControllerTag")
-	FString ScreenPlayerTagString = "ScreenPlayer" ;
 };

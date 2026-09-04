@@ -32,39 +32,45 @@ public:
 	virtual void HandleStartingNewPlayer_Implementation(APlayerController* NewPlayer) override;
 	virtual void BeginPlay() override;
 	virtual void StageRestart() override;
+	
 
+#pragma region ConfigureControllerAndSpawn
+	
+	//스폰관련 함수
+	virtual UClass* GetDefaultPawnClassForController_Implementation(AController* InController) override;
+	virtual AActor* FindPlayerStart_Implementation(AController* Player, const FString& IncomingName = L"") override;
+	void SetPlayerControllerRole(APlayerController* CurrentController, EPS3PlayerRole SelectedPlayerRoleType);
+	void ConfigureControllerAndSpawn(APlayerController* OldController, TSubclassOf<APlayerController> NewControllerClass);
+	
+#pragma endregion
 	
 protected:
 	UPROPERTY(EditAnywhere, Category = "GameRule")
 	TObjectPtr<class US5_GameRuleDataAsset> S5_GameRuleDataAsset;
 	
 	UPROPERTY()
-	TArray<TObjectPtr<class UInteractionSwitchComponent>> EscapeGimmickArray;
+	TArray<TObjectPtr<class UInteractionSwitchComponent>> TargetEscapeGimmickArray;
 	
 	UPROPERTY()
 	TArray<TObjectPtr<class APlayerController>> LoginUserArray;
 	
 public:
-	void SetPlayerControllerRole(APlayerController* CurrentController, EPS3PlayerRole SelectedPlayerRoleType);
-	void ConfigureControllerAndSpawn(
-		APlayerController* OldController, 
-		TSubclassOf<APlayerController> NewControllerClass, 
-		TSubclassOf<APS3PlayerCharacter> NewCharacterClass);
-	
 	void OnGameStart();
 	void OnGameOver();
-	
 	void OnQuitGame();
 	
 	void OnReduceGameTime();
 	void OnTimeDeduction(float TimeToDeducted);
-	
-	void EscapeGimmickDetection();
+
 	void OnEscapeGimmickUnlocked();
+
 	
-	void OnCollectLoginUser();
+protected:
+	void CollectLoginUser();
+	void EscapeGimmickDetection();
+	
 
-
+	
 public:
 	FOnIsGameStart OnIsGameStart;
 	
@@ -79,21 +85,7 @@ public:
 	
 	
 	
-protected:
-	void FieldPlayerConfigureAndSpawn(
-		APlayerController* OldController, 
-	TSubclassOf<APlayerController> NewControllerClass, 
-	TSubclassOf<APS3PlayerCharacter> NewCharacterClass,
-	FString TargetTag);
 	
-	void ScreenPlayerConfigure(
-		APlayerController* OldController, 
-		TSubclassOf<APlayerController> NewControllerClass);
-	
-	void ScreenPlayerSpawnCharacter(APlayerController* OldController, 
-	TSubclassOf<APlayerController> NewControllerClass, 
-	TSubclassOf<APS3PlayerCharacter> NewCharacterClass,
-	FString TargetTag);
 	
 protected:
 	FTimerHandle AllPlayerReadyTimeHandle;
