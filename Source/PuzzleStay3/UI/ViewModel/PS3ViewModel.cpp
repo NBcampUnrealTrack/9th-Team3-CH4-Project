@@ -103,11 +103,19 @@ void UPS3ViewModel::RequestHideTimerNotifyWidget()
 	}
 }
 
-void UPS3ViewModel::RequestTimerNotify(float InDuration)
+void UPS3ViewModel::RequestTimerNotify(FName InTimerId, float InDuration)
 {
 	if (PlayerHUD)
 	{
-		PlayerHUD->UpdateTimerNotify(InDuration);
+		PlayerHUD->UpdateTimerNotify(InTimerId, InDuration);
+	}
+}
+
+void UPS3ViewModel::RequestReduceTimerNotify(FName InTimerId, float InReduceTime)
+{
+	if (PlayerHUD)
+	{
+		PlayerHUD->ReduceTimerNotify(InTimerId, InReduceTime);
 	}
 }
 
