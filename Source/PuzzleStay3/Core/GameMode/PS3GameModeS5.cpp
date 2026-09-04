@@ -46,6 +46,7 @@ void APS3GameModeS5::BeginPlay()
 	Super::BeginPlay();
 	
 	RandomInitializeEscapeDoor();
+	
 }
 
 
@@ -183,14 +184,18 @@ int32 APS3GameModeS5::OnCollectEscapeDoor()
 	
 		auto* TimeDeductionComp = GimmickBase->FindComponentByClass<UOverlapVolumeTimeDeductionComponent>();
 		if (IsValid(TimeDeductionComp) == false) continue;
+		
+		InteractionSwitchComp->bIsEscapeDoor = true;
+		TimeDeductionComp->bIsEscapeDoor = true;
 	
 		GimmickBaseArray.Add(GimmickBase);
 		++GoalEscapeDoorCount;
 	}
 	
-	UE_LOG(LogTemp, Warning, TEXT("감지된 EscapeDoor 컴포넌트 총 %d개"), GimmickBaseArray.Num());
+	UE_LOG(LogTemp, Warning, TEXT("감지된 EscapeDoor 총 %d개"), GimmickBaseArray.Num());
 	return GimmickBaseArray.Num();
 }
+
 
 void APS3GameModeS5::RandomInitializeEscapeDoor()
 {
@@ -212,17 +217,18 @@ void APS3GameModeS5::RandomInitializeEscapeDoor()
 		auto* TimeDeductionComp = GimmickBase->FindComponentByClass<UOverlapVolumeTimeDeductionComponent>();
 		if (IsValid(TimeDeductionComp) == false) continue;
 		
+		InteractionSwitchComp->OnInteractionSuccessed.AddUObject(this, &ThisClass::OnInteractedEscapeDoor);
+		
 		InteractionSwitchComp->bIsEscapeDoor = false;
-		TimeDeductionComp->IsEscapeDoor = false;
+		TimeDeductionComp->bIsEscapeDoor = false;
 		
 		++FakeEscapeDoorCount;
 		--GoalEscapeDoorCount;
 		
 		FString CompName = GimmickBase->GetName();
-		FString TagName = InteractionSwitchComp->GetOwner()->Tags[0].ToString();
-
-		UE_LOG(LogTemp, Warning, TEXT("%d번 / %s - %s"), 
-			FakeEscapeDoorCount, *CompName, *TagName);
+		FString TagName = GimmickBase->Tags.Num() > 0 ? GimmickBase->Tags[0].ToString() : TEXT("NoTag");
+		UE_LOG(LogTemp, Warning, TEXT("감지된 Escape Door 중 감지 된 FakeDoor %d번 / %s - %s"), 
+			 FakeEscapeDoorCount, *CompName, *TagName);
 		
 		if (AllEscapeDoorCount - FakeEscapeDoorCount == MaxEscapeDoorCount) return;
 	}
@@ -230,9 +236,20 @@ void APS3GameModeS5::RandomInitializeEscapeDoor()
 }
 
 
-void APS3GameModeS5::OnEscapeDoorUnlocked()
+void APS3GameModeS5::OnInteractedEscapeDoor()
 {
 	++ActivatedEscapeDoorCount;
+	UE_LOG(LogTemp, Warning, TEXT("상호작용 완료 됨"));
+	
+	if (ActivatedEscapeDoorCount >= GoalEscapeDoorCount)
+	{
+		//바인드 지우기
+	}
+}
+
+
+void APS3GameModeS5::OnEscapeDoorUnlocked()
+{
 	int32 ScreenPlayerSpawnConditionCount = GoalEscapeDoorCount - (GoalEscapeDoorCount - 1);
 	
 	if (ActivatedEscapeDoorCount < GoalEscapeDoorCount) return;

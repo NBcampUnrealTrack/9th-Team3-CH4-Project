@@ -60,6 +60,7 @@ public:
 	void OnCollectLoginUser();
 	int32 OnCollectEscapeDoor();
 	
+	void OnInteractedEscapeDoor();
 
 	
 public:
