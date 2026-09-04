@@ -4,9 +4,6 @@
 #include "Components/BoxComponent.h"
 #include "RandomCollisionTrapComponent.generated.h"
 
-class UStaticMesh;
-class UStaticMeshComponent;
-
 UCLASS(ClassGroup = (Gimmick), meta = (BlueprintSpawnableComponent))
 class PUZZLESTAY3_API URandomCollisionTrapComponent : public UBoxComponent
 {
@@ -17,47 +14,31 @@ public:
 	
 	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly,
 		Category = "Random Collision Trap")
-	void ApplyCollisionLayout(const TArray<bool>& InCollisionLayout);
+	void ApplyCollisionState(bool bShouldHaveCollision);
 
 protected:
+	virtual void OnRegister() override;
 	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
-	UPROPERTY(EditAnywhere, Category = "Random Collision Trap")
-	int32 RowCount = 10;
-
-	UPROPERTY(EditAnywhere, Category = "Random Collision Trap")
-	int32 ColumnCount = 2;
-
-	UPROPERTY(EditAnywhere, Category = "Random Collision Trap")
-	TObjectPtr<UStaticMesh> PlatformMeshAsset;
-
-	UPROPERTY(EditAnywhere, Category = "Random Collision Trap")
-	FVector StartLocalLocation = FVector::ZeroVector;
-
-	UPROPERTY(EditAnywhere, Category = "Random Collision Trap")
-	FVector RowLocalOffset = FVector(300.0f, 0.0f, 0.0f);
-
-	UPROPERTY(EditAnywhere, Category = "Random Collision Trap")
-	FVector ColumnLocalOffset = FVector(0.0f, 250.0f, 0.0f);
-
-	UPROPERTY(EditAnywhere, Category = "Random Collision Trap")
-	FVector PlatformCollisionExtent = FVector(200.0f, 200.0f, 30.0f);
+	// GameMode의 20칸 결과 배열에서 이 발판이 사용할 위치입니다.
+	// 0 = 0행 Column 0, 1 = 0행 Column 1, ..., 19 = 9행 Column 1
+	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "Random Collision Trap",
+		meta = (ClampMin = "0", ClampMax = "19"))
+	int32 LayoutIndex = INDEX_NONE;
 	
-	UPROPERTY(ReplicatedUsing = OnRep_CollisionLayout,
+	UPROPERTY(ReplicatedUsing = OnRep_HasCollision,
 		BlueprintReadOnly, Category = "Random Collision Trap")
-	TArray<uint8> CollisionLayout;
+	bool bHasCollision = false;
 
 	UFUNCTION()
-	void OnRep_CollisionLayout();
+	void OnRep_HasCollision();
 
-	void SpawnPlatforms();
-	void ApplyCollisionLayoutToPlatforms();
+private:
+	void ApplyCollisionFromStage2GameMode();
+	void UpdateCollisionState();
 
-	UPROPERTY(Transient)
-	TArray<TObjectPtr<UStaticMeshComponent>> PlatformMeshes;
-
-	UPROPERTY(Transient)
-	TArray<TObjectPtr<UBoxComponent>> PlatformCollisions;
+	bool bRegisteredToStage2GameMode = false;
 
 public:
 	virtual void GetLifetimeReplicatedProps(
