@@ -38,7 +38,7 @@ protected:
 	UPROPERTY()
 	TArray<TObjectPtr<class APlayerController>> LoginUserArray;
 	UPROPERTY()
-	TArray<TObjectPtr<class UInteractionSwitchComponent>> TargetEscapeDoorArray;
+	TArray<TObjectPtr<class AGimmickBase>> GimmickBaseArray;
 	
 	UPROPERTY(EditAnywhere, Category = "GameRule")
 	TObjectPtr<class US5_GameRuleDataAsset> S5_GameRuleDataAsset;
@@ -55,9 +55,10 @@ public:
 	void OnReduceGameTime();
 	void OnTimeDeduction(float TimeToDeducted);
 
-	void OnEscapeGimmickUnlocked();
+	void RandomInitializeEscapeDoor();
+	void OnEscapeDoorUnlocked();
 	void OnCollectLoginUser();
-	void OnCollectEscapeGimmick();
+	int32 OnCollectEscapeDoor();
 	
 
 	
@@ -77,6 +78,8 @@ protected:
 	FTimerHandle AllPlayerReadyTimeHandle;
 	FTimerHandle GameLimitTimeHandle;
 
+	int32 GoalEscapeDoorCount = 0;
+	int32 ActivatedEscapeDoorCount = 0;
 	
 private:
 	FName EscapeGimmickTagName = "EscapeGimmick" ;

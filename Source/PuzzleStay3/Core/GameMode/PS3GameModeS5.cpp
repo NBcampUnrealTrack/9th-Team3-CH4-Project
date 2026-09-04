@@ -1,7 +1,9 @@
 ﻿#include "PS3GameModeS5.h"
 
 #include "EngineUtils.h"
+#include "Algo/RandomShuffle.h"
 #include "Component/InteractionSwitchComponent.h"
+#include "Component/OverlapVolumeTimeDeductionComponent.h"
 #include "Core/GameState/PS3GameStateS5.h"
 #include "Data/DataAsset/S5_GameRuleDataAsset.h"
 #include "Data/Enum/PlayerStartType.h"
@@ -43,7 +45,7 @@ void APS3GameModeS5::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	OnCollectEscapeGimmick();
+	RandomInitializeEscapeDoor();
 }
 
 
@@ -163,52 +165,85 @@ void APS3GameModeS5::OnCollectLoginUser()
 }
 
 
-void APS3GameModeS5::OnCollectEscapeGimmick()
+int32 APS3GameModeS5::OnCollectEscapeDoor()
 {
-	TargetEscapeDoorArray.Empty();
-
-	TArray<AActor*> GimmickBaseActorArray;
-	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AGimmickBase::StaticClass(), GimmickBaseActorArray);
-
-	for (AActor* GimmickBaseActor : GimmickBaseActorArray)
+	GimmickBaseArray.Empty();
+	GoalEscapeDoorCount = 0;
+	
+	TArray<AActor*> FoundActors;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AGimmickBase::StaticClass(), FoundActors);
+	
+	for (AActor* Actor : FoundActors)
 	{
-		auto* InstancedGimmickBaseActor = Cast<AGimmickBase>(GimmickBaseActor);
-		if (IsValid(InstancedGimmickBaseActor) == false) continue;
+		auto* GimmickBase = Cast<AGimmickBase>(Actor);
+		if (IsValid(GimmickBase) == false) continue;
 		
-		auto* InstancedEscapeSwitchComp = InstancedGimmickBaseActor->FindComponentByClass<UInteractionSwitchComponent>();
-		if (IsValid(InstancedEscapeSwitchComp) == false) continue;
-			
-		TargetEscapeDoorArray.Add(InstancedEscapeSwitchComp);
+		auto* InteractionSwitchComp = GimmickBase->FindComponentByClass<UInteractionSwitchComponent>();
+		if (IsValid(InteractionSwitchComp) == false) continue;
+	
+		auto* TimeDeductionComp = GimmickBase->FindComponentByClass<UOverlapVolumeTimeDeductionComponent>();
+		if (IsValid(TimeDeductionComp) == false) continue;
+	
+		GimmickBaseArray.Add(GimmickBase);
+		++GoalEscapeDoorCount;
 	}
 	
-	int32 CurrentEscapeDoorCount = 0;
-	for (UInteractionSwitchComponent* EscapeDoor : TargetEscapeDoorArray)
+	UE_LOG(LogTemp, Warning, TEXT("감지된 EscapeDoor 컴포넌트 총 %d개"), GimmickBaseArray.Num());
+	return GimmickBaseArray.Num();
+}
+
+void APS3GameModeS5::RandomInitializeEscapeDoor()
+{
+	int32 AllEscapeDoorCount = OnCollectEscapeDoor();
+	int32 MaxEscapeDoorCount = S5_GameRuleDataAsset->MaxEscapeDoorCount;
+	if (AllEscapeDoorCount <= MaxEscapeDoorCount) return;
+	
+	Algo::RandomShuffle(GimmickBaseArray);
+	
+	int32 FakeEscapeDoorCount = 0;
+	
+	for (AGimmickBase* GimmickBase : GimmickBaseArray)
 	{
-		if (IsValid(EscapeDoor) == false) continue;
-		if (CurrentEscapeDoorCount == S5_GameRuleDataAsset->MaxEscapeDoorCount) return;
+		if (IsValid(GimmickBase) == false) continue;
 		
-		++CurrentEscapeDoorCount;
+		auto* InteractionSwitchComp = GimmickBase->FindComponentByClass<UInteractionSwitchComponent>();
+		if (IsValid(InteractionSwitchComp) == false) continue;
+	
+		auto* TimeDeductionComp = GimmickBase->FindComponentByClass<UOverlapVolumeTimeDeductionComponent>();
+		if (IsValid(TimeDeductionComp) == false) continue;
+		
+		InteractionSwitchComp->bIsEscapeDoor = false;
+		TimeDeductionComp->IsEscapeDoor = false;
+		
+		++FakeEscapeDoorCount;
+		--GoalEscapeDoorCount;
+		
+		FString CompName = GimmickBase->GetName();
+		FString TagName = InteractionSwitchComp->GetOwner()->Tags[0].ToString();
+
+		UE_LOG(LogTemp, Warning, TEXT("%d번 / %s - %s"), 
+			FakeEscapeDoorCount, *CompName, *TagName);
+		
+		if (AllEscapeDoorCount - FakeEscapeDoorCount == MaxEscapeDoorCount) return;
 	}
 	
-	
-	UE_LOG(LogTemp, Warning, TEXT("감지된 EscapeGimmick 컴포넌트 개수: %d개"), TargetEscapeDoorArray.Num());
 }
 
 
-void APS3GameModeS5::OnEscapeGimmickUnlocked()
+void APS3GameModeS5::OnEscapeDoorUnlocked()
 {
-	int32 SuccessConditionsNumber = 2;
+	++ActivatedEscapeDoorCount;
+	int32 ScreenPlayerSpawnConditionCount = GoalEscapeDoorCount - (GoalEscapeDoorCount - 1);
 	
-	if (TargetEscapeDoorArray.Num() < SuccessConditionsNumber) return;
-	if (LoginUserArray.Num() < SuccessConditionsNumber) return;
+	if (ActivatedEscapeDoorCount < GoalEscapeDoorCount) return;
 	
-	if (TargetEscapeDoorArray.Num() >= (LoginUserArray.Num()-1))
+	if (ActivatedEscapeDoorCount >= ScreenPlayerSpawnConditionCount)
 	{
 		auto* PS3ScreenPlayerController = Cast<APS3ScreenPlayerController>(GetWorld()->GetFirstPlayerController());
 		ConfigureControllerAndSpawn(PS3ScreenPlayerController,S5_GameRuleDataAsset->FieldControllerClass);
 	}
 	
-	if (TargetEscapeDoorArray.Num() >= LoginUserArray.Num())
+	if (ActivatedEscapeDoorCount >= GoalEscapeDoorCount)
 	{
 		//TODO 다음스테이지 입장하는 부분 구현해야함
 		UE_LOG(LogTemp, Warning, TEXT("구현 예정 기능 예시) 5초 뒤 다음 스테이지 입장."));
