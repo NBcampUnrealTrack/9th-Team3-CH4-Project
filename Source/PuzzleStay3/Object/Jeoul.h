@@ -98,6 +98,9 @@ private:
 	UFUNCTION()
 	void OnRep_TargetBeamRotation();
 	
+	// 플레이어 2명이 저울판 위에 있는지 확인
+	bool HasBothPlayersOnPlate() const;
+	
 	// 최대 기울기 각도 (예: 25도)
 	UPROPERTY(EditAnywhere, Category = "Jeoul Settings")
 	float MaxTiltAngle = 25.0f;
@@ -124,13 +127,4 @@ private:
 	// 실패 시 저울대가 수평으로 복구되는 연출 대기 시간 (기본값: 1.5초)
 	UPROPERTY(EditAnywhere, Category = "Jeoul Settings")
 	float ResetBeamTime = 1.5f;
-	
-	// 플레이어 무게 설정값 (Player A = 100.f, Player B = 70.f)
-	UPROPERTY(EditAnywhere, Category = "Jeoul Settings")
-	float PlayerAWeight = 100.f;
-	
-	UPROPERTY(EditAnywhere, Category = "Jeoul Settings")
-	float PlayerBWeight = 70.f;
-	
-	
 };

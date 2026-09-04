@@ -65,6 +65,8 @@ bool UInteractionSwitchComponent::TryInteract(AActor* Requestor)
 
 	// 서버에서 GameMode 및 알림 전달
 	OnRep_IsActivated();
+	
+	OnInteractionSuccessed.Broadcast();
 
 	return true;
 }
