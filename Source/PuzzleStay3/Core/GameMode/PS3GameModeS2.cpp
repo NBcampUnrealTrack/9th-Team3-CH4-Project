@@ -16,12 +16,27 @@ void APS3GameModeS2::BeginPlay()
 void APS3GameModeS2::MakeRandomCollisionResults()
 {
 	RandomCollisionResults.Empty();
+	RandomCollisionLayoutResults.Empty();
 	
 	int32 RandomCollisionTrapCount = RandomCollisionTrapComponent.Num();
 	
-	for (int32 i = 0; i < RandomCollisionTrapCount; i++)
+	for (int32 i = 0; i < RandomCollisionTrapCount/2; i++)
 	{
 		RandomCollisionResults.Add(FMath::RandBool());
+	}
+	
+	for (int32 i = 0; i < RandomCollisionResults.Num(); i++)
+	{
+		if (RandomCollisionResults[i] == true)
+		{
+			RandomCollisionLayoutResults.Add(true);
+			RandomCollisionLayoutResults.Add(false);
+		}
+		else
+		{
+			RandomCollisionLayoutResults.Add(false);
+			RandomCollisionLayoutResults.Add(true);
+		}
 	}
 }
 
@@ -41,25 +56,9 @@ void APS3GameModeS2::UnregisterRandomCollisionTrapCompo(URandomCollisionTrapComp
 	RandomCollisionTrapComponent.Remove(TrapComponent);
 }
 
-bool APS3GameModeS2::GetRandomCollisionResult(int32 RowIndex)
+TArray<bool> APS3GameModeS2::GetRandomCollisionLayoutResults()
 {
-	if (!RandomCollisionResults.IsValidIndex(RowIndex)) {return false;}
-
-	return RandomCollisionResults[RowIndex];
+	return RandomCollisionLayoutResults;
 }
 
 
-
-//C++ Class - GimmickBase
-//BP Class - BP_RandomCollisionTrap(RandomCollisionTrapCompo)
-
-//LEVEL
-BP_RandomCollisionTrap(bool isleft) | BP_RandomCollisionTrap(bool isleft)
-BP_RandomCollisionTrap | BP_RandomCollisionTrap
-BP_RandomCollisionTrap | BP_RandomCollisionTrap
-BP_RandomCollisionTrap | BP_RandomCollisionTrap
-BP_RandomCollisionTrap | BP_RandomCollisionTrap
-BP_RandomCollisionTrap | BP_RandomCollisionTrap
-BP_RandomCollisionTrap | BP_RandomCollisionTrap
-BP_RandomCollisionTrap | BP_RandomCollisionTrap
-BP_RandomCollisionTrap | BP_RandomCollisionTrap
