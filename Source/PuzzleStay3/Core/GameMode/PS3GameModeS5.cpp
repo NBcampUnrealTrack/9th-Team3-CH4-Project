@@ -1,28 +1,27 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
-
-
-#include "PS3GameModeS5.h"
+﻿#include "PS3GameModeS5.h"
 
 #include "EngineUtils.h"
+#include "Algo/RandomShuffle.h"
 #include "Component/InteractionSwitchComponent.h"
+#include "Component/OverlapVolumeTimeDeductionComponent.h"
 #include "Core/GameState/PS3GameStateS5.h"
 #include "Data/DataAsset/S5_GameRuleDataAsset.h"
 #include "Data/Enum/PlayerStartType.h"
 #include "Data/Enum/PS3PlayerRole.h"
-#include "GameFramework/PlayerStart.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Object/GimmickBase.h"
 #include "Object/PS3PlayerStartBase.h"
 #include "Player/Character/PS3PlayerCharacter.h"
-#include "Player/Controller/PS3PlayerController.h"
 #include "Player/Controller/PS3ScreenPlayerController.h"
 #include "PuzzleStay3/Player/Controller/PS3ChoiceController.h"
+
 
 APS3GameModeS5::APS3GameModeS5()
 {
 	DefaultPawnClass = nullptr;
 }
+
 
 void APS3GameModeS5::PostLogin(APlayerController* NewPlayer)
 {
@@ -41,33 +40,40 @@ void APS3GameModeS5::PostLogin(APlayerController* NewPlayer)
 	}
 }
 
-void APS3GameModeS5::HandleStartingNewPlayer_Implementation(APlayerController* NewPlayer)
-{
-	if (NewPlayer == nullptr) return;
-	
-	auto* PS3ChoiceController = Cast<APS3ChoiceController>(NewPlayer);
-	if (IsValid(PS3ChoiceController) == true)
-	{
-		PS3ChoiceController->SetViewTarget(NewPlayer);
-		
-		return;
-	}
-		
-	Super::HandleStartingNewPlayer_Implementation(NewPlayer);
-}
 
 void APS3GameModeS5::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	EscapeGimmickDetection();
+	RandomInitializeEscapeDoor();
+	
 }
+
 
 void APS3GameModeS5::StageRestart()
 {
 	Super::StageRestart();
 }
 
+
+void APS3GameModeS5::ReSpawnPlayer(APlayerController* TargetPlayerController)
+{
+	if (IsValid(TargetPlayerController) == false) return;
+	
+	UnPossessedAndDestroyOldPawn(TargetPlayerController);
+	RestartPlayer(TargetPlayerController);
+}
+
+
+void APS3GameModeS5::UnPossessedAndDestroyOldPawn(APlayerController* OldPlayerController)
+{
+	APawn* OldPawn = OldPlayerController->GetPawn();
+	if (IsValid(OldPawn) == true)
+	{
+		OldPlayerController->UnPossess();
+		OldPawn->Destroy();
+	}
+}
 
 
 void APS3GameModeS5::OnGameStart()
@@ -78,6 +84,7 @@ void APS3GameModeS5::OnGameStart()
 	GetWorld()->GetTimerManager().SetTimer(GameLimitTimeHandle, this, &ThisClass::OnReduceGameTime, 1.f, true);
 }
 
+
 void APS3GameModeS5::OnGameOver()
 {
 	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
@@ -85,12 +92,7 @@ void APS3GameModeS5::OnGameOver()
 		auto* OldController = Cast<APlayerController>(*It);
 		if (IsValid(OldController) == false) continue;
 		
-		APawn* OldPawn = OldController->GetPawn();
-		if (IsValid(OldPawn) == true)
-		{
-			OldController->UnPossess();
-			OldPawn->Destroy();
-		}
+		UnPossessedAndDestroyOldPawn(OldController);
 	}
 	
 	auto* PS3GameStateS5 = GetGameState<APS3GameStateS5>();
@@ -99,6 +101,7 @@ void APS3GameModeS5::OnGameOver()
 	OnIsGameStart.Broadcast(false);
 	PS3GameStateS5->OnGameOver();
 }
+
 
 void APS3GameModeS5::OnQuitGame()
 {
@@ -120,6 +123,7 @@ void APS3GameModeS5::OnQuitGame()
 	
 }
 
+
 void APS3GameModeS5::OnReduceGameTime()
 {
 	auto* PS3GameStateS5 = GetGameState<APS3GameStateS5>();
@@ -136,6 +140,7 @@ void APS3GameModeS5::OnReduceGameTime()
 	}
 }
 
+
 void APS3GameModeS5::OnTimeDeduction(float TimeToDeducted)
 {
 	auto* PS3GameStateS5 = GetGameState<APS3GameStateS5>();
@@ -144,53 +149,8 @@ void APS3GameModeS5::OnTimeDeduction(float TimeToDeducted)
 	PS3GameStateS5->OnTimeDeduction(TimeToDeducted);
 }
 
-void APS3GameModeS5::EscapeGimmickDetection()
-{
-	TargetEscapeGimmickArray.Empty();
-	
-	TArray<AActor*> GimmickBaseActorArray;
-	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AGimmickBase::StaticClass(), GimmickBaseActorArray);
 
-	for (AActor* GimmickBaseActor : GimmickBaseActorArray)
-	{
-		auto* InstancedGimmickBaseActor = Cast<AGimmickBase>(GimmickBaseActor);
-		if (IsValid(InstancedGimmickBaseActor) == false) continue;
-		
-		if (InstancedGimmickBaseActor->ActorHasTag(EscapeGimmickTagName) == true)
-		{
-			auto* InstancedEscapeSwitchComp = InstancedGimmickBaseActor->FindComponentByClass<UInteractionSwitchComponent>();
-			if (IsValid(InstancedEscapeSwitchComp) == false) continue;
-			
-			TargetEscapeGimmickArray.Add(InstancedEscapeSwitchComp);
-		}
-		else UE_LOG(LogTemp, Error, TEXT("EscapeGimmick의 감지 된 Tag와 (%s)Tag 불일치"), *EscapeGimmickTagName.ToString());
-	}
-
-	int32 ComponentCount = TargetEscapeGimmickArray.Num();
-	UE_LOG(LogTemp, Warning, TEXT("감지된 EscapeGimmick 컴포넌트 개수: %d개"), ComponentCount);
-}
-
-void APS3GameModeS5::OnEscapeGimmickUnlocked()
-{
-	int32 SuccessConditionsNumber = 2;
-	
-	if (TargetEscapeGimmickArray.Num() < SuccessConditionsNumber) return;
-	if (LoginUserArray.Num() < SuccessConditionsNumber) return;
-	
-	if (TargetEscapeGimmickArray.Num() >= (LoginUserArray.Num()-1))
-	{
-		auto* PS3ScreenPlayerController = Cast<APS3ScreenPlayerController>(GetWorld()->GetFirstPlayerController());
-		ConfigureControllerAndSpawn(PS3ScreenPlayerController,S5_GameRuleDataAsset->FieldControllerClass);
-	}
-	
-	if (TargetEscapeGimmickArray.Num() >= LoginUserArray.Num())
-	{
-		//TODO 다음스테이지 입장하는 부분 구현해야함
-		UE_LOG(LogTemp, Warning, TEXT("구현 예정 기능 예시) 5초 뒤 다음 스테이지 입장."));
-	}
-}
-
-void APS3GameModeS5::CollectLoginUser()
+void APS3GameModeS5::OnCollectLoginUser()
 {
 	LoginUserArray.Empty();
 	
@@ -200,29 +160,120 @@ void APS3GameModeS5::CollectLoginUser()
 		if (IsValid(LoginUser) == false) continue;
 		
 		LoginUserArray.Add(LoginUser);
+	}
+	
+	UE_LOG(LogTemp, Warning, TEXT("현재 로그인 인원: %d명"), LoginUserArray.Num());
+}
+
+
+int32 APS3GameModeS5::OnCollectEscapeDoor()
+{
+	GimmickBaseArray.Empty();
+	GoalEscapeDoorCount = 0;
+	
+	TArray<AActor*> FoundActors;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AGimmickBase::StaticClass(), FoundActors);
+	
+	for (AActor* Actor : FoundActors)
+	{
+		auto* GimmickBase = Cast<AGimmickBase>(Actor);
+		if (IsValid(GimmickBase) == false) continue;
 		
-		int32 Count = LoginUserArray.Num();
-		UE_LOG(LogTemp, Warning, TEXT("현재 로그인 인원: %d명"), Count);
+		auto* InteractionSwitchComp = GimmickBase->FindComponentByClass<UInteractionSwitchComponent>();
+		if (IsValid(InteractionSwitchComp) == false) continue;
+	
+		auto* TimeDeductionComp = GimmickBase->FindComponentByClass<UOverlapVolumeTimeDeductionComponent>();
+		if (IsValid(TimeDeductionComp) == false) continue;
+		
+		InteractionSwitchComp->bIsEscapeDoor = true;
+		TimeDeductionComp->bIsEscapeDoor = true;
+	
+		GimmickBaseArray.Add(GimmickBase);
+		++GoalEscapeDoorCount;
+	}
+	
+	UE_LOG(LogTemp, Warning, TEXT("감지된 EscapeDoor 총 %d개"), GimmickBaseArray.Num());
+	return GimmickBaseArray.Num();
+}
+
+
+void APS3GameModeS5::RandomInitializeEscapeDoor()
+{
+	int32 AllEscapeDoorCount = OnCollectEscapeDoor();
+	int32 MaxEscapeDoorCount = S5_GameRuleDataAsset->MaxEscapeDoorCount;
+	if (AllEscapeDoorCount <= MaxEscapeDoorCount) return;
+	
+	Algo::RandomShuffle(GimmickBaseArray);
+	
+	int32 FakeEscapeDoorCount = 0;
+	
+	for (AGimmickBase* GimmickBase : GimmickBaseArray)
+	{
+		if (IsValid(GimmickBase) == false) continue;
+		
+		auto* InteractionSwitchComp = GimmickBase->FindComponentByClass<UInteractionSwitchComponent>();
+		if (IsValid(InteractionSwitchComp) == false) continue;
+	
+		auto* TimeDeductionComp = GimmickBase->FindComponentByClass<UOverlapVolumeTimeDeductionComponent>();
+		if (IsValid(TimeDeductionComp) == false) continue;
+		
+		InteractionSwitchComp->OnInteractionSuccessed.AddUObject(this, &ThisClass::OnInteractedEscapeDoor);
+		
+		InteractionSwitchComp->bIsEscapeDoor = false;
+		TimeDeductionComp->bIsEscapeDoor = false;
+		
+		++FakeEscapeDoorCount;
+		--GoalEscapeDoorCount;
+		
+		FString CompName = GimmickBase->GetName();
+		FString TagName = GimmickBase->Tags.Num() > 0 ? GimmickBase->Tags[0].ToString() : TEXT("NoTag");
+		UE_LOG(LogTemp, Warning, TEXT("감지된 Escape Door 중 감지 된 FakeDoor %d번 / %s - %s"), 
+			 FakeEscapeDoorCount, *CompName, *TagName);
+		
+		if (AllEscapeDoorCount - FakeEscapeDoorCount == MaxEscapeDoorCount) return;
+	}
+	
+}
+
+
+void APS3GameModeS5::OnInteractedEscapeDoor()
+{
+	++ActivatedEscapeDoorCount;
+	UE_LOG(LogTemp, Warning, TEXT("상호작용 완료 됨"));
+	
+	if (ActivatedEscapeDoorCount >= GoalEscapeDoorCount)
+	{
+		//바인드 지우기
 	}
 }
+
+
+void APS3GameModeS5::OnEscapeDoorUnlocked()
+{
+	int32 ScreenPlayerSpawnConditionCount = GoalEscapeDoorCount - (GoalEscapeDoorCount - 1);
+	
+	if (ActivatedEscapeDoorCount < GoalEscapeDoorCount) return;
+	
+	if (ActivatedEscapeDoorCount >= ScreenPlayerSpawnConditionCount)
+	{
+		auto* PS3ScreenPlayerController = Cast<APS3ScreenPlayerController>(GetWorld()->GetFirstPlayerController());
+		ConfigureControllerAndSpawn(PS3ScreenPlayerController,S5_GameRuleDataAsset->FieldControllerClass);
+	}
+	
+	if (ActivatedEscapeDoorCount >= GoalEscapeDoorCount)
+	{
+		//TODO 다음스테이지 입장하는 부분 구현해야함
+		UE_LOG(LogTemp, Warning, TEXT("구현 예정 기능 예시) 5초 뒤 다음 스테이지 입장."));
+	}
+}
+
 
 void APS3GameModeS5::SetPlayerControllerRole(APlayerController* CurrentController, EPS3PlayerRole SelectedPlayerRoleType)
 {
 	if (IsValid(CurrentController) == false) return;
 	
-	//TODO 디버그 매세지 나중에 삭제하기
-	FString ControllerName = CurrentController->GetName();
-	if (SelectedPlayerRoleType == EPS3PlayerRole::Field && bIsTakeFieldControllerType == true)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("3인칭조작 컨트롤러는 [%s]에게 이미 할당 되어있습니다."), *ControllerName);
-		return;
-	}
-	
-	if (SelectedPlayerRoleType == EPS3PlayerRole::Screen && bIsTakeScreenControllerType == true)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("스크린조작 컨트롤러는 [%s]에게 이미 할당 되어있습니다."), *ControllerName);
-		return; 
-	}
+	if (SelectedPlayerRoleType == EPS3PlayerRole::Field && bIsTakeFieldControllerType == true) return;
+	if (SelectedPlayerRoleType == EPS3PlayerRole::Screen && bIsTakeScreenControllerType == true) return;
 	
 	++RoleSelectedPlayerCount;
 	
@@ -242,6 +293,7 @@ void APS3GameModeS5::SetPlayerControllerRole(APlayerController* CurrentControlle
 	}	
 }
 
+
 UClass* APS3GameModeS5::GetDefaultPawnClassForController_Implementation(AController* InController)
 {
 	if (IsValid(InController) == false || S5_GameRuleDataAsset == nullptr)
@@ -254,7 +306,6 @@ UClass* APS3GameModeS5::GetDefaultPawnClassForController_Implementation(AControl
 		return Super::GetDefaultPawnClassForController_Implementation(InController);
 	}
 
-	// 2. 순수 필드 컨트롤러인 경우 -> FieldCharacterClass 반환
 	if (InController->GetClass() == S5_GameRuleDataAsset->FieldControllerClass)
 	{
 		return S5_GameRuleDataAsset->FieldCharacterClass;
@@ -262,6 +313,7 @@ UClass* APS3GameModeS5::GetDefaultPawnClassForController_Implementation(AControl
     
 	return Super::GetDefaultPawnClassForController_Implementation(InController);
 }
+
 
 AActor* APS3GameModeS5::FindPlayerStart_Implementation(AController* Player, const FString& IncomingName)
 {
@@ -272,8 +324,6 @@ AActor* APS3GameModeS5::FindPlayerStart_Implementation(AController* Player, cons
 	
 	EPlayerStartType TargetPlayerStartType = EPlayerStartType::None;
 	
-	auto* FieldController = Cast<APS3PlayerController>(Player);
-	auto* ScreenController = Cast<APS3ScreenPlayerController>(Player);
 	if (Player->IsA(S5_GameRuleDataAsset->ScreenControllerClass) == true)
 	{
 		TargetPlayerStartType = EPlayerStartType::ScreenPlayer;
@@ -286,24 +336,23 @@ AActor* APS3GameModeS5::FindPlayerStart_Implementation(AController* Player, cons
 	
 	for (TActorIterator<APS3PlayerStartBase> It(GetWorld()); It; ++It)
 	{
-		APS3PlayerStartBase* StartPoint = *It;
-		if (IsValid(StartPoint) == true && StartPoint->PlayerStartType == TargetPlayerStartType) return StartPoint; 
+		APS3PlayerStartBase* PS3PlayerStartBase = *It;
+		if (IsValid(PS3PlayerStartBase) == true && PS3PlayerStartBase->PlayerStartType == TargetPlayerStartType)
+		{
+			return PS3PlayerStartBase; 
+		}
 	}
 	
 	return Super::FindPlayerStart_Implementation(Player, IncomingName);
 }
+
 
 void APS3GameModeS5::ConfigureControllerAndSpawn(APlayerController* OldController, TSubclassOf<APlayerController> NewControllerClass)
 {
 	if (IsValid(OldController) == false) return;
 	if (NewControllerClass == nullptr) return;
 	
-	APawn* OldPawn = OldController->GetPawn();
-	if (IsValid(OldPawn) == true)
-	{
-		OldController->UnPossess();
-		OldPawn->Destroy();
-	}
+	UnPossessedAndDestroyOldPawn(OldController);
 	
 	FActorSpawnParameters ControllerSpawnParams;
 	ControllerSpawnParams.Owner = this;
@@ -315,4 +364,3 @@ void APS3GameModeS5::ConfigureControllerAndSpawn(APlayerController* OldControlle
 	
 	RestartPlayer(NewController);
 }
-
