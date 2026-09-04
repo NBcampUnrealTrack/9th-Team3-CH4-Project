@@ -8,6 +8,7 @@
 #include "Component/InteractionSwitchComponent.h"
 #include "Object/Dumbbell.h"
 #include "Components/SceneComponent.h"
+#include "DrawDebugHelpers.h"
 
 
 APS3PlayerCharacter::APS3PlayerCharacter()
@@ -180,6 +181,13 @@ void APS3PlayerCharacter::Server_TryInteract_Implementation()
 		QueryParams
 	);
 
+#if !(UE_BUILD_SHIPPING || UE_BUILD_TEST)
+	if (bDrawInteractionTrace)
+	{
+		Client_DrawInteractionTrace(TraceStart, TraceEnd, bHit, bHit ? HitResult.ImpactPoint : TraceEnd);
+	}
+#endif
+
 	if (!bHit || !IsValid(HitResult.GetActor()))
 	{
 		return;
@@ -217,4 +225,22 @@ void APS3PlayerCharacter::Server_TryInteract_Implementation()
 	}
 
 	InteractionComponent->TryInteract(this);
+}
+
+void APS3PlayerCharacter::Client_DrawInteractionTrace_Implementation(const FVector TraceStart, const FVector TraceEnd, const bool bHit, const FVector ImpactPoint)
+{
+#if !(UE_BUILD_SHIPPING || UE_BUILD_TEST)
+	UWorld* World = GetWorld();
+	if (!IsValid(World))
+	{
+		return;
+	}
+
+	DrawDebugLine(World, TraceStart, TraceEnd, bHit ? FColor::Green : FColor::Red, false, InteractionTraceDebugDuration, 0, 2.0f);
+
+	if (bHit)
+	{
+		DrawDebugSphere(World, ImpactPoint, 10.0f, 12, FColor::Yellow, false, InteractionTraceDebugDuration, 0, 1.5f);
+	}
+#endif
 }

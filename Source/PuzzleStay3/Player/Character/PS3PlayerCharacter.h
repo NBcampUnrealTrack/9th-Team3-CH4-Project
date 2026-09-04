@@ -52,6 +52,13 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PS3|Character|Interaction")
 	float InteractionDistance = 300.0f;
 
+	// 에디터와 개발 빌드에서 서버 판정 라인트레이스를 로컬 플레이어 화면에 표시
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PS3|Character|Interaction|Debug")
+	bool bDrawInteractionTrace = true;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PS3|Character|Interaction|Debug", meta = (ClampMin = "0.0"))
+	float InteractionTraceDebugDuration = 2.0f;
+
 	//덤벨 held, drop을 위한 변수
 	UPROPERTY(Transient)
 	TObjectPtr<ADumbbell> HeldDumbbell;
@@ -62,6 +69,9 @@ protected:
 private:
 	UFUNCTION(Server, Reliable)
 	void Server_TryInteract();
+
+	UFUNCTION(Client, Unreliable)
+	void Client_DrawInteractionTrace(FVector TraceStart, FVector TraceEnd, bool bHit, FVector ImpactPoint);
 
 	UFUNCTION(Server, Reliable)
 	void Server_TryDropHeldObject();
