@@ -64,7 +64,10 @@ public:
 	void RequestHideTimerNotifyWidget();
 
 	UFUNCTION(BlueprintCallable, Category = "UI|TimerNotify")
-	void RequestTimerNotify(float InDuration);
+	void RequestTimerNotify(FName InTimerId, float InDuration);
+
+	UFUNCTION(BlueprintCallable, Category = "UI|TimerNotify")
+	void RequestReduceTimerNotify(FName InTimerId, float InReduceTime);
 
 	UFUNCTION(BlueprintCallable, Category = "UI|TimerNotify")
 	void RequestHideTimerNotify();
