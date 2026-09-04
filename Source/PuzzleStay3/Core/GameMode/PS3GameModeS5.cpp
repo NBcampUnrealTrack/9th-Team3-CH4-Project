@@ -201,6 +201,7 @@ void APS3GameModeS5::RandomInitializeEscapeDoor()
 {
 	int32 AllEscapeDoorCount = OnCollectEscapeDoor();
 	int32 MaxEscapeDoorCount = S5_GameRuleDataAsset->MaxEscapeDoorCount;
+	
 	if (AllEscapeDoorCount <= MaxEscapeDoorCount) return;
 	
 	Algo::RandomShuffle(GimmickBaseArray);
@@ -247,12 +248,19 @@ void APS3GameModeS5::OnInteractedEscapeDoor()
 	
 	if (ActivatedEscapeDoorCount >= ScreenPlayerSpawnConditionCount)
 	{
-		auto* PS3ScreenPlayerController = Cast<APS3ScreenPlayerController>(GetWorld()->GetFirstPlayerController());
-		ConfigureControllerAndSpawn(PS3ScreenPlayerController,S5_GameRuleDataAsset->FieldControllerClass);
-		
+		for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
+		{
+			APlayerController* PlayerController = It->Get();
+			if (IsValid(PlayerController) == false) continue;
+			
+			auto* ScreenPlayerController = Cast<APS3ScreenPlayerController>(PlayerController);
+			if (IsValid(ScreenPlayerController) == false) continue;
+			
+			ConfigureControllerAndSpawn(ScreenPlayerController, S5_GameRuleDataAsset->SpawnScreenControllerClass);
+		}
 	}
 	
-	else if (ActivatedEscapeDoorCount >= GoalEscapeDoorCount)
+	if (ActivatedEscapeDoorCount >= GoalEscapeDoorCount)
 	{
 		//TODO 다음스테이지 입장하는 부분 구현해야함
 		UE_LOG(LogTemp, Warning, TEXT("구현 예정 기능 예시) 5초 뒤 다음 스테이지 입장."));
