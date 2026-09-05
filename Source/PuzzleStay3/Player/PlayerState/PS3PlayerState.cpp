@@ -1,4 +1,5 @@
 #include "PS3PlayerState.h"
+#include "GameFramework/PlayerController.h"
 #include "Net/UnrealNetwork.h"
 
 
@@ -16,6 +17,7 @@ void APS3PlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutL
 	DOREPLIFETIME(ThisClass, PlayerRole);
 	DOREPLIFETIME(ThisClass, VoiceChatState);
 	DOREPLIFETIME(ThisClass, bIsVoiceObjectHeld);
+	DOREPLIFETIME(ThisClass, InteractionState);
 }
 
 void APS3PlayerState::SetCurrentLifeCount(const int32 NewLifeCount)
@@ -55,6 +57,17 @@ void APS3PlayerState::SetPlayerRole(const EPS3PlayerRole NewRole)
 
 	PlayerRole = NewRole;
 	OnPlayerRoleChanged.Broadcast(PlayerRole);
+}
+
+void APS3PlayerState::SetInteractionState(const EInteractionState NewState)
+{
+	if (!HasAuthority() || InteractionState == NewState)
+	{
+		return;
+	}
+
+	InteractionState = NewState;
+	OnInteractionStateChanged.Broadcast(InteractionState);
 }
 
 void APS3PlayerState::InitializeLifeCount(const int32 NewLifeCount)
@@ -159,4 +172,9 @@ void APS3PlayerState::OnRep_VoiceChatState()
 void APS3PlayerState::OnRep_VoiceObjectHeld()
 {
 	OnVoiceObjectHeldChanged.Broadcast(bIsVoiceObjectHeld);
+}
+
+void APS3PlayerState::OnRep_InteractionState()
+{
+	OnInteractionStateChanged.Broadcast(InteractionState);
 }

@@ -1,10 +1,13 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Data/Enum/InteractionState.h"
 #include "Data/Enum/PS3PlayerRole.h"
 #include "Data/Enum/VoiceChatState.h"
 #include "GameFramework/PlayerState.h"
 #include "PS3PlayerState.generated.h"
+
+class APlayerController;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FPS3LifeCountChangedSignature, int32, NewLifeCount);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FPS3DeadStateChangedSignature, bool, bNewIsDead);
@@ -12,8 +15,8 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FPS3PlayerRoleChangedSignature, EPS3
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FPS3VoiceChatStateChangedSignature, EVoiceChatState, NewState);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FPS3VoiceObjectHeldChangedSignature, bool, bNewIsHeld);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FPS3RespawnRequestedSignature, APlayerController*, TargetController);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FPS3InteractionStateChangedSignature, EInteractionState, NewState);
 
-class APlayerController;
 
 UCLASS()
 class PUZZLESTAY3_API APS3PlayerState : public APlayerState
@@ -82,6 +85,18 @@ public:
 
 	UFUNCTION(BlueprintPure, Category = "PS3|Player State|Life")
 	bool IsRespawning() const { return bIsRespawning; }
+
+	UFUNCTION(BlueprintPure, Category = "PS3|Player State|Interaction")
+	EInteractionState GetInteractionState() const { return InteractionState; }
+
+	UFUNCTION(BlueprintPure, Category = "PS3|Player State|Interaction")
+	bool IsInteracting() const { return InteractionState == EInteractionState::IsInteracting; }
+
+	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category = "PS3|Player State|Interaction")
+	void SetInteractionState(EInteractionState NewState);
+
+	UPROPERTY(BlueprintAssignable, Category = "PS3|Player State|Interaction")
+	FPS3InteractionStateChangedSignature OnInteractionStateChanged;
 	
 	UPROPERTY(BlueprintAssignable, Category = "PS3|Player State|Events")
 	FPS3RespawnRequestedSignature OnRespawnRequested;
@@ -103,6 +118,9 @@ protected:
 	UFUNCTION()
 	void OnRep_VoiceObjectHeld();
 
+	UFUNCTION()
+	void OnRep_InteractionState();
+
 	UPROPERTY(EditDefaultsOnly, ReplicatedUsing = OnRep_LifeChanged, Category = "PS3|Player State", meta = (ClampMin = "0"))
 	int32 CurrentLifeCount = 4;
 
@@ -117,6 +135,9 @@ protected:
 
 	UPROPERTY(VisibleInstanceOnly, ReplicatedUsing = OnRep_VoiceObjectHeld, Category = "PS3|Player State|Voice")
 	bool bIsVoiceObjectHeld = false;
+
+	UPROPERTY(VisibleInstanceOnly, ReplicatedUsing = OnRep_InteractionState, Category = "PS3|Player State|Interaction")
+	EInteractionState InteractionState = EInteractionState::IsNotInteracting;
 
 	// 서버에서 중복 차감을 방지하기 위한 처리 상태
 	UPROPERTY(Transient)
