@@ -116,6 +116,8 @@ private:
 	UPROPERTY(ReplicatedUsing = OnRep_TargetBeamRotation)
 	FRotator TargetBeamRotation;
 
+	static void SetupBlockingMesh(UStaticMeshComponent* Mesh, ECollisionResponse VisibilityResponse);
+	
 	// 저울 상태
 	UPROPERTY(Replicated)
 	EJeoulState CurrentState = EJeoulState::Idle;

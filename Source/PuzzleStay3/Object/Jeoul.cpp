@@ -36,9 +36,8 @@ AJeoul::AJeoul()
 	
 	PlateTrigger = CreateDefaultSubobject<UBoxComponent>(TEXT("PlateTrigger"));
 	PlateTrigger->SetupAttachment(BeamPivot);
-
-	// ★ 추가: PlateTrigger가 라인트레이스 감지를 막지 않도록 설정
-	PlateTrigger->SetCollisionProfileName(TEXT("Trigger")); // 기본 Trigger 프로필 적용 (모든 채널 Overlap)
+	PlateTrigger->SetCollisionObjectType(ECC_GameTraceChannel2); // "Trigger"로 이름 붙인 채널
+	PlateTrigger->SetCollisionResponseToAllChannels(ECR_Overlap);
 	PlateTrigger->SetGenerateOverlapEvents(true);
 	
 	// 컷씬 전경 카메라 배치
@@ -54,6 +53,10 @@ AJeoul::AJeoul()
 	// 2. 스위치 컴포넌트 생성 및 저울 전용 설정
 	InteractionSwitchComp = CreateDefaultSubobject<UInteractionSwitchComponent>(TEXT("InteractionSwitchComp"));
 	InteractionSwitchComp->SetRegisterToGameMode(false); // GM 집계 제외
+	
+	SetupBlockingMesh(JeoulBaseMesh, ECR_Ignore);
+	SetupBlockingMesh(JeoulBeamMesh, ECR_Ignore);
+	SetupBlockingMesh(CheckButtonMesh, ECR_Block);
 }
 
 void AJeoul::BeginPlay()
@@ -116,6 +119,12 @@ bool AJeoul::HasBothPlayersOnPlate() const
 	return PlayerCount >= 2;
 }
 
+void AJeoul::SetupBlockingMesh(UStaticMeshComponent* Mesh, ECollisionResponse VisibilityResponse)
+{
+	Mesh->SetCollisionProfileName(TEXT("BlockAllDynamic"));
+	Mesh->SetCollisionResponseToChannel(ECC_Visibility, VisibilityResponse);
+}
+
 void AJeoul::OnCheckButtonPressed(bool bActivated)
 {
 	if (bActivated && HasAuthority() && CurrentState == EJeoulState::Idle)
@@ -158,18 +167,18 @@ float AJeoul::CalculateWeightOnPlate(UBoxComponent* InPlateTrigger)
 				}
 			}
 		}
-		// 플레이어가 저울판 위에 올라와 있고, 덤벨을 들고 있는 경우
-		// else if (APS3PlayerCharacter* PlayerChar = Cast<APS3PlayerCharacter>(Actor))
-		// {
-		// 	if (ADumbbell* HeldDumbbell = PlayerChar->GetHeldDumbbell()) // 또는 HeldDumbbell 멤버변수 접근
-		// 	{
-		// 		if (!CountedDumbbells.Contains(HeldDumbbell))
-		// 		{
-		// 			TotalWeight += HeldDumbbell->GetWeight();
-		// 			CountedDumbbells.Add(HeldDumbbell);
-		// 		}
-		// 	}
-		// }
+		//플레이어가 저울판 위에 올라와 있고, 덤벨을 들고 있는 경우
+		else if (APS3PlayerCharacter* PlayerChar = Cast<APS3PlayerCharacter>(Actor))
+		{
+			if (ADumbbell* HeldDumbbell = PlayerChar->GetHeldDumbbell()) // 또는 HeldDumbbell 멤버변수 접근
+			{
+				if (!CountedDumbbells.Contains(HeldDumbbell))
+				{
+					TotalWeight += HeldDumbbell->GetWeight();
+					CountedDumbbells.Add(HeldDumbbell);
+				}
+			}
+		}
 	}
 	return TotalWeight;
 }
