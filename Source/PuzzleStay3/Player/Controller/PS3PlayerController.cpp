@@ -29,14 +29,6 @@ APS3PlayerController::APS3PlayerController()
 	
 }
 
-void APS3PlayerController::SetVoiceSystemReady(const bool bReady)
-{
-	if (IsValid(VoiceComponent))
-	{
-		VoiceComponent->SetVoiceReady(bReady);
-	}
-}
-
 void APS3PlayerController::BeginPlay()
 {
 	Super::BeginPlay();
@@ -337,5 +329,23 @@ void APS3PlayerController::HandleVoiceStopped()
 	if (IsValid(VoiceComponent))
 	{
 		VoiceComponent->StopPushToTalk();
+	}
+}
+
+bool APS3PlayerController::InitializeVoiceSystem(const int32 LocalUserNum)
+{
+	if (!IsLocalController() || !IsValid(VoicePluginControlComponent))
+	{
+		return false;
+	}
+
+	return VoicePluginControlComponent->InitializeEOSVoice(LocalUserNum);
+}
+
+void APS3PlayerController::ShutdownVoiceSystem()
+{
+	if (IsValid(VoicePluginControlComponent))
+	{
+		VoicePluginControlComponent->ShutdownEOSVoice();
 	}
 }

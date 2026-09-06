@@ -25,10 +25,6 @@ public:
 	UFUNCTION(Client, Reliable)
 	void Client_PrepareForRespawn();
 
-	// EOS Voice Chat 등 외부 음성 시스템의 초기화 결과를 VoiceComponent에 전달
-	UFUNCTION(BlueprintCallable, Category = "PS3|Player Controller|Voice")
-	void SetVoiceSystemReady(bool bReady);
-
 protected:
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
@@ -67,6 +63,12 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PS3|Player Controller|UI", meta = (ClampMin = "1"))
 	int32 MaxLifeCountForUI = 4;
+	
+	UFUNCTION(BlueprintCallable, Category = "PS3|Player Controller|Voice")
+	bool InitializeVoiceSystem(int32 LocalUserNum = 0);
+
+	UFUNCTION(BlueprintCallable, Category = "PS3|Player Controller|Voice")
+	void ShutdownVoiceSystem();
 
 private:
 	UFUNCTION(Client, Reliable)
