@@ -15,6 +15,7 @@ void APS3PlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutL
 	DOREPLIFETIME(ThisClass, CurrentLifeCount);
 	DOREPLIFETIME(ThisClass, bIsDead);
 	DOREPLIFETIME(ThisClass, PlayerRole);
+	DOREPLIFETIME(ThisClass, PlayerIdentity);
 	DOREPLIFETIME(ThisClass, VoiceChatState);
 	DOREPLIFETIME(ThisClass, bIsVoiceObjectHeld);
 	DOREPLIFETIME(ThisClass, InteractionState);
@@ -57,6 +58,17 @@ void APS3PlayerState::SetPlayerRole(const EPS3PlayerRole NewRole)
 
 	PlayerRole = NewRole;
 	OnPlayerRoleChanged.Broadcast(PlayerRole);
+}
+
+void APS3PlayerState::SetPlayerIdentity(const EPS3PlayerIdentity NewIdentity)
+{
+	if (!HasAuthority() || PlayerIdentity == NewIdentity)
+	{
+		return;
+	}
+
+	PlayerIdentity = NewIdentity;
+	OnRep_PlayerIdentity();
 }
 
 void APS3PlayerState::SetInteractionState(const EInteractionState NewState)
@@ -162,6 +174,11 @@ void APS3PlayerState::OnRep_DeadChanged()
 void APS3PlayerState::OnRep_PlayerRole()
 {
 	OnPlayerRoleChanged.Broadcast(PlayerRole);
+}
+
+void APS3PlayerState::OnRep_PlayerIdentity()
+{
+	// 메시, 고정 무게 등 플레이어 식별값에 의존하는 로컬 처리는 이후 이곳에 연결합니다.
 }
 
 void APS3PlayerState::OnRep_VoiceChatState()

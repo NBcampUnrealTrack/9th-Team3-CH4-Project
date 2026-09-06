@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "Data/Enum/InteractionState.h"
+#include "Data/Enum/PS3PlayerIdentity.h"
 #include "Data/Enum/PS3PlayerRole.h"
 #include "Data/Enum/VoiceChatState.h"
 #include "GameFramework/PlayerState.h"
@@ -36,6 +37,9 @@ public:
 
 	UFUNCTION(BlueprintPure, Category = "PS3|Player State")
 	EPS3PlayerRole GetPlayerRole() const { return PlayerRole; }
+
+	UFUNCTION(BlueprintPure, Category = "PS3|Player State")
+	EPS3PlayerIdentity GetPlayerIdentity() const { return PlayerIdentity; }
 	
 	UFUNCTION(BlueprintPure, Category = "PS3|Player State|Voice")
 	EVoiceChatState GetVoiceChatState() const{ return VoiceChatState;}
@@ -58,6 +62,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category = "PS3|Player State")
 	void SetPlayerRole(EPS3PlayerRole NewRole);
+
+	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category = "PS3|Player State")
+	void SetPlayerIdentity(EPS3PlayerIdentity NewIdentity);
 
 	UPROPERTY(BlueprintAssignable, Category = "PS3|Player State|Events")
 	FPS3LifeCountChangedSignature OnLifeCountChanged;
@@ -111,6 +118,9 @@ protected:
 
 	UFUNCTION()
 	void OnRep_PlayerRole();
+
+	UFUNCTION()
+	void OnRep_PlayerIdentity();
 	
 	UFUNCTION()
 	void OnRep_VoiceChatState();
@@ -129,6 +139,9 @@ protected:
 
 	UPROPERTY(VisibleInstanceOnly, ReplicatedUsing = OnRep_PlayerRole, Category = "PS3|Player State")
 	EPS3PlayerRole PlayerRole = EPS3PlayerRole::Unassigned;
+
+	UPROPERTY(VisibleInstanceOnly, ReplicatedUsing = OnRep_PlayerIdentity, Category = "PS3|Player State")
+	EPS3PlayerIdentity PlayerIdentity = EPS3PlayerIdentity::Unassigned;
 	
 	UPROPERTY(VisibleInstanceOnly, ReplicatedUsing = OnRep_VoiceChatState, Category = "PS3|Player State|Voice")
 	EVoiceChatState VoiceChatState = EVoiceChatState::Default;
