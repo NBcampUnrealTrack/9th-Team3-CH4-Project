@@ -246,8 +246,10 @@ void APS3GameModeS5::OnInteractedEscapeDoor()
 	
 	int32 ScreenPlayerSpawnConditionCount = GoalEscapeDoorCount - (GoalEscapeDoorCount - 1);
 	
-	if (ActivatedEscapeDoorCount >= ScreenPlayerSpawnConditionCount)
+	if (ActivatedEscapeDoorCount >= ScreenPlayerSpawnConditionCount && bIsScreenPlayerSpawnedField == false)
 	{
+		TArray<APS3ScreenPlayerController*> TargetController;
+		
 		for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
 		{
 			APlayerController* PlayerController = It->Get();
@@ -256,7 +258,17 @@ void APS3GameModeS5::OnInteractedEscapeDoor()
 			auto* ScreenPlayerController = Cast<APS3ScreenPlayerController>(PlayerController);
 			if (IsValid(ScreenPlayerController) == false) continue;
 			
+			TargetController.Add(ScreenPlayerController);
+		}
+		
+		for (APS3ScreenPlayerController* ScreenPlayerController : TargetController)
+		{
+			if (IsValid(ScreenPlayerController) == false) continue;
+			
 			ConfigureControllerAndSpawn(ScreenPlayerController, S5_GameRuleDataAsset->SpawnScreenControllerClass);
+			bIsScreenPlayerSpawnedField = true;
+			
+			UE_LOG(LogTemp, Warning, TEXT("스크린컨트롤러스폰완료 됨"));
 		}
 	}
 	

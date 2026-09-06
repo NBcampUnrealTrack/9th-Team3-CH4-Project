@@ -55,13 +55,10 @@ public:
 	void OnReduceGameTime();
 	void OnTimeDeduction(float TimeToDeducted);
 
-	UFUNCTION(CallInEditor, Category = "Test")
 	void OnInteractedEscapeDoor();
 	void RandomInitializeEscapeDoor();
 	void OnCollectLoginUser();
 	int32 OnCollectEscapeDoor();
-	
-
 	
 public:
 	FOnIsGameStart OnIsGameStart;
@@ -82,8 +79,7 @@ protected:
 	int32 GoalEscapeDoorCount = 0;
 	int32 ActivatedEscapeDoorCount = 0;
 	
-private:
-	FName EscapeGimmickTagName = "EscapeGimmick" ;
+	bool bIsScreenPlayerSpawnedField = false;
 	
 
 };

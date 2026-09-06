@@ -40,7 +40,7 @@ void APS3GameStateS5::ReSpawnPlayer(APlayerController* TargetPlayerController)
 	if (HasAuthority() == true)
 	{
 		if (IsValid(TargetPlayerController) == false) return;
-		auto* PS3GameModeS5 = Cast<APS3GameModeS5>(GetWorld()->GetAuthGameMode());
+		auto* PS3GameModeS5 = GetCastPS3GameModeS5();
 		if (IsValid(PS3GameModeS5) == false) return;
 		
 		PS3GameModeS5->ReSpawnPlayer(TargetPlayerController);
@@ -116,7 +116,7 @@ void APS3GameStateS5::OnTimeDeduction(float TimeToDeducted)
 
 void APS3GameStateS5::StageRestart()
 {
-	auto* PS3GameModeS5 = Cast<APS3GameModeS5>(GetWorld()->GetAuthGameMode());
+	auto* PS3GameModeS5 =GetCastPS3GameModeS5();
 	if (IsValid(PS3GameModeS5) == false) return;
 	
 	PS3GameModeS5->StageRestart();
@@ -128,12 +128,28 @@ void APS3GameStateS5::OnQuitGame()
 	APlayerController* CurrentPlayer = GetWorld()->GetFirstPlayerController();
 	if (CurrentPlayer == nullptr) return;
 	
-	auto* PS3GameModeS5 = Cast<APS3GameModeS5>(GetWorld()->GetAuthGameMode());
+	auto* PS3GameModeS5 = GetCastPS3GameModeS5();
 	if (IsValid(PS3GameModeS5) == false) return;
 		
 	PS3GameModeS5->OnQuitGame();
 }
 
-
+APS3GameModeS5* APS3GameStateS5::GetCastPS3GameModeS5()
+{
+	if (IsValid(GetOwner()) == false) return nullptr;
+	
+	if (GetOwner()->HasAuthority() == true)
+	{
+		UWorld* World = GetWorld();
+		if (World == nullptr) return nullptr;
+		
+		if (IsValid(CastPS3GameModeS5) == false) return nullptr;
+		
+		CastPS3GameModeS5 = Cast<APS3GameModeS5>(World->GetAuthGameMode());
+		return CastPS3GameModeS5;
+	}
+	
+	return nullptr;
+}
 
 

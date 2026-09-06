@@ -6,6 +6,7 @@
 #include "PS3GameStateS5.generated.h"
 
 
+class APS3GameModeS5;
 /**
  * 
  */
@@ -48,6 +49,9 @@ public:
 	
 	UPROPERTY(ReplicatedUsing = OnRep_IsGameOver)
 	bool bIsGameOver = false;
+	
+	UPROPERTY()
+	TObjectPtr<APS3GameModeS5> CastPS3GameModeS5;
 
 protected:
 	UFUNCTION()
@@ -58,4 +62,6 @@ protected:
 	void OnRep_GameLimitTime();
 	void SetDeductGameLimitTime_AuthorityOnRep(float TimeToDeducted);
 	
+	
+	APS3GameModeS5* GetCastPS3GameModeS5();
 };

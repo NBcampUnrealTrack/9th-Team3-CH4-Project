@@ -43,7 +43,7 @@ protected:
 	
 protected:
 	UPROPERTY()
-	TObjectPtr<APS3GameModeS5> PS3GameModeS5;
+	TObjectPtr<APS3GameModeS5> CastPS3GameModeS5;
 	
 	UPROPERTY()
 	TArray<TObjectPtr<AActor>> OverlappedCharacters;
