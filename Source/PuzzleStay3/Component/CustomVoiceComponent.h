@@ -39,6 +39,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Voice")
 	void SetVoiceReady(bool bReady);
 
+	UFUNCTION(BlueprintPure, Category = "Voice")
+	bool IsVoiceReady() const { return bVoiceReady; }
+
 	// PlayerState 또는 게임 진행 코드에서 전달한 보이스 상태를 로컬 음성 시스템에 적용
 	UFUNCTION(BlueprintCallable, Category = "Voice")
 	void SetVoiceChatState(EVoiceChatState NewState);

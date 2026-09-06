@@ -19,6 +19,10 @@ public:
 	APS3PlayerController();
 	virtual void ReceivedPlayer() override;
 
+	// EOS Voice Chat 등 외부 음성 시스템의 초기화 결과를 VoiceComponent에 전달
+	UFUNCTION(BlueprintCallable, Category = "PS3|Player Controller|Voice")
+	void SetVoiceSystemReady(bool bReady);
+
 protected:
 	virtual void BeginPlay() override;
 	virtual void SetupInputComponent() override;

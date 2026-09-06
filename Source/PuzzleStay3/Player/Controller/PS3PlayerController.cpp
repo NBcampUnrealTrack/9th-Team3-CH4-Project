@@ -26,6 +26,14 @@ APS3PlayerController::APS3PlayerController()
 	
 }
 
+void APS3PlayerController::SetVoiceSystemReady(const bool bReady)
+{
+	if (IsValid(VoiceComponent))
+	{
+		VoiceComponent->SetVoiceReady(bReady);
+	}
+}
+
 void APS3PlayerController::BeginPlay()
 {
 	Super::BeginPlay();
