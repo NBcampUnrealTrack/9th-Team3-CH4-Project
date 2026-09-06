@@ -8,6 +8,9 @@
 #include "Component/CustomVoiceComponent.h"
 #include "Component/VoicePluginControlComponent.h"
 #include "Player/PlayerState/PS3PlayerState.h"
+#include "TimerManager.h"
+#include "UI/HUD/PlayerHUD.h"
+#include "UI/ViewModel/PS3ViewModel.h"
 
 
 APS3PlayerController::APS3PlayerController()
@@ -39,7 +42,34 @@ void APS3PlayerController::BeginPlay()
 	Super::BeginPlay();
 	ConfigureLocalInput();
 	RefreshVoiceStateBinding();
+	RefreshLifeStateBinding();
 
+	if (IsLocalController())
+	{
+		GetWorldTimerManager().SetTimer(
+			LifeUIInitializationTimerHandle,
+			this,
+			&ThisClass::RefreshLifeStateBinding,
+			0.5f,
+			false);
+	}
+
+}
+
+void APS3PlayerController::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	GetWorldTimerManager().ClearTimer(LifeUIInitializationTimerHandle);
+
+	if (IsValid(BoundLifePlayerState))
+	{
+		BoundLifePlayerState->OnLifeCountChanged.RemoveDynamic(
+			this,
+			&ThisClass::HandleLifeCountChanged);
+	}
+
+	BoundLifePlayerState = nullptr;
+
+	Super::EndPlay(EndPlayReason);
 }
 
 void APS3PlayerController::ReceivedPlayer()
@@ -47,6 +77,7 @@ void APS3PlayerController::ReceivedPlayer()
 	Super::ReceivedPlayer();
 	ConfigureLocalInput();
 	RefreshVoiceStateBinding();
+	RefreshLifeStateBinding();
 
 }
 
@@ -55,6 +86,7 @@ void APS3PlayerController::OnRep_PlayerState()
 	Super::OnRep_PlayerState();
 
 	RefreshVoiceStateBinding();
+	RefreshLifeStateBinding();
 }
 
 void APS3PlayerController::RefreshVoiceStateBinding()
@@ -67,6 +99,63 @@ void APS3PlayerController::RefreshVoiceStateBinding()
 	VoiceComponent->BindPlayerState(
 		GetPlayerState<APS3PlayerState>()
 	);
+}
+
+void APS3PlayerController::RefreshLifeStateBinding()
+{
+	if (!IsLocalController())
+	{
+		return;
+	}
+
+	APS3PlayerState* NewPlayerState =
+		GetPlayerState<APS3PlayerState>();
+
+	if (BoundLifePlayerState != NewPlayerState)
+	{
+		if (IsValid(BoundLifePlayerState))
+		{
+			BoundLifePlayerState->OnLifeCountChanged.RemoveDynamic(
+				this,
+				&ThisClass::HandleLifeCountChanged);
+		}
+
+		BoundLifePlayerState = NewPlayerState;
+
+		if (IsValid(BoundLifePlayerState))
+		{
+			BoundLifePlayerState->OnLifeCountChanged.AddUniqueDynamic(
+				this,
+				&ThisClass::HandleLifeCountChanged);
+		}
+	}
+
+	if (IsValid(BoundLifePlayerState))
+	{
+		HandleLifeCountChanged(
+			BoundLifePlayerState->GetCurrentLifeCount());
+	}
+}
+
+UPS3ViewModel* APS3PlayerController::GetPS3ViewModel() const
+{
+	const APlayerHUD* PlayerHUD = Cast<APlayerHUD>(GetHUD());
+	return IsValid(PlayerHUD) ? PlayerHUD->GetViewModel() : nullptr;
+}
+
+void APS3PlayerController::HandleLifeCountChanged(const int32 NewLifeCount)
+{
+	if (!IsLocalController())
+	{
+		return;
+	}
+
+	if (UPS3ViewModel* ViewModel = GetPS3ViewModel())
+	{
+		ViewModel->RequestUpdateLifeCount(
+			NewLifeCount,
+			MaxLifeCountForUI);
+	}
 }
 
 void APS3PlayerController::ConfigureLocalInput()
