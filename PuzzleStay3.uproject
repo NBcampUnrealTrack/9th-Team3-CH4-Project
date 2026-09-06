@@ -32,10 +32,6 @@
 		{
 			"Name": "EOSVoiceChat",
 			"Enabled": true
-		},
-		{
-			"Name": "VoiceChat",
-			"Enabled": true
 		}
 	]
 }
