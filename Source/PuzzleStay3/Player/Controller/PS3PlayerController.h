@@ -21,6 +21,10 @@ public:
 	APS3PlayerController();
 	virtual void ReceivedPlayer() override;
 
+	// 리스폰 직전에 소유 클라이언트의 입력과 PTT를 정리합니다.
+	UFUNCTION(Client, Reliable)
+	void Client_PrepareForRespawn();
+
 	// EOS Voice Chat 등 외부 음성 시스템의 초기화 결과를 VoiceComponent에 전달
 	UFUNCTION(BlueprintCallable, Category = "PS3|Player Controller|Voice")
 	void SetVoiceSystemReady(bool bReady);
@@ -28,6 +32,7 @@ public:
 protected:
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+	virtual void OnPossess(APawn* InPawn) override;
 	virtual void SetupInputComponent() override;
 	virtual void OnRep_PlayerState() override;
 
@@ -64,6 +69,9 @@ protected:
 	int32 MaxLifeCountForUI = 4;
 
 private:
+	UFUNCTION(Client, Reliable)
+	void Client_RestoreAfterRespawn();
+
 	void ConfigureLocalInput();
 	void RefreshVoiceStateBinding();
 	void RefreshLifeStateBinding();

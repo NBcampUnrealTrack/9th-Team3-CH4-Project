@@ -72,6 +72,51 @@ void APS3PlayerController::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	Super::EndPlay(EndPlayReason);
 }
 
+void APS3PlayerController::OnPossess(APawn* InPawn)
+{
+	Super::OnPossess(InPawn);
+
+	if (APS3PlayerState* PS3PlayerState = GetPlayerState<APS3PlayerState>())
+	{
+		if (PS3PlayerState->IsRespawning())
+		{
+			PS3PlayerState->FinishRespawn();
+		}
+	}
+
+	Client_RestoreAfterRespawn();
+}
+
+void APS3PlayerController::Client_PrepareForRespawn_Implementation()
+{
+	if (!IsLocalController())
+	{
+		return;
+	}
+
+	SetIgnoreMoveInput(true);
+	SetIgnoreLookInput(true);
+
+	if (IsValid(VoiceComponent))
+	{
+		VoiceComponent->StopPushToTalk();
+	}
+}
+
+void APS3PlayerController::Client_RestoreAfterRespawn_Implementation()
+{
+	if (!IsLocalController())
+	{
+		return;
+	}
+
+	ResetIgnoreMoveInput();
+	ResetIgnoreLookInput();
+	ConfigureLocalInput();
+	RefreshVoiceStateBinding();
+	RefreshLifeStateBinding();
+}
+
 void APS3PlayerController::ReceivedPlayer()
 {
 	Super::ReceivedPlayer();
