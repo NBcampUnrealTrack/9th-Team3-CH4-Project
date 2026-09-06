@@ -1,6 +1,7 @@
 
 #pragma once
 
+#include "Data/Enum/PS3PlayerIdentity.h"
 #include "GameFramework/Character.h"
 #include "PS3PlayerCharacter.generated.h"
 
@@ -42,9 +43,19 @@ public:
 
 	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category = "PS3|Character|Respawn")
 	void PrepareForRespawn();
+
+	// PlayerState가 준비되거나 P1/P2 식별값이 변경됐을 때 외형을 다시 적용
+	void RefreshPlayerIdentityVisual();
 	
 
 protected:
+	virtual void PossessedBy(AController* NewController) override;
+	virtual void OnRep_PlayerState() override;
+
+	// 실제 메시/Cosmetic 적용은 Character Blueprint에서 구현
+	UFUNCTION(BlueprintImplementableEvent, Category = "PS3|Character|Visual", meta = (DisplayName = "Apply Player Identity Visual"))
+	void BP_ApplyPlayerIdentityVisual(EPS3PlayerIdentity PlayerIdentity);
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "PS3|Character|Components")
 	TObjectPtr<USpringArmComponent> SpringArm;
 

@@ -1,6 +1,7 @@
 #include "PS3PlayerState.h"
 #include "GameFramework/PlayerController.h"
 #include "Net/UnrealNetwork.h"
+#include "Player/Character/PS3PlayerCharacter.h"
 
 
 APS3PlayerState::APS3PlayerState()
@@ -178,7 +179,10 @@ void APS3PlayerState::OnRep_PlayerRole()
 
 void APS3PlayerState::OnRep_PlayerIdentity()
 {
-	// 메시, 고정 무게 등 플레이어 식별값에 의존하는 로컬 처리는 이후 이곳에 연결합니다.
+	if (APS3PlayerCharacter* PlayerCharacter = Cast<APS3PlayerCharacter>(GetPawn()))
+	{
+		PlayerCharacter->RefreshPlayerIdentityVisual();
+	}
 }
 
 void APS3PlayerState::OnRep_VoiceChatState()
