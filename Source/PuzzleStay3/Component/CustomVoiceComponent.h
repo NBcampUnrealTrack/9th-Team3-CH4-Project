@@ -39,6 +39,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Voice")
 	void SetVoiceReady(bool bReady);
 
+	// PlayerState 또는 게임 진행 코드에서 전달한 보이스 상태를 로컬 음성 시스템에 적용
+	UFUNCTION(BlueprintCallable, Category = "Voice")
+	void SetVoiceChatState(EVoiceChatState NewState);
+
 	UFUNCTION(BlueprintPure, Category = "Voice")
 	bool IsMicrophoneMuted() const { return bMicrophoneMuted; }
 
@@ -59,9 +63,6 @@ protected:
 		const EEndPlayReason::Type EndPlayReason) override;
 
 private:
-	UFUNCTION()
-	void HandleVoiceChatStateChanged(EVoiceChatState NewState);
-
 	void UnbindPlayerState();
 	bool SetVoiceObjectHeld(bool bNewIsHeld);
 	void UpdateTransmission();

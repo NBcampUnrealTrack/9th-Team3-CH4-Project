@@ -45,17 +45,17 @@ void UCustomVoiceComponent::BindPlayerState(
 
 	if (!IsValid(BoundPlayerState))
 	{
-		HandleVoiceChatStateChanged(EVoiceChatState::Inactive);
+		SetVoiceChatState(EVoiceChatState::Inactive);
 		return;
 	}
 
 	BoundPlayerState->OnVoiceChatStateChanged.AddUniqueDynamic(
 		this,
-		&ThisClass::HandleVoiceChatStateChanged
+		&ThisClass::SetVoiceChatState
 	);
 
 	// 바인딩 전에 이미 복제된 상태도 즉시 반영
-	HandleVoiceChatStateChanged(
+	SetVoiceChatState(
 		BoundPlayerState->GetVoiceChatState()
 	);
 }
@@ -66,7 +66,7 @@ void UCustomVoiceComponent::UnbindPlayerState()
 	{
 		BoundPlayerState->OnVoiceChatStateChanged.RemoveDynamic(
 			this,
-			&ThisClass::HandleVoiceChatStateChanged
+			&ThisClass::SetVoiceChatState
 		);
 	}
 
@@ -113,7 +113,7 @@ bool UCustomVoiceComponent::SetVoiceObjectHeld(
 	return true;
 }
 
-void UCustomVoiceComponent::HandleVoiceChatStateChanged(
+void UCustomVoiceComponent::SetVoiceChatState(
 	const EVoiceChatState NewState
 )
 {
