@@ -85,7 +85,7 @@ bool APS3PlayerState::TryConsumeLife()
 	}
 	
 	bIsRespawning = true;
-	AController* TargetController = Cast<AController>(GetOwner());
+	APlayerController* TargetController = Cast<APlayerController>(GetOwner());
 	
 	if (!IsValid(TargetController))
 	{
