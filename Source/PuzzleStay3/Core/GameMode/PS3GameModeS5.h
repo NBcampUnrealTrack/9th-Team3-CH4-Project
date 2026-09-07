@@ -10,6 +10,8 @@ class APS3PlayerCharacter;
 enum class EPS3PlayerRole : uint8;
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnIsGameStart, bool)
+DECLARE_MULTICAST_DELEGATE(FOnScreenPlayerSpawned)
+DECLARE_MULTICAST_DELEGATE(FOnStageClear)
 UCLASS()
 class PUZZLESTAY3_API APS3GameModeS5 : public APS3GameModeBase
 {
@@ -55,6 +57,7 @@ public:
 	void OnReduceGameTime();
 	void OnTimeDeduction(float TimeToDeducted);
 
+	UFUNCTION(BlueprintCallable)
 	void OnInteractedEscapeDoor();
 	void RandomInitializeEscapeDoor();
 	void OnCollectLoginUser();
@@ -62,6 +65,8 @@ public:
 	
 public:
 	FOnIsGameStart OnIsGameStart;
+	FOnStageClear OnStageClear;
+	FOnScreenPlayerSpawned OnScreenPlayerSpawned;
 	
 	int32 RoleSelectedPlayerCount = 0;
 	int32 MaxPlayerCount = 2;

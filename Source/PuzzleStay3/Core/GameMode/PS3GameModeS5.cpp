@@ -268,12 +268,16 @@ void APS3GameModeS5::OnInteractedEscapeDoor()
 			ConfigureControllerAndSpawn(ScreenPlayerController, S5_GameRuleDataAsset->SpawnScreenControllerClass);
 			bIsScreenPlayerSpawnedField = true;
 			
+			OnScreenPlayerSpawned.Broadcast();
+			
 			UE_LOG(LogTemp, Warning, TEXT("스크린컨트롤러스폰완료 됨"));
 		}
 	}
 	
 	if (ActivatedEscapeDoorCount >= GoalEscapeDoorCount)
 	{
+		OnStageClear.Broadcast();
+		
 		//TODO 다음스테이지 입장하는 부분 구현해야함
 		UE_LOG(LogTemp, Warning, TEXT("구현 예정 기능 예시) 5초 뒤 다음 스테이지 입장."));
 	}
