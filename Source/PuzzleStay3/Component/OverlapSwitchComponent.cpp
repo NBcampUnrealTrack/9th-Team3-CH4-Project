@@ -15,55 +15,25 @@ void UOverlapSwitchComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// 서버 권한일 때 GameMode에 자동 등록
-	// if (GetOwner() && GetOwner()->HasAuthority())
-	// {
-	// 	if (UWorld* World = GetWorld())
-	// 	{
-	// 		if (APS3GameModeBase* GM = Cast<APS3GameModeBase>(World->GetAuthGameMode()))
-	// 		{
-	// 			GM->RegisterOverlapSwitch(this); // GameMode에 이 함수를 만들어두어야 합니다.
-	// 		}
-	// 	}
-	// }
-
-	// C++로만 오버랩 이벤트를 자동으로 바인딩하는 핵심 로직
 	AActor* Owner = GetOwner();
 	if (Owner)
 	{
-		// Owner 액터에 붙어있는 RootComponent 또는 첫 번째 PrimitiveComponent(Collision, Box 등)를 찾음
-		UPrimitiveComponent* PrimitiveComp = Cast<UPrimitiveComponent>(Owner->GetRootComponent());
-		if (!PrimitiveComp)
+		TArray<UPrimitiveComponent*> PrimitiveComps;
+		Owner->GetComponents<UPrimitiveComponent>(PrimitiveComps);
+		
+		for (UPrimitiveComponent* PrimComp : PrimitiveComps)
 		{
-			PrimitiveComp = Owner->FindComponentByClass<UPrimitiveComponent>();
-		}
-		if (PrimitiveComp)
-		{
-			// test dnjsqls
-			PrimitiveComp->SetHiddenInGame(false);
+			if (PrimComp)
+			{
+				// test dnjsqls
+				PrimComp->SetHiddenInGame(false);
 
-			// C++ 이벤트 바인딩 (AddDynamic)
-			PrimitiveComp->OnComponentBeginOverlap.AddDynamic(this, &UOverlapSwitchComponent::OnOwnerBeginOverlap);
-			PrimitiveComp->OnComponentEndOverlap.AddDynamic(this, &UOverlapSwitchComponent::OnOwnerEndOverlap);
+				// C++ 이벤트 바인딩 (AddDynamic)
+				PrimComp->OnComponentBeginOverlap.AddDynamic(this, &UOverlapSwitchComponent::OnOwnerBeginOverlap);
+				PrimComp->OnComponentEndOverlap.AddDynamic(this, &UOverlapSwitchComponent::OnOwnerEndOverlap);
+			}
 		}
 	}
-}
-
-void UOverlapSwitchComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
-{
-	// 서버 권한일 때 GameMode에서 자동 해제
-	// if (GetOwner() && GetOwner()->HasAuthority())
-	// {
-	// 	if (UWorld* World = GetWorld())
-	// 	{
-	// 		if (APS3GameModeBase* GM = Cast<APS3GameModeBase>(World->GetAuthGameMode()))
-	// 		{
-	// 			GM->UnregisterOverlapSwitch(this);
-	// 		}
-	// 	}
-	// }
-
-	Super::EndPlay(EndPlayReason);
 }
 
 void UOverlapSwitchComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -82,10 +52,10 @@ bool UOverlapSwitchComponent::IsValidOverlapActor(AActor* TargetActor) const
 	}
 
 	// 캐릭터(플레이어) 감지
-	// if (TargetActor->IsA<ACharacter>())
-	// {
-	// 	return true;
-	// }
+	if (TargetActor->IsA<ACharacter>())
+	{
+		return true;
+	}
 
 	// Dumbbell 감지
 	if (TargetActor->IsA<ADumbbell>())

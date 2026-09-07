@@ -1,7 +1,9 @@
 #include "Object/Door.h"
 
+#include "Component/OverlapSwitchComponent.h"
 #include "Core/GameMode/PS3GameModeBase.h"
 #include "Core/GameState/PS3GameStateBase.h"
+#include "Core/GameState/PS3GameStateS1.h"
 #include "Core/GameState/PS3GameStateS4.h"
 #include "Net/UnrealNetwork.h"
 
@@ -27,6 +29,17 @@ void ADoor::BeginPlay()
 	{
 		if (UWorld* World = GetWorld())
 		{
+			// ★ [직통 테스트 연동] TargetPressurePlateActor가 에디터에서 지정되어 있다면 직접 바인딩
+			if (IsValid(TargetPressurePlateActor))
+			{
+				UOverlapSwitchComponent* OverlapComp = TargetPressurePlateActor->FindComponentByClass<UOverlapSwitchComponent>();
+				if (IsValid(OverlapComp))
+				{
+					OverlapComp->OnOverlapStateChanged.AddUObject(this, &ADoor::OnDirectOverlapStateChanged);
+					UE_LOG(LogTemp, Warning, TEXT("[Door] %s 문과 %s 발판의 OverlapSwitchComponent 직통 바인딩 성공!"), *GetName(), *TargetPressurePlateActor->GetName());
+				}
+			}
+			
 			switch (DoorType)
 			{
 			// 1. 전 스테이지 공통 최종 탈출문
@@ -45,14 +58,11 @@ void ADoor::BeginPlay()
 
 			// 2. Stage 1 일반문
 			case EDoorType::Stage1NormalDoor:
-				// TODO: Stage 1 전용 GameState(예: APS3GameStateS1)의 문 열림 델리게이트 연동
-				/*
 				if (APS3GameStateS1* GS = World->GetGameState<APS3GameStateS1>())
 				{
-					GS->OnStage1DoorOpenedChanged.AddDynamic(this, &ADoor::OnOpenDoor);
-					if (GS->IsStage1DoorOpened()) OnOpenDoor(true);
+					//GS->OnStage1DoorStateChanged.AddDynamic(this, &ADoor::OnStage1DoorStateChanged);
+					UE_LOG(LogTemp, Warning, TEXT("[Door] Stage1NormalDoor (ID: %d) 델리게이트 바인딩 완료!"), DoorID);
 				}
-				*/
 				UE_LOG(LogTemp, Warning, TEXT("[Door] Stage1NormalDoor 세팅됨 (GameStateS1 연동 준비 완료)"));
 				break;
 
@@ -112,6 +122,25 @@ void ADoor::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimePro
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(ADoor, bIsOpen);
+}
+
+// ★ 직접 바인딩 수신 콜백
+void ADoor::OnDirectOverlapStateChanged(bool bIsOverlapped)
+{
+	if (!HasAuthority()) return;
+
+	bIsOpen = bIsOverlapped;
+	UE_LOG(LogTemp, Warning, TEXT("[Door] 테스트 직통 반응: bIsOpen = %s"), bIsOpen ? TEXT("True") : TEXT("False"));
+}
+
+void ADoor::OnStage1DoorStateChanged(int32 InDoorID, bool bOpened)
+{
+	// 내 DoorID와 일치할 때만 문 동작
+	if (DoorID == InDoorID)
+	{
+		bIsOpen = bOpened;
+		UE_LOG(LogTemp, Warning, TEXT("[Door] Stage 1 DoorID %d번 문 상태 변경: %s"), DoorID, bIsOpen ? TEXT("Open") : TEXT("Close"));
+	}
 }
 
 void ADoor::OnOpenDoor(bool bOpened)
