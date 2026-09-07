@@ -1,15 +1,12 @@
 #include "Object/Jeoul.h"
-
 #include "Dumbbell.h"
 #include "Camera/CameraComponent.h"
 #include "Component/InteractionSwitchComponent.h"
 #include "Components/BoxComponent.h"
-#include "Core/GameMode/PS3GameModeBase.h"
 #include "Core/GameMode/PS3GameModeS4.h"
 #include "Core/GameState/PS3GameStateBase.h"
 #include "Core/GameState/PS3GameStateS4.h"
 #include "GameFramework/Character.h"
-#include "GameFramework/PlayerState.h"
 #include "Net/UnrealNetwork.h"
 #include "Player/Character/PS3PlayerCharacter.h"
 
@@ -57,6 +54,29 @@ AJeoul::AJeoul()
 	SetupBlockingMesh(JeoulBaseMesh, ECR_Ignore);
 	SetupBlockingMesh(JeoulBeamMesh, ECR_Ignore);
 	SetupBlockingMesh(CheckButtonMesh, ECR_Block);
+}
+
+bool AJeoul::CanInteract_Implementation(AActor* Requestor) const
+{
+	// 저울이 대기(Idle) 상태일 때만 버튼 조작 가능
+	return CurrentState == EJeoulState::Idle;
+}
+
+bool AJeoul::Interact_Implementation(AActor* Requestor)
+{
+	if (!HasAuthority())
+	{
+		return false;
+	}
+
+	if (!CanInteract_Implementation(Requestor))
+	{
+		return false;
+	}
+
+	// 검증 통과 시 저울 무게 체크 서버 로직 작동
+	Server_CheckBalance();
+	return true;
 }
 
 void AJeoul::BeginPlay()
