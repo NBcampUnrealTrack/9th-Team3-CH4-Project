@@ -7,6 +7,8 @@
 
 
 class APS3GameModeS5;
+
+DECLARE_MULTICAST_DELEGATE(FOnStageClear)
 /**
  * 
  */
@@ -52,6 +54,8 @@ public:
 	
 	UPROPERTY()
 	TObjectPtr<APS3GameModeS5> CastPS3GameModeS5;
+	
+	FOnStageClear OnStageClear;
 
 protected:
 	UFUNCTION()
@@ -61,7 +65,6 @@ protected:
 	UFUNCTION()
 	void OnRep_GameLimitTime();
 	void SetDeductGameLimitTime_AuthorityOnRep(float TimeToDeducted);
-	
 	
 	APS3GameModeS5* GetCastPS3GameModeS5();
 };
