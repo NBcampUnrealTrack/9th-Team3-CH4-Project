@@ -51,10 +51,11 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "ControlDoor|Settings")
 	FVector TargetLocation = FVector(0.f, 0.f, -200.f);
 	
+	UPROPERTY(Replicated)
+	bool bIsEscapeDoorOpen = false;
 	
-	FVector StartLocation;
+	UPROPERTY(Replicated)
 	bool bIsDoorOpen = false;
-	
 
 	UFUNCTION()
 	void OnTimelineUpdate(float Value);
@@ -62,6 +63,13 @@ protected:
 	UFUNCTION()
 	void OnTimelineFinished();
 	
-	UPROPERTY(Replicated)
-	bool bIsEscapeDoorOpen = false;
+	UFUNCTION(NetMulticast, Reliable)
+	void NetMultiRPC_OnScreenPlayerSpawned();
+	
+	UFUNCTION(BlueprintCallable)
+	void OnScreenPlayerSpawned();
+
+		
+	FVector StartLocation;
+	
 };

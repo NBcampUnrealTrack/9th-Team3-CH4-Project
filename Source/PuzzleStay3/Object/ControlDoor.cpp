@@ -2,6 +2,7 @@
 
 #include "Components/BoxComponent.h"
 #include "Components/TimelineComponent.h"
+#include "Core/GameMode/PS3GameModeS5.h"
 #include "Net/UnrealNetwork.h"
 
 
@@ -28,8 +29,7 @@ void AControlDoor::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	if (IsValid(DoorMesh) == false) return;
-	if (IsValid(DoorTimelineComp) == true && IsValid(DoorTimeLineCurve) == true)
+	if (IsValid(DoorMesh) == true && IsValid(DoorTimelineComp) == true && IsValid(DoorTimeLineCurve) == true)
 	{
 		FOnTimelineFloat OnTimelineUpdate;
 		OnTimelineUpdate.BindUFunction(this, FName("OnTimelineUpdate"));
@@ -41,6 +41,14 @@ void AControlDoor::BeginPlay()
 
 		StartLocation = DoorMesh->GetRelativeLocation();
 	}
+	
+	if (HasAuthority() == true)
+	{
+		auto* PS3GameModeS5 = Cast<APS3GameModeS5>(GetWorld()->GetAuthGameMode());
+		if (IsValid(PS3GameModeS5) == false) return;
+		
+		PS3GameModeS5->OnScreenPlayerSpawned.AddUObject(this, &ThisClass::OnScreenPlayerSpawned);
+	}
 }
 
 
@@ -49,6 +57,7 @@ void AControlDoor::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(ThisClass, bIsEscapeDoorOpen);
+	DOREPLIFETIME(ThisClass, bIsDoorOpen);
 }
 
 
@@ -111,8 +120,24 @@ void AControlDoor::OnTimelineFinished()
 		BlockingVolumeComp->SetCollisionResponseToAllChannels(ECR_Block);
 		UE_LOG(LogTemp, Warning, TEXT("문이 열리지않았거나 열리는중, 통행 불가능"));
 	}
+}
+
+void AControlDoor::OnScreenPlayerSpawned()
+{
+	if (HasAuthority() == true)
+	{
+		bIsDoorOpen = true;
+		NetMultiRPC_OnScreenPlayerSpawned();
+	}
+}
+
+void AControlDoor::NetMultiRPC_OnScreenPlayerSpawned_Implementation()
+{
+	if (IsValid(DoorTimelineComp) == false) return;
+	DoorTimelineComp->Play();
 	
 }
+
 
 
 
