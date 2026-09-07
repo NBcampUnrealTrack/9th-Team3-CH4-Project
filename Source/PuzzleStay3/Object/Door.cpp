@@ -1,5 +1,4 @@
 #include "Object/Door.h"
-
 #include "Component/OverlapSwitchComponent.h"
 #include "Core/GameMode/PS3GameModeBase.h"
 #include "Core/GameState/PS3GameStateBase.h"
@@ -27,22 +26,27 @@ void ADoor::BeginPlay()
 
 	if (HasAuthority())
 	{
+		// =========================================================================
+		// TODO: [테스트용 직통 연동] GameState 미사용 시 사용 / 정식 빌드 전환 시 이 블록을 주석 처리하세요.
+		// =========================================================================
+		if (IsValid(TargetPressurePlateActor))
+		{
+			UOverlapSwitchComponent* OverlapComp = TargetPressurePlateActor->FindComponentByClass<
+				UOverlapSwitchComponent>();
+			if (IsValid(OverlapComp))
+			{
+				OverlapComp->OnOverlapStateChanged.AddUObject(this, &ADoor::OnDirectOverlapStateChanged);
+				UE_LOG(LogTemp, Warning, TEXT("[Door] %s 문과 %s 발판 Direct 바인딩 성공!"), *GetName(),
+				       *TargetPressurePlateActor->GetName());
+			}
+		}
+		// =========================================================================
+
 		if (UWorld* World = GetWorld())
 		{
-			// ★ [직통 테스트 연동] TargetPressurePlateActor가 에디터에서 지정되어 있다면 직접 바인딩
-			if (IsValid(TargetPressurePlateActor))
-			{
-				UOverlapSwitchComponent* OverlapComp = TargetPressurePlateActor->FindComponentByClass<UOverlapSwitchComponent>();
-				if (IsValid(OverlapComp))
-				{
-					OverlapComp->OnOverlapStateChanged.AddUObject(this, &ADoor::OnDirectOverlapStateChanged);
-					UE_LOG(LogTemp, Warning, TEXT("[Door] %s 문과 %s 발판의 OverlapSwitchComponent 직통 바인딩 성공!"), *GetName(), *TargetPressurePlateActor->GetName());
-				}
-			}
-			
 			switch (DoorType)
 			{
-			// 1. 전 스테이지 공통 최종 탈출문
+			// 전 스테이지 공통 최종 탈출문
 			case EDoorType::StageAllFinalDoor:
 				if (APS3GameStateBase* GS = World->GetGameState<APS3GameStateBase>())
 				{
@@ -56,17 +60,16 @@ void ADoor::BeginPlay()
 				}
 				break;
 
-			// 2. Stage 1 일반문
+			// Stage 1 일반문
 			case EDoorType::Stage1NormalDoor:
 				if (APS3GameStateS1* GS = World->GetGameState<APS3GameStateS1>())
 				{
 					//GS->OnStage1DoorStateChanged.AddDynamic(this, &ADoor::OnStage1DoorStateChanged);
 					UE_LOG(LogTemp, Warning, TEXT("[Door] Stage1NormalDoor (ID: %d) 델리게이트 바인딩 완료!"), DoorID);
 				}
-				UE_LOG(LogTemp, Warning, TEXT("[Door] Stage1NormalDoor 세팅됨 (GameStateS1 연동 준비 완료)"));
 				break;
 
-			// 3. Stage 4 첫 번째 문 (저울 기믹 완료 문)
+			// Stage 4 첫 번째 문 (저울 기믹 완료 문)
 			case EDoorType::Stage4FirstDoor:
 				if (APS3GameStateS4* GS = World->GetGameState<APS3GameStateS4>())
 				{
@@ -80,7 +83,7 @@ void ADoor::BeginPlay()
 				}
 				break;
 
-			// 4. Stage 5 일반문
+			// Stage 5 일반문
 			case EDoorType::Stage5NormalDoor:
 				// TODO: Stage 5 전용 GameState(예: APS3GameStateS5)의 문 열림 델리게이트 연동
 				/*
@@ -104,16 +107,15 @@ void ADoor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (bIsOpen)
-	{
-		FVector TargetPos = InitialRelativeLocation + TargetRelativeLocation;
-		FVector CurrentPos = DoorMesh->GetRelativeLocation();
+	// 열림/닫힘 목표 위치 계산
+	FVector TargetPos = bIsOpen ? (InitialRelativeLocation + TargetRelativeLocation) : InitialRelativeLocation;
+	FVector CurrentPos = DoorMesh->GetRelativeLocation();
 
-		if (!CurrentPos.Equals(TargetPos, 1.0f))
-		{
-			FVector NewPos = FMath::VInterpTo(CurrentPos, TargetPos, DeltaTime, OpenSpeed);
-			DoorMesh->SetRelativeLocation(NewPos);
-		}
+	// Smooth Interp 문 이동 (열림 & 닫힘 모두 작동)
+	if (!CurrentPos.Equals(TargetPos, 1.0f))
+	{
+		FVector NewPos = FMath::VInterpTo(CurrentPos, TargetPos, DeltaTime, OpenSpeed);
+		DoorMesh->SetRelativeLocation(NewPos);
 	}
 }
 
@@ -124,7 +126,7 @@ void ADoor::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimePro
 	DOREPLIFETIME(ADoor, bIsOpen);
 }
 
-// ★ 직접 바인딩 수신 콜백
+// 직통 발판 바인딩 수신 콜백
 void ADoor::OnDirectOverlapStateChanged(bool bIsOverlapped)
 {
 	if (!HasAuthority()) return;
@@ -135,11 +137,12 @@ void ADoor::OnDirectOverlapStateChanged(bool bIsOverlapped)
 
 void ADoor::OnStage1DoorStateChanged(int32 InDoorID, bool bOpened)
 {
-	// 내 DoorID와 일치할 때만 문 동작
+	// 지정된 DoorID와 내 DoorID가 일치할 때만 동작
 	if (DoorID == InDoorID)
 	{
 		bIsOpen = bOpened;
-		UE_LOG(LogTemp, Warning, TEXT("[Door] Stage 1 DoorID %d번 문 상태 변경: %s"), DoorID, bIsOpen ? TEXT("Open") : TEXT("Close"));
+		UE_LOG(LogTemp, Warning, TEXT("[Door] Stage 1 DoorID %d번 문 상태 변경: %s"), DoorID,
+		       bIsOpen ? TEXT("Open") : TEXT("Close"));
 	}
 }
 

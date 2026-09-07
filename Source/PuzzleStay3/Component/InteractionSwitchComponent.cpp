@@ -125,4 +125,10 @@ void UInteractionSwitchComponent::OnRep_IsActivated()
 {
 	// 스위치 상태 변경(True/False) 시 델리게이트 쏘기
 	OnSwitchActivatedChanged.Broadcast(bIsActivated);
+	if (GEngine)
+	{
+		FString Message = TEXT("TEST");
+		FColor Color = FColor::Red;
+		GEngine->AddOnScreenDebugMessage(-1, 2.0f, Color, Message);
+	}
 }
