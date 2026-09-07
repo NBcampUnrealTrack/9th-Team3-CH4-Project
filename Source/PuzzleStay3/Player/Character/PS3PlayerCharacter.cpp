@@ -10,6 +10,7 @@
 #include "Components/SceneComponent.h"
 #include "DrawDebugHelpers.h"
 #include "Player/Interaction/PS3InteractableInterface.h"
+#include "Player/PlayerState/PS3PlayerState.h"
 #include "Components/ActorComponent.h"
 
 
@@ -36,6 +37,29 @@ APS3PlayerCharacter::APS3PlayerCharacter()
 	
 	CarryAnchor = CreateDefaultSubobject<USceneComponent>(TEXT("CarryAnchor"));
 	CarryAnchor->SetupAttachment(GetMesh(), TEXT("hand_r"));
+}
+
+void APS3PlayerCharacter::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+	RefreshPlayerIdentityVisual();
+}
+
+void APS3PlayerCharacter::OnRep_PlayerState()
+{
+	Super::OnRep_PlayerState();
+	RefreshPlayerIdentityVisual();
+}
+
+void APS3PlayerCharacter::RefreshPlayerIdentityVisual()
+{
+	const APS3PlayerState* PS3PlayerState = GetPlayerState<APS3PlayerState>();
+	if (!IsValid(PS3PlayerState))
+	{
+		return;
+	}
+
+	BP_ApplyPlayerIdentityVisual(PS3PlayerState->GetPlayerIdentity());
 }
 
 bool APS3PlayerCharacter::CanUseFieldControls() const
@@ -102,6 +126,16 @@ void APS3PlayerCharacter::PrepareForRespawn()
 		{
 			HeldDumbbell = nullptr;
 		}
+	}
+
+	if (APS3PlayerState* PS3PlayerState = GetPlayerState<APS3PlayerState>())
+	{
+		PS3PlayerState->SetInteractionState(EInteractionState::IsNotInteracting);
+	}
+
+	if (APS3PlayerController* PS3PlayerController = Cast<APS3PlayerController>(GetController()))
+	{
+		PS3PlayerController->Client_PrepareForRespawn();
 	}
 
 	SetActorEnableCollision(false);

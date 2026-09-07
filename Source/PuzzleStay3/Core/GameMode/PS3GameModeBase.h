@@ -17,12 +17,12 @@ enum class EPS3StageNumber : uint8
 	Stage3
 };
 
-UENUM(BlueprintType)
-enum class ERandomCollisionState : uint8
-{
-	NoCollision,
-	BlockAll
-};
+// UENUM(BlueprintType)
+// enum class ERandomCollisionState : uint8
+// {
+// 	NoCollision,
+// 	BlockAll
+// };
 
 UCLASS()
 class PUZZLESTAY3_API APS3GameModeBase : public AGameModeBase
@@ -32,7 +32,8 @@ class PUZZLESTAY3_API APS3GameModeBase : public AGameModeBase
 public:
 	virtual void BeginPlay() override;
 	virtual void PostLogin(APlayerController* NewPlayer) override;
-	
+	void SetPlayerIdentity(APS3PlayerState* NewPlayerState);
+
 	bool GetInteractionSwitchTimerUsed() const { return bInteractionSwitchTimerUsed; }
 	
 private:
