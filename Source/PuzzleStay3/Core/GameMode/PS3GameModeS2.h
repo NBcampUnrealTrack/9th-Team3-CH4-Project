@@ -16,6 +16,8 @@ protected:
 	
 	void BeginPlay() override;
 	
+	virtual void PostLogin(APlayerController* NewPlayer) override;
+	
 	//플레이어가 생명 0개 되면 델리게이트 -> 모드가 듣고 리스폰 처리
 	void RegisterPlayerLifeCountState(APS3PlayerState* PS3PlayerState);
 	

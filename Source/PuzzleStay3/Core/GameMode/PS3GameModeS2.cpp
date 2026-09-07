@@ -13,10 +13,14 @@ void APS3GameModeS2::BeginPlay()
 
 	MakeRandomCollisionResults();
 	
-	for (APlayerState* PlayerState : GameState->PlayerArray)
-	{
-		RegisterPlayerLifeCountState(Cast<APS3PlayerState>(PlayerState));
-	}
+}
+
+void APS3GameModeS2::PostLogin(APlayerController* NewPlayer)
+{
+	Super::PostLogin(NewPlayer);
+	if (!IsValid(NewPlayer)) return;
+	
+	RegisterPlayerLifeCountState(NewPlayer->GetPlayerState<APS3PlayerState>());
 }
 
 void APS3GameModeS2::RegisterPlayerLifeCountState(APS3PlayerState* PS3PlayerState)
