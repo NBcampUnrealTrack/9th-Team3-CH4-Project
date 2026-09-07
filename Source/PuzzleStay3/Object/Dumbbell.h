@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "Player/Interaction/PS3InteractableInterface.h"
 #include "Dumbbell.generated.h"
 
 class APS3PlayerCharacter;
@@ -15,7 +16,7 @@ enum class EDumbbellType : uint8
 };
 
 UCLASS()
-class PUZZLESTAY3_API ADumbbell : public AActor
+class PUZZLESTAY3_API ADumbbell : public AActor, public IPS3InteractableInterface 
 {
 	GENERATED_BODY()
 
@@ -23,12 +24,14 @@ public:
 	ADumbbell();
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	
-	// 플레이어가 F키로 잡으려고 할 때 호출 (서버 전용)
-	bool TryInteract(APS3PlayerCharacter* Requestor);
+	// ★ IPS3InteractableInterface 구현
+	virtual bool CanInteract_Implementation(AActor* Requestor) const override;
+	virtual bool Interact_Implementation(AActor* Requestor) override;
 	
-	// 플레이어가 G키로 놓으려고 할 때 호출 (서버 전용)
+	// 기존 상호작용 및 드랍
+	bool TryInteract(APS3PlayerCharacter* Requestor);
 	bool TryDrop(APS3PlayerCharacter* Requestor);
-
+	
 	// 저울 기믹에서 사용할 무게 Getter
 	UFUNCTION(BlueprintPure, Category = "Dumbbell")
 	float GetWeight() const { return Weight; }

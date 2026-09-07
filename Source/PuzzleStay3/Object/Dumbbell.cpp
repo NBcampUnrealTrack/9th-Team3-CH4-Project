@@ -1,8 +1,4 @@
 #include "Object/Dumbbell.h"
-
-#include "Components/BoxComponent.h"
-#include "Engine/OverlapResult.h"
-#include "GameFramework/Character.h"
 #include "Net/UnrealNetwork.h"
 #include "Player/Character/PS3PlayerCharacter.h"
 
@@ -29,6 +25,56 @@ void ADumbbell::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetim
 	DOREPLIFETIME(ADumbbell, HoldingPlayer);
 }
 
+bool ADumbbell::CanInteract_Implementation(AActor* Requestor) const
+{
+	const APS3PlayerCharacter* PlayerCharacter = Cast<APS3PlayerCharacter>(Requestor);
+
+	// 요청자가 올바른 캐릭터가 아니면 불가
+	if (!IsValid(PlayerCharacter))
+	{
+		return false;
+	}
+
+	// 이미 누군가 덤벨을 들고 있다면 상호작용 불가
+	if (IsValid(HoldingPlayer))
+	{
+		return false;
+	}
+
+	// 요청한 플레이어가 이미 다른 덤벨을 들고 있다면 상호작용 불가
+	if (IsValid(PlayerCharacter->GetHeldDumbbell()))
+	{
+		return false;
+	}
+
+	return true;
+}
+
+bool ADumbbell::Interact_Implementation(AActor* Requestor)
+{
+	// 서버 권한 재검증
+	if (!HasAuthority())
+	{
+		return false;
+	}
+
+	APS3PlayerCharacter* PlayerCharacter = Cast<APS3PlayerCharacter>(Requestor);
+
+	if (!IsValid(PlayerCharacter))
+	{
+		return false;
+	}
+
+	// 서버 최종 판정 조건 재확인 (동시 요청 방지)
+	if (!CanInteract_Implementation(Requestor))
+	{
+		return false;
+	}
+
+	// 검증을 통과하면 기존 TryInteract 실행하여 부착
+	return TryInteract(PlayerCharacter);
+}
+
 bool ADumbbell::TryInteract(APS3PlayerCharacter* Requestor)
 {
 	// 서버 권한 검증 및 누가 들고 있는지 확인 
@@ -36,11 +82,11 @@ bool ADumbbell::TryInteract(APS3PlayerCharacter* Requestor)
 
 	// 이미 누군가 들고 있으면 상호작용 불가
 	if (HoldingPlayer != nullptr) return false;
-	
+
 	// Requestor의 CarryAnchor 소켓 가져오기
 	USceneComponent* CarryAnchor = Requestor->GetCarryAnchor();
 	if (!IsValid(CarryAnchor)) return false;
-	
+
 	// 점유 플레이어 지정 및 소켓 부착
 	HoldingPlayer = Requestor;
 
@@ -62,86 +108,52 @@ bool ADumbbell::TryInteract(APS3PlayerCharacter* Requestor)
 bool ADumbbell::TryDrop(APS3PlayerCharacter* Requestor)
 {
 	if (!HasAuthority() || !IsValid(Requestor)) return false;
-
 	if (HoldingPlayer != Requestor) return false;
 
-	// 부착 해제
 	DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
 
 	// 플레이어 전방에서 아래로 라인트레이스해 바닥으로 내려놓기
 	FVector Start = Requestor->GetActorLocation() + (Requestor->GetActorForwardVector() * 80.0f);
 	FVector End = Start - FVector(0.0f, 0.0f, 500.0f); // 아래쪽 5m 탐색
 
-	FHitResult HitResult;
 	FCollisionQueryParams QueryParams;
-	QueryParams.AddIgnoredActor(this); // 자기 자신 제외
+	QueryParams.AddIgnoredActor(this);
 	QueryParams.AddIgnoredActor(Requestor);
 	QueryParams.bTraceComplex = true; // 메쉬의 복합 콜리전 대신 정밀 메쉬 바닥에 히트되도록 설정
 
-	// 감지 범위 내의 모든 오버랩 트리거(UBoxComponent 등)를 라인트레이스 대상에서 제외
-	TArray<FOverlapResult> OverlapResults;
-	GetWorld()->OverlapMultiByObjectType(
-		OverlapResults,
-		Start,
-		FQuat::Identity,
-		FCollisionObjectQueryParams(ECC_WorldDynamic),
-		FCollisionShape::MakeSphere(500.0f)
-	);
-	
-	for (const FOverlapResult& Overlap : OverlapResults)
-	{
-		UPrimitiveComponent* Comp = Overlap.GetComponent();
-		if (Comp && Comp->IsA<UBoxComponent>())
-		{
-			QueryParams.AddIgnoredComponent(Comp); // PlateTrigger 등 박스 트리거 무시
-		}
-	}
-	
-	// ★ 기존 ECC_Visibility 대신 ECC_WorldStatic 또는 ObjectTypeQuery 사용
-	// 저울 메쉬가 BlockAllDynamic 프로필이므로 WorldStatic/WorldDynamic을 모두 감지하는 ObjectType/Trace Channel을 이용합니다.
 	FCollisionObjectQueryParams ObjectQueryParams;
 	ObjectQueryParams.AddObjectTypesToQuery(ECC_WorldStatic);
 	ObjectQueryParams.AddObjectTypesToQuery(ECC_WorldDynamic);
-	
+
+	FHitResult HitResult;
 	if (GetWorld()->LineTraceSingleByObjectType(HitResult, Start, End, ObjectQueryParams, QueryParams))
 	{
-		FRotator DropRotation = FRotator::ZeroRotator;
-		FVector DropLocation = HitResult.ImpactPoint;
-
-		SetActorLocationAndRotation(DropLocation, DropRotation);
+		SetActorLocationAndRotation(HitResult.ImpactPoint, FRotator::ZeroRotator);
 	}
+
 	HoldingPlayer = nullptr;
 	OnRep_HoldingPlayer();
-	
+
 	return true;
 }
 
 void ADumbbell::OnConstruction(const FTransform& Transform)
 {
 	Super::OnConstruction(Transform);
-	
+
 	switch (DumbbellType)
 	{
-	case EDumbbellType::Heavy:  Weight = 200.0f; break;
-	case EDumbbellType::Medium: Weight = 180.0f; break;
-	case EDumbbellType::Light:  Weight = 150.0f; break;
+	case EDumbbellType::Heavy: Weight = 200.0f;
+		break;
+	case EDumbbellType::Medium: Weight = 180.0f;
+		break;
+	case EDumbbellType::Light: Weight = 150.0f;
+		break;
 	}
 }
 
 void ADumbbell::OnRep_HoldingPlayer()
 {
-	bool bIsHeld = (HoldingPlayer != nullptr);
-
-	if (bIsHeld)
-	{
-		DumbbellMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	}
-	else
-	{
-		// 물리는 끈 상태(SimulatePhysics=false) 유지
-		// QueryAndProbe 또는 QueryOnly 적용 후 프로필 채널을 확정해 줍니다.
-		DumbbellMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndProbe); 
-		DumbbellMesh->SetCollisionProfileName(TEXT("BlockAllDynamic"));
-	}
-	
+	const bool bIsHeld = (HoldingPlayer != nullptr);
+	DumbbellMesh->SetCollisionEnabled(bIsHeld ? ECollisionEnabled::NoCollision : ECollisionEnabled::QueryAndProbe);
 }
