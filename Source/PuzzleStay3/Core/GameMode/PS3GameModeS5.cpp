@@ -218,7 +218,9 @@ void APS3GameModeS5::RandomInitializeEscapeDoor()
 		auto* TimeDeductionComp = GimmickBase->FindComponentByClass<UOverlapVolumeTimeDeductionComponent>();
 		if (IsValid(TimeDeductionComp) == false) continue;
 		
-		InteractionSwitchComp->OnInteractionSuccessed.AddUObject(this, &ThisClass::OnInteractedEscapeDoor);
+		RegisterInteractionSwitch(InteractionSwitchComp);
+		
+		InteractionSwitchComp->OnSwitchActivatedChanged.AddUObject(this, &ThisClass::OnInteractedEscapeDoor);
 		
 		InteractionSwitchComp->bIsEscapeDoor = false;
 		TimeDeductionComp->bIsEscapeDoor = false;
@@ -233,16 +235,15 @@ void APS3GameModeS5::RandomInitializeEscapeDoor()
 		
 		if (AllEscapeDoorCount - FakeEscapeDoorCount == MaxEscapeDoorCount) return;
 	}
-	
 }
 
 
-void APS3GameModeS5::OnInteractedEscapeDoor()
+void APS3GameModeS5::OnInteractedEscapeDoor(bool bIsInteracted)
 {
+	if (bIsInteracted == false) return;
+	
 	UE_LOG(LogTemp, Warning, TEXT("상호작용 완료 됨"));
 	++ActivatedEscapeDoorCount;
-	
-	if (ActivatedEscapeDoorCount <= 0) return;
 	
 	int32 ScreenPlayerSpawnConditionCount = GoalEscapeDoorCount - (GoalEscapeDoorCount - 1);
 	
@@ -261,6 +262,8 @@ void APS3GameModeS5::OnInteractedEscapeDoor()
 			TargetController.Add(ScreenPlayerController);
 		}
 		
+		bIsScreenPlayerSpawnReady = true;
+		
 		for (APS3ScreenPlayerController* ScreenPlayerController : TargetController)
 		{
 			if (IsValid(ScreenPlayerController) == false) continue;
@@ -272,14 +275,8 @@ void APS3GameModeS5::OnInteractedEscapeDoor()
 			
 			UE_LOG(LogTemp, Warning, TEXT("스크린컨트롤러스폰완료 됨"));
 		}
-	}
-	
-	if (ActivatedEscapeDoorCount >= GoalEscapeDoorCount)
-	{
-		OnStageClear.Broadcast();
 		
-		//TODO 다음스테이지 입장하는 부분 구현해야함
-		UE_LOG(LogTemp, Warning, TEXT("구현 예정 기능 예시) 5초 뒤 다음 스테이지 입장."));
+		bIsScreenPlayerSpawnReady = false;
 	}
 }
 
@@ -310,63 +307,6 @@ void APS3GameModeS5::SetPlayerControllerRole(APlayerController* CurrentControlle
 }
 
 
-UClass* APS3GameModeS5::GetDefaultPawnClassForController_Implementation(AController* InController)
-{
-	if (IsValid(InController) == false || S5_GameRuleDataAsset == nullptr)
-	{
-		return Super::GetDefaultPawnClassForController_Implementation(InController);
-	}
-
-	if (InController->IsA(S5_GameRuleDataAsset->ScreenControllerClass) == true)
-	{
-		return Super::GetDefaultPawnClassForController_Implementation(InController);
-	}
-
-	if (InController->GetClass() == S5_GameRuleDataAsset->FieldControllerClass)
-	{
-		return S5_GameRuleDataAsset->FieldCharacterClass;
-	}  
-    
-	return Super::GetDefaultPawnClassForController_Implementation(InController);
-}
-
-
-AActor* APS3GameModeS5::FindPlayerStart_Implementation(AController* Player, const FString& IncomingName)
-{
-	if (IsValid(Player) == false)
-	{
-		return Super::FindPlayerStart_Implementation(Player, IncomingName);
-	}
-	
-	EPlayerStartType TargetPlayerStartType = EPlayerStartType::None;
-	
-	if (Player->IsA(S5_GameRuleDataAsset->ScreenControllerClass) == true)
-	{
-		TargetPlayerStartType = EPlayerStartType::ScreenPlayer;
-	}
-	else if (Player->GetClass() == S5_GameRuleDataAsset->FieldControllerClass)
-	{
-		TargetPlayerStartType = EPlayerStartType::FieldPlayer;
-	}
-	else if (Player->GetClass() == S5_GameRuleDataAsset->SpawnScreenControllerClass)
-	{
-		TargetPlayerStartType = EPlayerStartType::ScreenPlayer;
-	}
-	
-	
-	for (TActorIterator<APS3PlayerStartBase> It(GetWorld()); It; ++It)
-	{
-		APS3PlayerStartBase* PS3PlayerStartBase = *It;
-		if (IsValid(PS3PlayerStartBase) == true && PS3PlayerStartBase->PlayerStartType == TargetPlayerStartType)
-		{
-			return PS3PlayerStartBase; 
-		}
-	}
-	
-	return Super::FindPlayerStart_Implementation(Player, IncomingName);
-}
-
-
 void APS3GameModeS5::ConfigureControllerAndSpawn(APlayerController* OldController, TSubclassOf<APlayerController> NewControllerClass)
 {
 	if (IsValid(OldController) == false) return;
@@ -382,5 +322,83 @@ void APS3GameModeS5::ConfigureControllerAndSpawn(APlayerController* OldControlle
 	SwapPlayerControllers(OldController, NewController);
 	OldController->Destroy();
 	
+	AActor* TargetPlayerStart = FindPlayerStart(NewController);
+	if (IsValid(TargetPlayerStart) == true)
+	{
+		NewController->SetInitialLocationAndRotation(TargetPlayerStart->GetActorLocation(), TargetPlayerStart->GetActorRotation());
+		NewController->SetControlRotation(TargetPlayerStart->GetActorRotation());
+	}
+	
 	RestartPlayer(NewController);
+	
+	APawn* SpawnedPawn = NewController->GetPawn();
+	if (IsValid(SpawnedPawn) == true)
+	{
+		FVector FinalLocation = SpawnedPawn->GetActorLocation();
+		UE_LOG(LogTemp, Error, TEXT("[스폰 결과] 생성된 캐릭터: %s | 최종 위치: %s"), 
+			*SpawnedPawn->GetName(), *FinalLocation.ToString());
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("[스폰 실패] NewController가 Pawn을 소유하지 못했습니다."));
+	}
 }
+
+
+UClass* APS3GameModeS5::GetDefaultPawnClassForController_Implementation(AController* InController)
+{
+	if (IsValid(InController) == false || S5_GameRuleDataAsset == nullptr)
+	{
+		return Super::GetDefaultPawnClassForController_Implementation(InController);
+	}
+
+	if (InController->IsA(S5_GameRuleDataAsset->SpawnScreenControllerClass) == true ||
+		InController->IsA(S5_GameRuleDataAsset->FieldControllerClass) == true)
+	{
+		return S5_GameRuleDataAsset->FieldCharacterClass;
+	}
+
+	if (InController->IsA(S5_GameRuleDataAsset->ScreenControllerClass) == true)
+	{
+		return nullptr;
+	}  
+	
+    
+	return Super::GetDefaultPawnClassForController_Implementation(InController);
+}
+
+
+AActor* APS3GameModeS5::FindPlayerStart_Implementation(AController* Player, const FString& IncomingName)
+{
+	if (IsValid(Player) == false)
+	{
+		return Super::FindPlayerStart_Implementation(Player, IncomingName);
+	}
+	
+	EPlayerStartType TargetPlayerStartType = EPlayerStartType::None;
+	
+	if (bIsScreenPlayerSpawnReady == true)
+	{
+		TargetPlayerStartType = EPlayerStartType::ScreenPlayer;
+	}
+	else if (Player->IsA(S5_GameRuleDataAsset->FieldControllerClass))
+	{
+		TargetPlayerStartType = EPlayerStartType::FieldPlayer;
+	}
+	else
+	{
+		TargetPlayerStartType = EPlayerStartType::ScreenPlayer;
+	}
+	
+	for (TActorIterator<APS3PlayerStartBase> It(GetWorld()); It; ++It)
+	{
+		APS3PlayerStartBase* PS3PlayerStartBase = *It;
+		if (IsValid(PS3PlayerStartBase) == true && PS3PlayerStartBase->PlayerStartType == TargetPlayerStartType)
+		{
+			return PS3PlayerStartBase; 
+		}
+	}
+	
+	return Super::FindPlayerStart_Implementation(Player, IncomingName);
+}
+

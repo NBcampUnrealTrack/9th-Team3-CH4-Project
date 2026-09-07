@@ -57,15 +57,14 @@ public:
 	void OnReduceGameTime();
 	void OnTimeDeduction(float TimeToDeducted);
 
-	UFUNCTION(BlueprintCallable)
-	void OnInteractedEscapeDoor();
+	
+	void OnInteractedEscapeDoor(bool bIsInteracted);
 	void RandomInitializeEscapeDoor();
 	void OnCollectLoginUser();
 	int32 OnCollectEscapeDoor();
 	
 public:
 	FOnIsGameStart OnIsGameStart;
-	FOnStageClear OnStageClear;
 	FOnScreenPlayerSpawned OnScreenPlayerSpawned;
 	
 	int32 RoleSelectedPlayerCount = 0;
@@ -84,8 +83,8 @@ protected:
 	int32 GoalEscapeDoorCount = 0;
 	int32 ActivatedEscapeDoorCount = 0;
 	
+	bool bIsScreenPlayerSpawnReady = false;
 	bool bIsScreenPlayerSpawnedField = false;
-	
 
 };
 
