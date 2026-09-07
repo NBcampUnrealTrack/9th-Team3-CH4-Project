@@ -1,5 +1,7 @@
 #include "Component/CosmeticComponent.h"
 
+#include "Component/InteractionSwitchComponent.h"
+#include "Component/OverlapSwitchComponent.h"
 #include "Components/PointLightComponent.h"
 #include "Particles/ParticleSystem.h"
 #include "Particles/ParticleSystemComponent.h"
@@ -17,18 +19,17 @@ void UCosmeticComponent::BeginPlay()
 
 	InitializeEffect();
 	ApplyActiveState();
-
-	// Test code: toggles the cosmetic effect every 5 seconds for temporary behavior checks.
-	StartTestToggleTimer();
+	BindOwnerSwitchDelegates();
 }
 
 void UCosmeticComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	if (UWorld* World = GetWorld())
 	{
-		World->GetTimerManager().ClearTimer(TestToggleTimerHandle);
+		World->GetTimerManager().ClearTimer(ActiveDurationTimerHandle);
 	}
 
+	UnbindOwnerSwitchDelegates();
 	DestroyManagedComponents();
 
 	Super::EndPlay(EndPlayReason);
@@ -148,20 +149,129 @@ void UCosmeticComponent::DestroyManagedComponents()
 	}
 }
 
-void UCosmeticComponent::StartTestToggleTimer()
+void UCosmeticComponent::BindOwnerSwitchDelegates()
 {
-	if (UWorld* World = GetWorld())
+	AActor* Owner = GetOwner();
+	if (!IsValid(Owner))
 	{
-		World->GetTimerManager().SetTimer(
-			TestToggleTimerHandle,
-			this,
-			&UCosmeticComponent::HandleTestToggleTimer,
-			5.0f,
-			true);
+		return;
+	}
+
+	TArray<UInteractionSwitchComponent*> InteractionSwitchComponents;
+	Owner->GetComponents<UInteractionSwitchComponent>(InteractionSwitchComponents);
+	for (UInteractionSwitchComponent* SwitchComponent : InteractionSwitchComponents)
+	{
+		if (!IsValid(SwitchComponent) || SwitchComponent->GetOwner() != Owner)
+		{
+			continue;
+		}
+
+		if (ActivationType == ECosmeticActivationType::Toggle)
+		{
+			SwitchComponent->OnSwitchActivatedChanged.AddUObject(
+				this,
+				&UCosmeticComponent::HandleToggleActivationChanged);
+		}
+		else
+		{
+			SwitchComponent->OnInteractionSuccessed.AddUObject(
+				this,
+				&UCosmeticComponent::HandleTimedInteractionSucceeded);
+		}
+
+		BoundInteractionSwitchComponents.Add(SwitchComponent);
+	}
+
+	TArray<UOverlapSwitchComponent*> OverlapSwitchComponents;
+	Owner->GetComponents<UOverlapSwitchComponent>(OverlapSwitchComponents);
+	for (UOverlapSwitchComponent* SwitchComponent : OverlapSwitchComponents)
+	{
+		if (!IsValid(SwitchComponent) || SwitchComponent->GetOwner() != Owner)
+		{
+			continue;
+		}
+
+		if (ActivationType == ECosmeticActivationType::Toggle)
+		{
+			SwitchComponent->OnOverlapStateChanged.AddUObject(
+				this,
+				&UCosmeticComponent::HandleToggleActivationChanged);
+		}
+		else
+		{
+			SwitchComponent->OnOverlapStateChanged.AddUObject(
+				this,
+				&UCosmeticComponent::HandleTimedOverlapStateChanged);
+		}
+
+		BoundOverlapSwitchComponents.Add(SwitchComponent);
 	}
 }
 
-void UCosmeticComponent::HandleTestToggleTimer()
+void UCosmeticComponent::UnbindOwnerSwitchDelegates()
 {
-	SetCosmeticActive(!bIsCosmeticActive);
+	for (const TWeakObjectPtr<UInteractionSwitchComponent>& SwitchComponent : BoundInteractionSwitchComponents)
+	{
+		if (SwitchComponent.IsValid())
+		{
+			SwitchComponent->OnSwitchActivatedChanged.RemoveAll(this);
+			SwitchComponent->OnInteractionSuccessed.RemoveAll(this);
+		}
+	}
+	BoundInteractionSwitchComponents.Empty();
+
+	for (const TWeakObjectPtr<UOverlapSwitchComponent>& SwitchComponent : BoundOverlapSwitchComponents)
+	{
+		if (SwitchComponent.IsValid())
+		{
+			SwitchComponent->OnOverlapStateChanged.RemoveAll(this);
+		}
+	}
+	BoundOverlapSwitchComponents.Empty();
+}
+
+void UCosmeticComponent::HandleToggleActivationChanged(bool bActive)
+{
+	SetCosmeticActive(bActive);
+}
+
+void UCosmeticComponent::HandleTimedInteractionSucceeded()
+{
+	StartTimedActivation();
+}
+
+void UCosmeticComponent::HandleTimedOverlapStateChanged(bool bOverlapped)
+{
+	if (bOverlapped)
+	{
+		StartTimedActivation();
+	}
+}
+
+void UCosmeticComponent::StartTimedActivation()
+{
+	SetCosmeticActive(true);
+
+	if (UWorld* World = GetWorld())
+	{
+		World->GetTimerManager().ClearTimer(ActiveDurationTimerHandle);
+
+		if (ActiveDuration > 0.0f)
+		{
+			World->GetTimerManager().SetTimer(
+				ActiveDurationTimerHandle,
+				this,
+				&UCosmeticComponent::FinishTimedActivation,
+				ActiveDuration,
+				false);
+			return;
+		}
+	}
+
+	FinishTimedActivation();
+}
+
+void UCosmeticComponent::FinishTimedActivation()
+{
+	SetCosmeticActive(false);
 }
