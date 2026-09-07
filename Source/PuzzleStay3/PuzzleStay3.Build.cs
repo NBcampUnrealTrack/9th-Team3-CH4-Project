@@ -10,5 +10,15 @@ public class PuzzleStay3 : ModuleRules
 		PublicIncludePaths.Add(ModuleDirectory);
 
 		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "UMG", "SlateCore", "ModelViewViewModel" });
+		
+		PrivateDependencyModuleNames.AddRange(new string[]
+		{
+			"OnlineSubsystem",
+			"OnlineSubsystemUtils",
+			"OnlineSubsystemEOS",
+			"VoiceChat"
+		});
 	}
+	
+	
 }
