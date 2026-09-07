@@ -57,6 +57,7 @@ protected:
 	UPROPERTY()
 	TArray<AControlDoor*> ControlDoorArray;
 	
+	FTimerHandle PS3CameraTimerHandle;
 	
 	UFUNCTION(Server, Reliable)
 	void ServerRPC_OperateDoor(EControlDoorType DoorType, bool bIsOpened);
@@ -70,6 +71,8 @@ protected:
 	void CloseDoor_B();
 	void CloseDoor_C();
 	void CloseDoor_D();
+	
+	void SetCameraView();
 	
 #pragma endregion 
 

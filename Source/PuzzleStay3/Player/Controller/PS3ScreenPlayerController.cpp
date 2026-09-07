@@ -6,6 +6,7 @@
 #include "Data/Enum/ControlDoorType.h"
 #include "Kismet/GameplayStatics.h"
 #include "Object/ControlDoor.h"
+#include "Object/PS3CameraActor.h"
 
 APS3ScreenPlayerController::APS3ScreenPlayerController()
 {
@@ -16,6 +17,10 @@ void APS3ScreenPlayerController::ReceivedPlayer()
 {
 	Super::ReceivedPlayer();
 	ConfigureLocalInputMode();
+	
+	UWorld* World = GetWorld();
+	if (IsValid(World) == false) return;
+	World->GetTimerManager().SetTimer(PS3CameraTimerHandle, this, &ThisClass::SetCameraView, 0.1f, false);
 }
 
 bool APS3ScreenPlayerController::IsScreenPlayer() const
@@ -29,18 +34,20 @@ bool APS3ScreenPlayerController::IsScreenPlayer() const
 void APS3ScreenPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
-	ConfigureLocalInputMode();
 	
 	TArray<AActor*> ActorArray;
 	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AControlDoor::StaticClass(),ActorArray);
 	
 	for (AActor* Actor : ActorArray)
 	{
-		auto* ControllDoor = Cast<AControlDoor>(Actor);
-		if (IsValid(ControllDoor) == false) continue;
+		auto* ControlDoor = Cast<AControlDoor>(Actor);
+		if (IsValid(ControlDoor) == false) continue;
 		
-		ControlDoorArray.Add(ControllDoor);
+		ControlDoorArray.Add(ControlDoor);
 	}
+	
+	
+	
 }
 
 //TODO 추가 사항 확인 필요: 키바인딩 추가 - 김명현
@@ -75,6 +82,7 @@ void APS3ScreenPlayerController::SetupInputComponent()
 		EIC->BindAction(Button_D, ETriggerEvent::Completed, this, &ThisClass::CloseDoor_D);
 	}
 }
+
 
 void APS3ScreenPlayerController::OpenDoor_A()
 {
@@ -117,6 +125,8 @@ void APS3ScreenPlayerController::CloseDoor_D()
 }
 
 
+
+
 //TODO 추가 사항 확인 필요: 배치 된 Door 액터 중 일치하는 이넘 값을 찾아서 해당 도어 Operating(구동) - 김명현
 void APS3ScreenPlayerController::ServerRPC_OperateDoor_Implementation(EControlDoorType DoorType, bool bIsOpened)
 {
@@ -132,11 +142,8 @@ void APS3ScreenPlayerController::ServerRPC_OperateDoor_Implementation(EControlDo
 //TODO 추가 사항 확인 필요: 스크린플레이어용 인풋맵핑 추가 - 김명현
 void APS3ScreenPlayerController::ConfigureLocalInputMode()
 {
-	if (bLocalInputModeConfigured || !IsLocalController())
-	{
-		return;
-	}
-
+	if (bLocalInputModeConfigured == true || IsLocalController() == false) return;
+	
 	FInputModeGameAndUI InputMode;
 	SetInputMode(InputMode);
 	bShowMouseCursor = false;
@@ -150,6 +157,18 @@ void APS3ScreenPlayerController::ConfigureLocalInputMode()
 			bLocalInputModeConfigured = true;
 		}
 	}
+		
+}
+
+void APS3ScreenPlayerController::SetCameraView()
+{
+	UWorld* World = GetWorld();
+	if (IsValid(World) == false) return;
+	
+	AActor* PS3CameraActor = UGameplayStatics::GetActorOfClass(World, APS3CameraActor::StaticClass());
+	if (IsValid(PS3CameraActor) == false) return;
+	
+	SetViewTargetWithBlend(PS3CameraActor, 0.0f);
 }
 
 
