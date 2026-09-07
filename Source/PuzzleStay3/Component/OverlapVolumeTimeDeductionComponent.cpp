@@ -15,7 +15,7 @@ void UOverlapVolumeTimeDeductionComponent::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	if (GetCastPS3GameModeS5() == nullptr) return;
+	if (IsValid(GetCastPS3GameModeS5()) == false) return;
 	CastPS3GameModeS5->OnIsGameStart.AddUObject(this, &ThisClass::OnBindWhenGameStarted);
 }
 
@@ -39,13 +39,13 @@ APS3GameModeS5* UOverlapVolumeTimeDeductionComponent::GetCastPS3GameModeS5()
 	
 	if (GetOwner()->HasAuthority() == true)
 	{
-		UWorld* World = GetWorld();
-		if (World == nullptr) return nullptr;
-		
-		if (IsValid(CastPS3GameModeS5) == false) return nullptr;
-		
-		CastPS3GameModeS5 = Cast<APS3GameModeS5>(World->GetAuthGameMode());
-		return CastPS3GameModeS5;
+		if (IsValid(CastPS3GameModeS5)) return CastPS3GameModeS5;
+
+		if (UWorld* World = GetWorld())
+		{
+			CastPS3GameModeS5 = Cast<APS3GameModeS5>(World->GetAuthGameMode());
+			return CastPS3GameModeS5;
+		}
 	}
 	
 	return nullptr;
@@ -70,10 +70,9 @@ void UOverlapVolumeTimeDeductionComponent::OnCharacterOverLapped(UPrimitiveCompo
 		if (OverlappedCharacters.Contains(PS3PlayerCharacter) == true) return;
 		OverlappedCharacters.Add(PS3PlayerCharacter);
 		
-		auto* PS3GameModeS5 = GetCastPS3GameModeS5();
-		if (IsValid(PS3GameModeS5) == false) return;
+		if (IsValid(CastPS3GameModeS5) == false) return;
 		
-		PS3GameModeS5->OnTimeDeduction(DeductedTimeRange);
+		CastPS3GameModeS5->OnTimeDeduction(DeductedTimeRange);
 	
 		ReSpawnPlayer(PS3PlayerController);
 	}
