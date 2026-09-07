@@ -1,6 +1,7 @@
 #include "ControlDoor.h"
 
 #include "Components/BoxComponent.h"
+#include "Components/DecalComponent.h"
 #include "Components/TimelineComponent.h"
 #include "Core/GameMode/PS3GameModeS5.h"
 #include "Net/UnrealNetwork.h"
@@ -22,6 +23,33 @@ AControlDoor::AControlDoor()
 	
 	DoorTimelineComp = CreateDefaultSubobject<UTimelineComponent>(TEXT("DoorTimeLineComp"));
 	DoorTimelineComp->SetPropertySetObject(this);
+	
+	
+	DecalComp_A = CreateDefaultSubobject<UDecalComponent>(TEXT("DecalComp_A"));
+	DecalComp_A->SetupAttachment(RootComponent);
+	DecalComp_A->DecalSize = FVector(128.0f, 256.0f, 256.0f);
+	DecalComp_A->SetRelativeRotation(FRotator(0.0f, -90.0f, 0.0f));
+	DecalComp_A->SetVisibility(false);
+	
+	DecalComp_B = CreateDefaultSubobject<UDecalComponent>(TEXT("DecalComp_B"));
+	DecalComp_B->SetupAttachment(RootComponent);
+	DecalComp_B->DecalSize = FVector(128.0f, 256.0f, 256.0f);
+	DecalComp_B->SetRelativeRotation(FRotator(0.0f, -90.0f, 0.0f));
+	DecalComp_B->SetVisibility(false);
+	
+	
+	DecalComp_C = CreateDefaultSubobject<UDecalComponent>(TEXT("DecalComp_C"));
+	DecalComp_C->SetupAttachment(RootComponent);
+	DecalComp_C->DecalSize = FVector(128.0f, 256.0f, 256.0f);
+	DecalComp_C->SetRelativeRotation(FRotator(0.0f, -90.0f, 0.0f));
+	DecalComp_C->SetVisibility(false);
+	
+	
+	DecalComp_D = CreateDefaultSubobject<UDecalComponent>(TEXT("DecalComp_D"));
+	DecalComp_D->SetupAttachment(RootComponent);
+	DecalComp_D->DecalSize = FVector(128.0f, 256.0f, 256.0f);
+	DecalComp_D->SetRelativeRotation(FRotator(0.0f, -90.0f, 0.0f));
+	DecalComp_D->SetVisibility(false);
 }
 
 
@@ -49,6 +77,29 @@ void AControlDoor::BeginPlay()
 		
 		PS3GameModeS5->OnScreenPlayerSpawned.AddUObject(this, &ThisClass::OnScreenPlayerSpawned);
 	}
+	
+	SetVisibleDecalToDoorType();
+}
+
+
+void AControlDoor::SetVisibleDecalToDoorType()
+{
+	if (S5_DoorType == EControlDoorType::Door_A)
+	{
+		DecalComp_A->SetVisibility(true);
+	}
+	else if (S5_DoorType == EControlDoorType::Door_B)
+	{
+		DecalComp_B->SetVisibility(true);
+	}
+	else if (S5_DoorType == EControlDoorType::Door_C)
+	{
+		DecalComp_C->SetVisibility(true);
+	}
+	else if (S5_DoorType == EControlDoorType::Door_D)
+	{
+		DecalComp_D->SetVisibility(true);
+	}
 }
 
 
@@ -58,11 +109,15 @@ void AControlDoor::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 
 	DOREPLIFETIME(ThisClass, bIsEscapeDoorOpen);
 	DOREPLIFETIME(ThisClass, bIsDoorOpen);
+	DOREPLIFETIME(ThisClass, bIsScreenPlayerSpawned);
+	
 }
 
 
 void AControlDoor::NetMulti_OnOperateDoor_Implementation(EControlDoorType PressedButtonType , bool PressedType)
 {
+	if (bIsScreenPlayerSpawned == true) return;
+	
 	bIsDoorOpen = PressedType;
 	
 	if (PressedButtonType == S5_DoorType && IsValid(DoorTimelineComp) == true)
@@ -127,15 +182,16 @@ void AControlDoor::OnScreenPlayerSpawned()
 	if (HasAuthority() == true)
 	{
 		bIsDoorOpen = true;
+		bIsScreenPlayerSpawned = true;
 		NetMultiRPC_OnScreenPlayerSpawned();
 	}
 }
+
 
 void AControlDoor::NetMultiRPC_OnScreenPlayerSpawned_Implementation()
 {
 	if (IsValid(DoorTimelineComp) == false) return;
 	DoorTimelineComp->Play();
-	
 }
 
 

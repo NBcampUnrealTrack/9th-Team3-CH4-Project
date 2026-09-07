@@ -38,6 +38,19 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "ControlDoor|Settings")
 	EControlDoorType S5_DoorType = EControlDoorType::None;
 	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "ControlDoor|Settings")
+	TObjectPtr<UDecalComponent> DecalComp_A;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "ControlDoor|Settings")
+	TObjectPtr<UDecalComponent> DecalComp_B;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "ControlDoor|Settings")
+	TObjectPtr<UDecalComponent> DecalComp_C;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "ControlDoor|Settings")
+	TObjectPtr<UDecalComponent> DecalComp_D;
+	
+	
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<UBoxComponent> BlockingVolumeComp;
 	
@@ -56,6 +69,9 @@ protected:
 	
 	UPROPERTY(Replicated)
 	bool bIsDoorOpen = false;
+	
+	UPROPERTY(Replicated)
+	bool bIsScreenPlayerSpawned = false;
 
 	UFUNCTION()
 	void OnTimelineUpdate(float Value);
@@ -69,6 +85,7 @@ protected:
 	UFUNCTION(BlueprintCallable)
 	void OnScreenPlayerSpawned();
 
+	void SetVisibleDecalToDoorType();
 		
 	FVector StartLocation;
 	
