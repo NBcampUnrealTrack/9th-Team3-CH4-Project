@@ -1,15 +1,16 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Data/Delegates/ControlDoorDelegates.h"
 #include "GameFramework/Actor.h"
 #include "Data/Enum/ControlDoorType.h"
 #include "ControlDoor.generated.h"
 
-DECLARE_MULTICAST_DELEGATE_OneParam(FOnIsControlDoorOpen, bool)
 
+
+enum class EControlDoorType : uint8;
 class UBoxComponent;
 class UTimelineComponent;
-enum class EControlDoorType : uint8;
 
 UCLASS()
 class PUZZLESTAY3_API AControlDoor : public AActor
@@ -23,7 +24,7 @@ public:
 protected:
 	virtual void BeginPlay() override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-
+	
 	
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
