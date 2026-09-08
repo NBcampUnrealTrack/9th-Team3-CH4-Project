@@ -10,5 +10,6 @@ enum class ECosmeticActivationType : uint8
 	Toggle UMETA(DisplayName = "Toggle"),
 	Timed UMETA(DisplayName = "Timed"),
 	JudgementToggle UMETA(DisplayName = "Judgement Toggle"),
-	JudgementTimed UMETA(DisplayName = "Judgement Timed")
+	JudgementTimed UMETA(DisplayName = "Judgement Timed"),
+	Door UMETA(DisplayName = "Door")
 };

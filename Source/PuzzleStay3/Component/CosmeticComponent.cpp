@@ -3,6 +3,7 @@
 #include "Component/InteractionSwitchComponent.h"
 #include "Component/OverlapSwitchComponent.h"
 #include "Components/PointLightComponent.h"
+#include "Object/ControlDoor.h"
 #include "Object/Jeoul.h"
 #include "Particles/ParticleSystem.h"
 #include "Particles/ParticleSystemComponent.h"
@@ -19,6 +20,7 @@ void UCosmeticComponent::BeginPlay()
 	Super::BeginPlay();
 
 	InitializeEffect();
+	InitializeDoorState();
 	ApplyActiveState();
 	BindActivationDelegates();
 }
@@ -28,10 +30,12 @@ void UCosmeticComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	if (UWorld* World = GetWorld())
 	{
 		World->GetTimerManager().ClearTimer(ActiveDurationTimerHandle);
+		World->GetTimerManager().ClearTimer(DoorTravelTimerHandle);
 	}
 
 	UnbindOwnerSwitchDelegates();
 	UnbindOwnerJudgementDelegates();
+	UnbindOwnerDoorDelegate();
 	DestroyManagedComponents();
 
 	Super::EndPlay(EndPlayReason);
@@ -154,6 +158,23 @@ void UCosmeticComponent::DestroyManagedComponents()
 	}
 }
 
+void UCosmeticComponent::InitializeDoorState()
+{
+	if (ActivationType != ECosmeticActivationType::Door)
+	{
+		return;
+	}
+
+	DoorTravelDuration = FMath::Max(0.0f, DoorTravelDuration);
+	DoorProgressTime = DoorTravelDuration;
+	DoorTravelDirection = ECosmeticDoorTravelDirection::None;
+
+	if (const UWorld* World = GetWorld())
+	{
+		LastDoorStateChangeTime = World->GetTimeSeconds();
+	}
+}
+
 void UCosmeticComponent::BindActivationDelegates()
 {
 	switch (ActivationType)
@@ -170,6 +191,12 @@ void UCosmeticComponent::BindActivationDelegates()
 		if (EffectType == ECosmeticEffectType::ColorJudgement)
 		{
 			BindOwnerJudgementDelegates();
+		}
+		break;
+	case ECosmeticActivationType::Door:
+		if (EffectType == ECosmeticEffectType::Smoke)
+		{
+			BindOwnerDoorDelegate();
 		}
 		break;
 	default:
@@ -251,6 +278,21 @@ void UCosmeticComponent::BindOwnerJudgementDelegates()
 	BoundJeoulOwner = JeoulOwner;
 }
 
+void UCosmeticComponent::BindOwnerDoorDelegate()
+{
+	AControlDoor* ControlDoorOwner = Cast<AControlDoor>(GetOwner());
+	if (!IsValid(ControlDoorOwner))
+	{
+		return;
+	}
+
+	ControlDoorOwner->OnIsControlDoorOpen.AddUObject(
+		this,
+		&UCosmeticComponent::HandleDoorOpenStateChanged);
+
+	BoundControlDoorOwner = ControlDoorOwner;
+}
+
 void UCosmeticComponent::UnbindOwnerSwitchDelegates()
 {
 	for (const TWeakObjectPtr<UInteractionSwitchComponent>& SwitchComponent : BoundInteractionSwitchComponents)
@@ -279,6 +321,15 @@ void UCosmeticComponent::UnbindOwnerJudgementDelegates()
 	{
 		BoundJeoulOwner->OnJeoulCheckFinished.RemoveAll(this);
 		BoundJeoulOwner = nullptr;
+	}
+}
+
+void UCosmeticComponent::UnbindOwnerDoorDelegate()
+{
+	if (BoundControlDoorOwner.IsValid())
+	{
+		BoundControlDoorOwner->OnIsControlDoorOpen.RemoveAll(this);
+		BoundControlDoorOwner = nullptr;
 	}
 }
 
@@ -317,6 +368,124 @@ void UCosmeticComponent::HandleJudgementFinished(bool bIsSuccess)
 	}
 
 	SetCosmeticActive(true);
+}
+
+void UCosmeticComponent::HandleDoorOpenStateChanged(bool bIsOpen)
+{
+	DoorTravelDuration = FMath::Max(0.0f, DoorTravelDuration);
+	UpdateDoorProgressToNow();
+
+	UWorld* World = GetWorld();
+	if (IsValid(World))
+	{
+		World->GetTimerManager().ClearTimer(DoorTravelTimerHandle);
+	}
+
+	const bool bOpening = bIsOpen;
+	if (DoorTravelDuration <= KINDA_SMALL_NUMBER)
+	{
+		FinishDoorTravelImmediately(bOpening);
+		return;
+	}
+
+	const float RemainingTime = bOpening
+		? DoorProgressTime
+		: DoorTravelDuration - DoorProgressTime;
+
+	if (World)
+	{
+		LastDoorStateChangeTime = World->GetTimeSeconds();
+	}
+
+	if (RemainingTime <= KINDA_SMALL_NUMBER)
+	{
+		FinishDoorTravelImmediately(bOpening);
+		return;
+	}
+
+	DoorTravelDirection = bOpening
+		? ECosmeticDoorTravelDirection::Opening
+		: ECosmeticDoorTravelDirection::Closing;
+
+	SetCosmeticActive(true);
+
+	if (World)
+	{
+		World->GetTimerManager().SetTimer(
+			DoorTravelTimerHandle,
+			this,
+			&UCosmeticComponent::FinishDoorTravel,
+			RemainingTime,
+			false);
+	}
+	else
+	{
+		FinishDoorTravelImmediately(bOpening);
+	}
+}
+
+void UCosmeticComponent::UpdateDoorProgressToNow()
+{
+	const float ClampedDoorTravelDuration = FMath::Max(0.0f, DoorTravelDuration);
+	const UWorld* World = GetWorld();
+	if (!IsValid(World) || DoorTravelDirection == ECosmeticDoorTravelDirection::None)
+	{
+		DoorProgressTime = FMath::Clamp(DoorProgressTime, 0.0f, ClampedDoorTravelDuration);
+		return;
+	}
+
+	const double CurrentTime = World->GetTimeSeconds();
+	const float ElapsedTime = static_cast<float>(FMath::Max(0.0, CurrentTime - LastDoorStateChangeTime));
+
+	if (DoorTravelDirection == ECosmeticDoorTravelDirection::Opening)
+	{
+		DoorProgressTime -= ElapsedTime;
+	}
+	else if (DoorTravelDirection == ECosmeticDoorTravelDirection::Closing)
+	{
+		DoorProgressTime += ElapsedTime;
+	}
+
+	DoorProgressTime = FMath::Clamp(DoorProgressTime, 0.0f, ClampedDoorTravelDuration);
+}
+
+void UCosmeticComponent::FinishDoorTravel()
+{
+	if (DoorTravelDirection == ECosmeticDoorTravelDirection::None)
+	{
+		return;
+	}
+
+	if (DoorTravelDirection == ECosmeticDoorTravelDirection::Opening)
+	{
+		DoorProgressTime = 0.0f;
+	}
+	else if (DoorTravelDirection == ECosmeticDoorTravelDirection::Closing)
+	{
+		DoorProgressTime = FMath::Max(0.0f, DoorTravelDuration);
+	}
+
+	DoorTravelDirection = ECosmeticDoorTravelDirection::None;
+
+	if (const UWorld* World = GetWorld())
+	{
+		LastDoorStateChangeTime = World->GetTimeSeconds();
+	}
+
+	SetCosmeticActive(false);
+}
+
+void UCosmeticComponent::FinishDoorTravelImmediately(bool bOpening)
+{
+	DoorProgressTime = bOpening ? 0.0f : FMath::Max(0.0f, DoorTravelDuration);
+	DoorTravelDirection = ECosmeticDoorTravelDirection::None;
+
+	if (const UWorld* World = GetWorld())
+	{
+		LastDoorStateChangeTime = World->GetTimeSeconds();
+	}
+
+	SetCosmeticActive(false);
 }
 
 void UCosmeticComponent::StartTimedActivation()

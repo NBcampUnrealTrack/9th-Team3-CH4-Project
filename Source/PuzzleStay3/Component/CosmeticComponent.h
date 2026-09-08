@@ -7,11 +7,19 @@
 #include "CosmeticComponent.generated.h"
 
 class AJeoul;
+class AControlDoor;
 class UInteractionSwitchComponent;
 class UOverlapSwitchComponent;
 class UParticleSystem;
 class UParticleSystemComponent;
 class UPointLightComponent;
+
+enum class ECosmeticDoorTravelDirection : uint8
+{
+	None,
+	Opening,
+	Closing
+};
 
 UCLASS(ClassGroup = (Gimmick), meta = (BlueprintSpawnableComponent))
 class PUZZLESTAY3_API UCosmeticComponent : public USceneComponent
@@ -38,6 +46,10 @@ protected:
 		meta = (EditCondition = "ActivationType == ECosmeticActivationType::Timed || ActivationType == ECosmeticActivationType::JudgementTimed", ClampMin = "0.0"))
 	float ActiveDuration = 3.0f;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Cosmetic|Door",
+		meta = (EditCondition = "ActivationType == ECosmeticActivationType::Door", ClampMin = "0.0"))
+	float DoorTravelDuration = 2.0f;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Cosmetic|Light",
 		meta = (EditCondition = "EffectType == ECosmeticEffectType::BlueLight || EffectType == ECosmeticEffectType::RedLight || EffectType == ECosmeticEffectType::ColorJudgement", ClampMin = "0.0"))
 	float LightIntensity = 3000.0f;
@@ -59,15 +71,22 @@ private:
 	void CreateSmokeEffect();
 	void ApplyActiveState();
 	void DestroyManagedComponents();
+	void InitializeDoorState();
 	void BindActivationDelegates();
 	void BindOwnerSwitchDelegates();
 	void BindOwnerJudgementDelegates();
+	void BindOwnerDoorDelegate();
 	void UnbindOwnerSwitchDelegates();
 	void UnbindOwnerJudgementDelegates();
+	void UnbindOwnerDoorDelegate();
 	void HandleToggleActivationChanged(bool bActive);
 	void HandleTimedInteractionSucceeded();
 	void HandleTimedOverlapStateChanged(bool bOverlapped);
 	void HandleJudgementFinished(bool bIsSuccess);
+	void HandleDoorOpenStateChanged(bool bIsOpen);
+	void UpdateDoorProgressToNow();
+	void FinishDoorTravel();
+	void FinishDoorTravelImmediately(bool bOpening);
 	void StartTimedActivation();
 	void FinishTimedActivation();
 
@@ -86,5 +105,12 @@ private:
 	UPROPERTY(Transient)
 	TWeakObjectPtr<AJeoul> BoundJeoulOwner;
 
+	UPROPERTY(Transient)
+	TWeakObjectPtr<AControlDoor> BoundControlDoorOwner;
+
 	FTimerHandle ActiveDurationTimerHandle;
+	FTimerHandle DoorTravelTimerHandle;
+	float DoorProgressTime = 0.0f;
+	double LastDoorStateChangeTime = 0.0;
+	ECosmeticDoorTravelDirection DoorTravelDirection = ECosmeticDoorTravelDirection::None;
 };
