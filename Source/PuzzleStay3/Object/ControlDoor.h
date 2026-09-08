@@ -5,6 +5,8 @@
 #include "Data/Enum/ControlDoorType.h"
 #include "ControlDoor.generated.h"
 
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnIsControlDoorOpen, bool)
+
 class UBoxComponent;
 class UTimelineComponent;
 enum class EControlDoorType : uint8;
@@ -28,15 +30,17 @@ protected:
 	TObjectPtr<USceneComponent> DefaultSceneRoot;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	TObjectPtr<UStaticMeshComponent> DoorMesh;
+	TObjectPtr<UStaticMeshComponent> ControlDoorMesh;
 	
 public:
+	FOnIsControlDoorOpen OnIsControlDoorOpen;
+	
 	UFUNCTION(NetMulticast, Reliable)
-	void NetMulti_OnOperateDoor(EControlDoorType PressedButtonType, bool PressedType);
+	void NetMulti_OnOperateDoor(EControlDoorType PressedButtonType, bool bIsOpen);
 	
 protected:
 	UPROPERTY(EditAnywhere, Category = "ControlDoor|Settings")
-	EControlDoorType S5_DoorType = EControlDoorType::None;
+	EControlDoorType ControlDoorType = EControlDoorType::None;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "ControlDoor|Settings")
 	TObjectPtr<UDecalComponent> DecalComp_A;
@@ -64,6 +68,11 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "ControlDoor|Settings")
 	FVector TargetLocation = FVector(0.f, 0.f, -200.f);
 	
+	FVector StartLocation;
+	
+	UPROPERTY(Replicated)
+	bool bIsGameStart = false;
+	
 	UPROPERTY(Replicated)
 	bool bIsEscapeDoorOpen = false;
 	
@@ -71,7 +80,11 @@ protected:
 	bool bIsDoorOpen = false;
 	
 	UPROPERTY(Replicated)
-	bool bIsScreenPlayerSpawned = false;
+	bool bIsScreenPlayerCharacterSpawned = false;
+	
+	UPROPERTY(Replicated)
+	bool bIsPressed = false;
+	
 
 	UFUNCTION()
 	void OnTimelineUpdate(float Value);
@@ -86,7 +99,11 @@ protected:
 	void OnScreenPlayerSpawned();
 
 	void SetVisibleDecalToDoorType();
-		
-	FVector StartLocation;
 	
+	void OnGameStart(bool CurrentGameState);
+		
+	
+private:
+	void TimeLineCurveBind();
+	void ErrorCheck_S5();
 };

@@ -45,8 +45,51 @@ void APS3GameModeS5::BeginPlay()
 {
 	Super::BeginPlay();
 	
+	checkf(IsValid(S5_GameRuleDataAsset) == true, TEXT("[APS3GameModeS5]의 데이터어셋이 비어있습니다."));
+	
 	RandomInitializeEscapeDoor();
 	
+}
+
+
+void APS3GameModeS5::RandomInitializeEscapeDoor()
+{
+	int32 AllEscapeDoorCount = OnCollectEscapeDoor();
+	int32 MaxEscapeDoorCount = S5_GameRuleDataAsset->MaxEscapeDoorCount;
+	
+	if (AllEscapeDoorCount <= MaxEscapeDoorCount) return;
+	
+	Algo::RandomShuffle(GimmickBaseArray);
+	
+	int32 FakeEscapeDoorCount = 0;
+	
+	for (AGimmickBase* GimmickBase : GimmickBaseArray)
+	{
+		if (IsValid(GimmickBase) == false) continue;
+		
+		auto* InteractionSwitchComp = GimmickBase->FindComponentByClass<UInteractionSwitchComponent>();
+		if (IsValid(InteractionSwitchComp) == false) continue;
+	
+		auto* TimeDeductionComp = GimmickBase->FindComponentByClass<UOverlapVolumeTimeDeductionComponent>();
+		if (IsValid(TimeDeductionComp) == false) continue;
+		
+		RegisterInteractionSwitch(InteractionSwitchComp);
+		
+		InteractionSwitchComp->OnSwitchActivatedChanged.AddUObject(this, &ThisClass::OnInteractedEscapeDoor);
+		
+		InteractionSwitchComp->bIsEscapeDoor = false;
+		TimeDeductionComp->bIsEscapeDoor = false;
+		
+		++FakeEscapeDoorCount;
+		--GoalEscapeDoorCount;
+		
+		FString CompName = GimmickBase->GetName();
+		FString TagName = GimmickBase->Tags.Num() > 0 ? GimmickBase->Tags[0].ToString() : TEXT("NoTag");
+		UE_LOG(LogTemp, Warning, TEXT("감지된 Escape Door 중 감지 된 FakeDoor %d번 / %s - %s"), 
+			 FakeEscapeDoorCount, *CompName, *TagName);
+		
+		if (AllEscapeDoorCount - FakeEscapeDoorCount == MaxEscapeDoorCount) return;
+	}
 }
 
 
@@ -197,47 +240,6 @@ int32 APS3GameModeS5::OnCollectEscapeDoor()
 }
 
 
-void APS3GameModeS5::RandomInitializeEscapeDoor()
-{
-	int32 AllEscapeDoorCount = OnCollectEscapeDoor();
-	int32 MaxEscapeDoorCount = S5_GameRuleDataAsset->MaxEscapeDoorCount;
-	
-	if (AllEscapeDoorCount <= MaxEscapeDoorCount) return;
-	
-	Algo::RandomShuffle(GimmickBaseArray);
-	
-	int32 FakeEscapeDoorCount = 0;
-	
-	for (AGimmickBase* GimmickBase : GimmickBaseArray)
-	{
-		if (IsValid(GimmickBase) == false) continue;
-		
-		auto* InteractionSwitchComp = GimmickBase->FindComponentByClass<UInteractionSwitchComponent>();
-		if (IsValid(InteractionSwitchComp) == false) continue;
-	
-		auto* TimeDeductionComp = GimmickBase->FindComponentByClass<UOverlapVolumeTimeDeductionComponent>();
-		if (IsValid(TimeDeductionComp) == false) continue;
-		
-		RegisterInteractionSwitch(InteractionSwitchComp);
-		
-		InteractionSwitchComp->OnSwitchActivatedChanged.AddUObject(this, &ThisClass::OnInteractedEscapeDoor);
-		
-		InteractionSwitchComp->bIsEscapeDoor = false;
-		TimeDeductionComp->bIsEscapeDoor = false;
-		
-		++FakeEscapeDoorCount;
-		--GoalEscapeDoorCount;
-		
-		FString CompName = GimmickBase->GetName();
-		FString TagName = GimmickBase->Tags.Num() > 0 ? GimmickBase->Tags[0].ToString() : TEXT("NoTag");
-		UE_LOG(LogTemp, Warning, TEXT("감지된 Escape Door 중 감지 된 FakeDoor %d번 / %s - %s"), 
-			 FakeEscapeDoorCount, *CompName, *TagName);
-		
-		if (AllEscapeDoorCount - FakeEscapeDoorCount == MaxEscapeDoorCount) return;
-	}
-}
-
-
 void APS3GameModeS5::OnInteractedEscapeDoor(bool bIsInteracted)
 {
 	if (bIsInteracted == false) return;
@@ -370,7 +372,7 @@ UClass* APS3GameModeS5::GetDefaultPawnClassForController_Implementation(AControl
 
 AActor* APS3GameModeS5::FindPlayerStart_Implementation(AController* Player, const FString& IncomingName)
 {
-	if (IsValid(Player) == false)
+	if (IsValid(Player) == false || IsValid(S5_GameRuleDataAsset) == false)
 	{
 		return Super::FindPlayerStart_Implementation(Player, IncomingName);
 	}
