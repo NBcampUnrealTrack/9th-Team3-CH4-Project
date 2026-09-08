@@ -16,15 +16,17 @@ class PUZZLESTAY3_API US5_GameRuleDataAsset : public UDataAsset
 	GENERATED_BODY()
 	
 public:	
+	UPROPERTY(VisibleAnywhere, Category = "GameRule")
+	int32 MaxPlayerCount = 2;
+	
+	UPROPERTY(EditAnywhere, Category = "GameRule")
+	int32 MaxEscapeDoorCount = 2;
 	
 	UPROPERTY(EditAnywhere, Category = "GameRule")
 	float ReducedTimeRange = 1.0f;
 	
 	UPROPERTY(EditAnywhere, Category = "GameRule")
 	float MaxGameLimitTime = 60.0f;
-	
-	UPROPERTY(EditAnywhere, Category = "GameRule")
-	int32 MaxEscapeDoorCount = 2;
 	
 	UPROPERTY(EditDefaultsOnly, Category = "SwapController")
 	TSubclassOf<APS3PlayerCharacter> FieldCharacterClass;

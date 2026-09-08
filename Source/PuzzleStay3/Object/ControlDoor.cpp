@@ -105,6 +105,7 @@ void AControlDoor::OnGameStart(bool CurrentGameState)
 	}
 }
 
+
 void AControlDoor::TimeLineCurveBind()
 {
 	if (IsValid(ControlDoorMesh) == true && IsValid(DoorTimelineComp) == true && IsValid(DoorTimeLineCurve) == true)
@@ -142,15 +143,6 @@ void AControlDoor::NetMulti_OnOperateDoor_Implementation(EControlDoorType Presse
 	
 	bIsDoorOpen = bIsOpen;
 	
-	if (bIsDoorOpen == true)
-	{
-		OnIsControlDoorOpen.Broadcast(true);
-	}
-	else
-	{
-		OnIsControlDoorOpen.Broadcast(false);
-	}
-	
 	if (PressedButtonType == ControlDoorType && IsValid(DoorTimelineComp) == true)
 	{
 		if (IsValid(BlockingVolumeComp) == true)
@@ -168,11 +160,13 @@ void AControlDoor::NetMulti_OnOperateDoor_Implementation(EControlDoorType Presse
 				StartLocation = ControlDoorMesh->GetRelativeLocation();
 			}
 			
+			OnIsControlDoorOpen.Broadcast(true);
 			DoorTimelineComp->Play();
 		}
 		
 		else
 		{
+			OnIsControlDoorOpen.Broadcast(false);
 			DoorTimelineComp->Reverse();
 		}
 	}
