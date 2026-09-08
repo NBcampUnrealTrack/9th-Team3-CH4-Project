@@ -20,6 +20,8 @@ void APS3GameStateS5::BeginPlay()
 {
 	Super::BeginPlay();
 	
+	checkf(IsValid(S5_GameRuleDataAsset) == true, TEXT("[APS3GameStateS5]의 데이터어셋이 비어있습니다."));
+	
 	if (IsValid(GetCastPS3GameModeS5()) == false) return;
 	GameLimitTime = S5_GameRuleDataAsset->MaxGameLimitTime;
 }
