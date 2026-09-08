@@ -25,6 +25,10 @@ public:
 	UFUNCTION(Client, Reliable)
 	void Client_PrepareForRespawn();
 
+	// 서버에서 대상 Controller에 호출. GameMode가 결정한 TrapId별 결과를 전달합니다.
+	UFUNCTION(Client, Reliable)
+	void Client_ReceiveStage3Visibility(const TArray<int32>& TrapIds, const TArray<bool>& Results);
+
 protected:
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
@@ -71,6 +75,10 @@ protected:
 	void ShutdownVoiceSystem();
 
 private:
+	void ApplyStage3Visibility();
+	TMap<int32, bool> Stage3VisibilityByTrapId;
+	FTimerHandle Stage3VisibilityTimerHandle;
+
 	UFUNCTION(Client, Reliable)
 	void Client_RestoreAfterRespawn();
 

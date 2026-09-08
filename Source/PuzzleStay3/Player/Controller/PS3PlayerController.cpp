@@ -1,4 +1,6 @@
 #include "PS3PlayerController.h"
+#include "Component/FakeDeathTrapComponent.h"
+#include "EngineUtils.h"
 
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
@@ -50,6 +52,7 @@ void APS3PlayerController::BeginPlay()
 
 void APS3PlayerController::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
+	GetWorldTimerManager().ClearTimer(Stage3VisibilityTimerHandle);
 	GetWorldTimerManager().ClearTimer(LifeUIInitializationTimerHandle);
 
 	if (IsValid(BoundLifePlayerState))
@@ -329,6 +332,37 @@ void APS3PlayerController::HandleVoiceStopped()
 	if (IsValid(VoiceComponent))
 	{
 		VoiceComponent->StopPushToTalk();
+	}
+}
+
+void APS3PlayerController::Client_ReceiveStage3Visibility_Implementation(const TArray<int32>& TrapIds, const TArray<bool>& Results)
+{
+	if (!IsLocalController() || TrapIds.Num() != Results.Num()) return;
+	Stage3VisibilityByTrapId.Empty();
+	for (int32 Index = 0; Index < TrapIds.Num(); ++Index)
+	{
+		Stage3VisibilityByTrapId.Add(TrapIds[Index], Results[Index]);
+	}
+	ApplyStage3Visibility();
+	// 늦은 BeginPlay 및 스트리밍으로 다시 나타나는 함정에도 저장된 결과 적용.
+	GetWorldTimerManager().SetTimer(Stage3VisibilityTimerHandle, this, &ThisClass::ApplyStage3Visibility, 0.5f, true);
+}
+
+void APS3PlayerController::ApplyStage3Visibility()
+{
+	if (!IsLocalController()) return;
+	for (TActorIterator<AActor> It(GetWorld()); It; ++It)
+	{
+		TInlineComponentArray<UFakeDeathTrapComponent*> Traps;
+		It->GetComponents(Traps);
+		for (UFakeDeathTrapComponent* Trap : Traps)
+		{
+			if (!IsValid(Trap) || !Trap->HasBegunPlay()) continue;
+			if (const bool* bVisible = Stage3VisibilityByTrapId.Find(Trap->GetTrapId()))
+			{
+				Trap->ApplyLocalFakeTrapState(*bVisible);
+			}
+		}
 	}
 }
 
