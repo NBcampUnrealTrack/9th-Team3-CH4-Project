@@ -23,7 +23,7 @@ void APS3ChoiceController::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	GetWorld()->GetTimerManager().SetTimer(InitTimerHandle, this, &APS3ChoiceController::ConfigureInputMapping, 0.01f, false);
+	GetWorld()->GetTimerManager().SetTimer(InitTimerHandle, this, &ThisClass::ConfigureInputMapping, 0.01f, false);
 	
 	SetViewTarget(this);
 }
@@ -57,7 +57,10 @@ void APS3ChoiceController::ConfigureInputMapping()
 
 	PS3ViewModel->OnStage5RoleSelectionRequested.AddDynamic(this, &ThisClass::OnClickedFieldTypeButton);
 	PS3ViewModel->OnStage5RoleSelectionRequested.AddDynamic(this, &ThisClass::OnClickedScreenTypeButton);
-	PS3ViewModel->RequestShowStage5RoleSelect();
+	
+	OnRoleSelectionUI.Broadcast(true);
+	//TODO 현준님 UI 바인딩 후 아래 주석 삭제
+	//PS3ViewModel->RequestShowStage5RoleSelect();
 
 	FInputModeUIOnly UIOnlyMode;
 	SetInputMode(UIOnlyMode);
@@ -104,11 +107,11 @@ void APS3ChoiceController::OnClickedFieldTypeButton(EPS3PlayerRole SelectType)
 	
 		ServerRPC_SelectedControllerType(SelectType);
 		
-		OnRoleSelected.Broadcast();
+		OnRoleSelectionUI.Broadcast(false);
 		
-		//TODO 이 부분은 컨트롤러에서 실행하는게 아니라 뷰모델이 컨트롤러를 구독해서 방송을 듣고 바인딩 된 본인함수를 불러야함
-		if (IsValid(PS3ViewModel) == false) return;
-		PS3ViewModel->RequestHideStage5RoleSelect();
+		//TODO 현준님 UI 바인딩 후 아래 주석 삭제
+		/*if (IsValid(PS3ViewModel) == false) return;
+		PS3ViewModel->RequestHideStage5RoleSelect();*/
 	}
 }
 
@@ -124,11 +127,11 @@ void APS3ChoiceController::OnClickedScreenTypeButton(EPS3PlayerRole SelectType)
 	
 		ServerRPC_SelectedControllerType(SelectType);
 		
-		OnRoleSelected.Broadcast();
+		OnRoleSelectionUI.Broadcast(false);
 		
-		//TODO 이 부분은 컨트롤러에서 실행하는게 아니라 뷰모델이 컨트롤러를 구독해서 방송을 듣고 바인딩 된 본인함수를 불러야함
-		if (IsValid(PS3ViewModel) == false) return;
-		PS3ViewModel->RequestHideStage5RoleSelect();
+		//TODO 현준님 UI 바인딩 후 아래 주석 삭제
+		/*if (IsValid(PS3ViewModel) == false) return;
+		PS3ViewModel->RequestHideStage5RoleSelect();*/
 	}
 }
 

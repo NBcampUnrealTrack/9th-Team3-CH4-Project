@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Data/Delegates/UIDelegates.h"
 #include "GameFramework/PlayerController.h"
 #include "PS3PlayerControllerBase.generated.h"
 
@@ -14,6 +15,27 @@ class PUZZLESTAY3_API APS3PlayerControllerBase : public APlayerController
 {
 	GENERATED_BODY()
 	
+	virtual void BeginPlay() override;
+	
+protected:
+	UPROPERTY()
+	TObjectPtr<class UPS3ViewModel> PS3ViewModel;
+	
+	void ConfigureInputMapping();
+	
 	void OnClickedRestartGameButton();
 	void OnClickedMainMenuButton();
+	
+	UFUNCTION(Server, Unreliable)
+	void ServerRPC_OnClickedRestartGameButton();
+	UFUNCTION(Server, Unreliable)
+	void ServerRPC_OnClickedMainMenuButton();
+	
+public:
+	FOnIsGameOver OnIsGameOver;
+	
+	
+private:
+	FTimerHandle InitTimerHandle;
+	
 };
