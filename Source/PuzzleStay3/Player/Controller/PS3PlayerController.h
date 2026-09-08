@@ -11,6 +11,7 @@ class UCustomVoiceComponent;
 class UVoicePluginControlComponent;
 class APS3PlayerState;
 class UPS3ViewModel;
+class AJeoul;
 
 UCLASS()
 class PUZZLESTAY3_API APS3PlayerController : public APlayerController
@@ -29,7 +30,20 @@ public:
 	UFUNCTION(Client, Reliable)
 	void Client_ReceiveStage3Visibility(const TArray<int32>& TrapIds, const TArray<bool>& Results);
 
+	// 서버가 시점을 전환할 플레이어의 Controller에 호출합니다.
+	UFUNCTION(Client, Reliable, BlueprintCallable, Category = "PS3|Cutscene")
+	void Client_BeginJeoulCutscene(AJeoul* Jeoul);
+
+	UFUNCTION(BlueprintCallable, Category = "PS3|Cutscene")
+	void EndJeoulCutscene();
+
+	UFUNCTION(BlueprintPure, Category = "PS3|Cutscene")
+	bool IsJeoulCutsceneActive() const { return bJeoulCutsceneActive; }
+
 protected:
+	UPROPERTY(EditDefaultsOnly, Category = "PS3|Cutscene", meta = (ClampMin = "0.0"))
+	float JeoulCameraBlendTime = 0.35f;
+
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 	virtual void OnPossess(APawn* InPawn) override;
@@ -75,6 +89,14 @@ protected:
 	void ShutdownVoiceSystem();
 
 private:
+	void HandleJeoulCheckFinished(bool bIsSuccess);
+	UFUNCTION()
+	void HandleCutsceneTargetDestroyed(AActor* DestroyedActor);
+	TWeakObjectPtr<AJeoul> ActiveCutsceneJeoul;
+	TWeakObjectPtr<AActor> PreviousCutsceneViewTarget;
+	FDelegateHandle JeoulCheckFinishedHandle;
+	bool bJeoulCutsceneActive = false;
+
 	void ApplyStage3Visibility();
 	TMap<int32, bool> Stage3VisibilityByTrapId;
 	FTimerHandle Stage3VisibilityTimerHandle;
