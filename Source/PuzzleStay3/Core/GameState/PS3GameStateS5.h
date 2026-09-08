@@ -63,5 +63,7 @@ protected:
 	void OnRep_GameLimitTime();
 	void SetDeductGameLimitTime_AuthorityOnRep(float TimeToDeducted);
 	
+private:
+	void InitializeToDataAssets();
 	APS3GameModeS5* GetCastPS3GameModeS5();
 };

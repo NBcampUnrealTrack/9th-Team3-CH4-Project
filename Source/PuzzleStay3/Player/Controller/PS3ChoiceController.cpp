@@ -88,7 +88,7 @@ void APS3ChoiceController::ServerRPC_SelectedControllerType_Implementation(EPS3P
 	
 	if (PS3GameModeS5->RoleSelectedPlayerCount >= PS3GameModeS5->MaxPlayerCount)
 	{
-		PS3GameModeS5->OnGameStart();
+		PS3GameModeS5->OnTimerForGameStart();
 	}
 }
 
@@ -104,7 +104,7 @@ void APS3ChoiceController::OnClickedFieldTypeButton(EPS3PlayerRole SelectType)
 	
 		ServerRPC_SelectedControllerType(SelectType);
 		
-		OnSuccessRoleSelect.Broadcast();
+		OnRoleSelected.Broadcast();
 		
 		//TODO 이 부분은 컨트롤러에서 실행하는게 아니라 뷰모델이 컨트롤러를 구독해서 방송을 듣고 바인딩 된 본인함수를 불러야함
 		if (IsValid(PS3ViewModel) == false) return;
@@ -124,7 +124,7 @@ void APS3ChoiceController::OnClickedScreenTypeButton(EPS3PlayerRole SelectType)
 	
 		ServerRPC_SelectedControllerType(SelectType);
 		
-		OnSuccessRoleSelect.Broadcast();
+		OnRoleSelected.Broadcast();
 		
 		//TODO 이 부분은 컨트롤러에서 실행하는게 아니라 뷰모델이 컨트롤러를 구독해서 방송을 듣고 바인딩 된 본인함수를 불러야함
 		if (IsValid(PS3ViewModel) == false) return;

@@ -4,14 +4,12 @@
 
 #include "CoreMinimal.h"
 #include "PS3GamemodeBase.h"
+#include "Data/Delegates/GameModeDelegates.h"
 #include "PS3GameModeS5.generated.h"
 
-class APS3PlayerCharacter;
 enum class EPS3PlayerRole : uint8;
+class APS3PlayerCharacter;
 
-DECLARE_MULTICAST_DELEGATE_OneParam(FOnIsGameStart, bool)
-DECLARE_MULTICAST_DELEGATE(FOnScreenPlayerSpawned)
-DECLARE_MULTICAST_DELEGATE(FOnStageClear)
 UCLASS()
 class PUZZLESTAY3_API APS3GameModeS5 : public APS3GameModeBase
 {
@@ -46,10 +44,12 @@ protected:
 	TObjectPtr<class US5_GameRuleDataAsset> S5_GameRuleDataAsset;
 	
 	
+	
 public:
 	void ReSpawnPlayer(APlayerController* TargetPlayerController);
 	void UnPossessedAndDestroyOldPawn(APlayerController* OldPlayerController);
 	
+	void OnTimerForGameStart();
 	void OnGameStart();
 	void OnGameOver();
 	void OnQuitGame();
@@ -78,13 +78,21 @@ public:
 	
 protected:
 	FTimerHandle AllPlayerReadyTimeHandle;
+	FTimerHandle TimerForGameStartHandle;
 	FTimerHandle GameLimitTimeHandle;
 
+	int32 MaxEscapeDoorCount = 2;
 	int32 GoalEscapeDoorCount = 0;
 	int32 ActivatedEscapeDoorCount = 0;
 	
+	float ReducedTimeRange = 1.0f;
+	
 	bool bIsScreenPlayerSpawnReady = false;
 	bool bIsScreenPlayerSpawnedField = false;
-
+	
+	
+private:
+	void InitializeToDataAssets();
+	
 };
 

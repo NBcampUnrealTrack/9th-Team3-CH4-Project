@@ -45,17 +45,28 @@ void APS3GameModeS5::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	checkf(IsValid(S5_GameRuleDataAsset) == true, TEXT("[APS3GameModeS5]의 데이터어셋이 비어있습니다."));
-	
+	InitializeToDataAssets();
 	RandomInitializeEscapeDoor();
+}
+
+
+void APS3GameModeS5::InitializeToDataAssets()
+{
+	checkf(IsValid(S5_GameRuleDataAsset) == true, TEXT("[APS3GameModeS5]의 데이터어셋이 비어있습니다."));
+	checkf(IsValid(S5_GameRuleDataAsset->FieldCharacterClass) == true, TEXT("[US5_GameRuleDataAsset]데이터어셋의 [FieldCharacterClass]가 비어있습니다."));
+	checkf(IsValid(S5_GameRuleDataAsset->FieldControllerClass) == true, TEXT("[US5_GameRuleDataAsset]데이터어셋의 [FieldControllerClass]가 비어있습니다."));
+	checkf(IsValid(S5_GameRuleDataAsset->ScreenControllerClass) == true, TEXT("[US5_GameRuleDataAsset]데이터어셋의 [ScreenControllerClass]가 비어있습니다."));
+	checkf(IsValid(S5_GameRuleDataAsset->SpawnScreenControllerClass) == true, TEXT("[US5_GameRuleDataAsset]데이터어셋의 [SpawnScreenControllerClass]가 비어있습니다."));
 	
+	MaxPlayerCount = S5_GameRuleDataAsset->MaxPlayerCount;
+	ReducedTimeRange = S5_GameRuleDataAsset->ReducedTimeRange;
+	MaxEscapeDoorCount = S5_GameRuleDataAsset->MaxEscapeDoorCount;
 }
 
 
 void APS3GameModeS5::RandomInitializeEscapeDoor()
 {
 	int32 AllEscapeDoorCount = OnCollectEscapeDoor();
-	int32 MaxEscapeDoorCount = S5_GameRuleDataAsset->MaxEscapeDoorCount;
 	
 	if (AllEscapeDoorCount <= MaxEscapeDoorCount) return;
 	
@@ -87,6 +98,7 @@ void APS3GameModeS5::RandomInitializeEscapeDoor()
 		FString TagName = GimmickBase->Tags.Num() > 0 ? GimmickBase->Tags[0].ToString() : TEXT("NoTag");
 		UE_LOG(LogTemp, Warning, TEXT("감지된 Escape Door 중 감지 된 FakeDoor %d번 / %s - %s"), 
 			 FakeEscapeDoorCount, *CompName, *TagName);
+
 		
 		if (AllEscapeDoorCount - FakeEscapeDoorCount == MaxEscapeDoorCount) return;
 	}
@@ -119,12 +131,37 @@ void APS3GameModeS5::UnPossessedAndDestroyOldPawn(APlayerController* OldPlayerCo
 }
 
 
+void APS3GameModeS5::OnTimerForGameStart()
+{
+	GetWorld()->GetTimerManager().SetTimer(TimerForGameStartHandle, this, &ThisClass::OnGameStart, 3.0f, false);
+}
+
+
 void APS3GameModeS5::OnGameStart()
 {
+	GetWorld()->GetTimerManager().ClearTimer(TimerForGameStartHandle);
+	
 	OnIsGameStart.Broadcast(true);
 	
 	UE_LOG(LogTemp, Warning, TEXT("게임이 시작되었습니다."));
-	GetWorld()->GetTimerManager().SetTimer(GameLimitTimeHandle, this, &ThisClass::OnReduceGameTime, 1.f, true);
+	GetWorld()->GetTimerManager().SetTimer(GameLimitTimeHandle, this, &ThisClass::OnReduceGameTime, ReducedTimeRange, true);
+}
+
+
+void APS3GameModeS5::OnReduceGameTime()
+{
+	auto* PS3GameStateS5 = GetGameState<APS3GameStateS5>();
+	if (IsValid(PS3GameStateS5) == false) return;
+		
+	PS3GameStateS5->OnReduceGameTime(ReducedTimeRange);
+	
+	if (PS3GameStateS5->GameLimitTime <= 0.0f)
+	{
+		GetWorld()->GetTimerManager().ClearTimer(GameLimitTimeHandle);
+		UE_LOG(LogTemp, Warning, TEXT("제한시간 종료."));
+		
+		OnGameOver();
+	}
 }
 
 
@@ -164,23 +201,6 @@ void APS3GameModeS5::OnQuitGame()
 	);
 #endif
 	
-}
-
-
-void APS3GameModeS5::OnReduceGameTime()
-{
-	auto* PS3GameStateS5 = GetGameState<APS3GameStateS5>();
-	if (IsValid(PS3GameStateS5) == false) return;
-		
-	PS3GameStateS5->OnReduceGameTime(S5_GameRuleDataAsset->ReducedTimeRange);
-	
-	if (PS3GameStateS5->GameLimitTime <= 0.0f)
-	{
-		GetWorld()->GetTimerManager().ClearTimer(GameLimitTimeHandle);
-		UE_LOG(LogTemp, Warning, TEXT("제한시간 종료."));
-		
-		OnGameOver();
-	}
 }
 
 
@@ -332,18 +352,6 @@ void APS3GameModeS5::ConfigureControllerAndSpawn(APlayerController* OldControlle
 	}
 	
 	RestartPlayer(NewController);
-	
-	APawn* SpawnedPawn = NewController->GetPawn();
-	if (IsValid(SpawnedPawn) == true)
-	{
-		FVector FinalLocation = SpawnedPawn->GetActorLocation();
-		UE_LOG(LogTemp, Error, TEXT("[스폰 결과] 생성된 캐릭터: %s | 최종 위치: %s"), 
-			*SpawnedPawn->GetName(), *FinalLocation.ToString());
-	}
-	else
-	{
-		UE_LOG(LogTemp, Error, TEXT("[스폰 실패] NewController가 Pawn을 소유하지 못했습니다."));
-	}
 }
 
 
