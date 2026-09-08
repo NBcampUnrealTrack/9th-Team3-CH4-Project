@@ -1,19 +1,19 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PS3PlayerControllerBase.h"
 #include "Data/Enum/ControlDoorType.h"
-#include "GameFramework/PlayerController.h"
 #include "PS3ScreenPlayerController.generated.h"
 
-struct FInputActionInstance;
 enum class EControlDoorType : uint8;
+struct FInputActionInstance;
 class AControlDoor;
 class ADoor;
 class UInputMappingContext;
 class UInputAction;
 
 UCLASS()
-class PUZZLESTAY3_API APS3ScreenPlayerController : public APlayerController
+class PUZZLESTAY3_API APS3ScreenPlayerController : public APS3PlayerControllerBase
 {
 	GENERATED_BODY()
 
