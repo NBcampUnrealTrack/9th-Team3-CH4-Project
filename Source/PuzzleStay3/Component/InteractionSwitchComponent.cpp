@@ -127,7 +127,7 @@ void UInteractionSwitchComponent::OnRep_IsActivated()
 	OnSwitchActivatedChanged.Broadcast(bIsActivated);
 	if (GEngine)
 	{
-		FString Message = TEXT("TEST");
+		FString Message = TEXT("1");
 		FColor Color = FColor::Red;
 		GEngine->AddOnScreenDebugMessage(-1, 2.0f, Color, Message);
 	}

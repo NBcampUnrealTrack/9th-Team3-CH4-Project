@@ -74,6 +74,12 @@ bool AJeoul::Interact_Implementation(AActor* Requestor)
 		return false;
 	}
 
+	// 스위치 컴포넌트의 TryInteract를 호출하여 Cosmetic 델리게이트 및 방송을 정상적으로 트리거
+	if (InteractionSwitchComp)
+	{
+		InteractionSwitchComp->TryInteract(Requestor);
+	}
+	
 	// 검증 통과 시 저울 무게 체크 서버 로직 작동
 	Server_CheckBalance();
 	return true;
