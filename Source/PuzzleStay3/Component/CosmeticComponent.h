@@ -6,6 +6,7 @@
 #include "Data/Enum/CosmeticEffectType.h"
 #include "CosmeticComponent.generated.h"
 
+class AJeoul;
 class UInteractionSwitchComponent;
 class UOverlapSwitchComponent;
 class UParticleSystem;
@@ -34,15 +35,15 @@ protected:
 	ECosmeticActivationType ActivationType = ECosmeticActivationType::Toggle;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Cosmetic",
-		meta = (EditCondition = "ActivationType == ECosmeticActivationType::Timed", ClampMin = "0.0"))
+		meta = (EditCondition = "ActivationType == ECosmeticActivationType::Timed || ActivationType == ECosmeticActivationType::JudgementTimed", ClampMin = "0.0"))
 	float ActiveDuration = 3.0f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Cosmetic|Light",
-		meta = (EditCondition = "EffectType == ECosmeticEffectType::BlueLight || EffectType == ECosmeticEffectType::RedLight", ClampMin = "0.0"))
+		meta = (EditCondition = "EffectType == ECosmeticEffectType::BlueLight || EffectType == ECosmeticEffectType::RedLight || EffectType == ECosmeticEffectType::ColorJudgement", ClampMin = "0.0"))
 	float LightIntensity = 3000.0f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Cosmetic|Light",
-		meta = (EditCondition = "EffectType == ECosmeticEffectType::BlueLight || EffectType == ECosmeticEffectType::RedLight", ClampMin = "0.0"))
+		meta = (EditCondition = "EffectType == ECosmeticEffectType::BlueLight || EffectType == ECosmeticEffectType::RedLight || EffectType == ECosmeticEffectType::ColorJudgement", ClampMin = "0.0"))
 	float LightAttenuationRadius = 300.0f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Cosmetic|Smoke",
@@ -58,11 +59,15 @@ private:
 	void CreateSmokeEffect();
 	void ApplyActiveState();
 	void DestroyManagedComponents();
+	void BindActivationDelegates();
 	void BindOwnerSwitchDelegates();
+	void BindOwnerJudgementDelegates();
 	void UnbindOwnerSwitchDelegates();
+	void UnbindOwnerJudgementDelegates();
 	void HandleToggleActivationChanged(bool bActive);
 	void HandleTimedInteractionSucceeded();
 	void HandleTimedOverlapStateChanged(bool bOverlapped);
+	void HandleJudgementFinished(bool bIsSuccess);
 	void StartTimedActivation();
 	void FinishTimedActivation();
 
@@ -77,6 +82,9 @@ private:
 
 	UPROPERTY(Transient)
 	TArray<TWeakObjectPtr<UOverlapSwitchComponent>> BoundOverlapSwitchComponents;
+
+	UPROPERTY(Transient)
+	TWeakObjectPtr<AJeoul> BoundJeoulOwner;
 
 	FTimerHandle ActiveDurationTimerHandle;
 };

@@ -3,6 +3,7 @@
 #include "Component/InteractionSwitchComponent.h"
 #include "Component/OverlapSwitchComponent.h"
 #include "Components/PointLightComponent.h"
+#include "Object/Jeoul.h"
 #include "Particles/ParticleSystem.h"
 #include "Particles/ParticleSystemComponent.h"
 #include "TimerManager.h"
@@ -19,7 +20,7 @@ void UCosmeticComponent::BeginPlay()
 
 	InitializeEffect();
 	ApplyActiveState();
-	BindOwnerSwitchDelegates();
+	BindActivationDelegates();
 }
 
 void UCosmeticComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -30,6 +31,7 @@ void UCosmeticComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	}
 
 	UnbindOwnerSwitchDelegates();
+	UnbindOwnerJudgementDelegates();
 	DestroyManagedComponents();
 
 	Super::EndPlay(EndPlayReason);
@@ -50,6 +52,9 @@ void UCosmeticComponent::InitializeEffect()
 		break;
 	case ECosmeticEffectType::RedLight:
 		CreateLightEffect(FLinearColor::Red);
+		break;
+	case ECosmeticEffectType::ColorJudgement:
+		CreateLightEffect(FLinearColor::White);
 		break;
 	case ECosmeticEffectType::Smoke:
 		CreateSmokeEffect();
@@ -149,6 +154,29 @@ void UCosmeticComponent::DestroyManagedComponents()
 	}
 }
 
+void UCosmeticComponent::BindActivationDelegates()
+{
+	switch (ActivationType)
+	{
+	case ECosmeticActivationType::Toggle:
+	case ECosmeticActivationType::Timed:
+		if (EffectType != ECosmeticEffectType::ColorJudgement)
+		{
+			BindOwnerSwitchDelegates();
+		}
+		break;
+	case ECosmeticActivationType::JudgementToggle:
+	case ECosmeticActivationType::JudgementTimed:
+		if (EffectType == ECosmeticEffectType::ColorJudgement)
+		{
+			BindOwnerJudgementDelegates();
+		}
+		break;
+	default:
+		break;
+	}
+}
+
 void UCosmeticComponent::BindOwnerSwitchDelegates()
 {
 	AActor* Owner = GetOwner();
@@ -208,6 +236,21 @@ void UCosmeticComponent::BindOwnerSwitchDelegates()
 	}
 }
 
+void UCosmeticComponent::BindOwnerJudgementDelegates()
+{
+	AJeoul* JeoulOwner = Cast<AJeoul>(GetOwner());
+	if (!IsValid(JeoulOwner))
+	{
+		return;
+	}
+
+	JeoulOwner->OnJeoulCheckFinished.AddUObject(
+		this,
+		&UCosmeticComponent::HandleJudgementFinished);
+
+	BoundJeoulOwner = JeoulOwner;
+}
+
 void UCosmeticComponent::UnbindOwnerSwitchDelegates()
 {
 	for (const TWeakObjectPtr<UInteractionSwitchComponent>& SwitchComponent : BoundInteractionSwitchComponents)
@@ -230,6 +273,15 @@ void UCosmeticComponent::UnbindOwnerSwitchDelegates()
 	BoundOverlapSwitchComponents.Empty();
 }
 
+void UCosmeticComponent::UnbindOwnerJudgementDelegates()
+{
+	if (BoundJeoulOwner.IsValid())
+	{
+		BoundJeoulOwner->OnJeoulCheckFinished.RemoveAll(this);
+		BoundJeoulOwner = nullptr;
+	}
+}
+
 void UCosmeticComponent::HandleToggleActivationChanged(bool bActive)
 {
 	SetCosmeticActive(bActive);
@@ -246,6 +298,25 @@ void UCosmeticComponent::HandleTimedOverlapStateChanged(bool bOverlapped)
 	{
 		StartTimedActivation();
 	}
+}
+
+void UCosmeticComponent::HandleJudgementFinished(bool bIsSuccess)
+{
+	if (!IsValid(ManagedLightComponent))
+	{
+		return;
+	}
+
+	ManagedLightComponent->SetLightColor(
+		bIsSuccess ? FLinearColor::Blue : FLinearColor::Red);
+
+	if (ActivationType == ECosmeticActivationType::JudgementTimed)
+	{
+		StartTimedActivation();
+		return;
+	}
+
+	SetCosmeticActive(true);
 }
 
 void UCosmeticComponent::StartTimedActivation()
