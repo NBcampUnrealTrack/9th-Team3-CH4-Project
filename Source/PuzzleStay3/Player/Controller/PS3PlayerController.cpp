@@ -14,9 +14,12 @@
 #include "Component/VoicePluginControlComponent.h"
 #include "Player/PlayerState/PS3PlayerState.h"
 #include "TimerManager.h"
+#include "Core/GameMode/PS3GameModeS3.h"
 #include "UI/HUD/PlayerHUD.h"
 #include "UI/ViewModel/PS3ViewModel.h"
 
+
+class APS3GameModeS3;
 
 APS3PlayerController::APS3PlayerController()
 {
@@ -37,6 +40,16 @@ APS3PlayerController::APS3PlayerController()
 void APS3PlayerController::BeginPlay()
 {
 	Super::BeginPlay();
+	
+	if (HasAuthority())
+	{
+		if (APS3GameModeS3* GameMode = GetWorld()->GetAuthGameMode<APS3GameModeS3>())
+		{
+			GameMode->RegisterPlayerController(this);
+		}
+	}
+	
+	
 	ConfigureLocalInput();
 	RefreshVoiceStateBinding();
 	RefreshLifeStateBinding();
@@ -64,6 +77,15 @@ void APS3PlayerController::EndPlay(const EEndPlayReason::Type EndPlayReason)
 		BoundLifePlayerState->OnLifeCountChanged.RemoveDynamic(
 			this,
 			&ThisClass::HandleLifeCountChanged);
+	}
+	
+	if (HasAuthority())
+	{
+		if (APS3GameModeS3* GameMode = GetWorld()->GetAuthGameMode<APS3GameModeS3>())
+		{
+			// 구독한 델리게이트도 이곳에서 해제
+			GameMode->UnregisterPlayerController(this);
+		}
 	}
 
 	BoundLifePlayerState = nullptr;
