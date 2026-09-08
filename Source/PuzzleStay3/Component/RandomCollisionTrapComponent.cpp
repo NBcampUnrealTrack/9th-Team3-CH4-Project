@@ -42,6 +42,10 @@ void URandomCollisionTrapComponent::BeginPlay()
     {
         return;
     }
+    
+    OnComponentBeginOverlap.AddDynamic(
+    this,
+    &ThisClass::HandleBeginOverlap);
 
     ApplyCollisionFromStage2GameMode();
 }
@@ -112,10 +116,18 @@ void URandomCollisionTrapComponent::OnRep_HasCollision()
 
 void URandomCollisionTrapComponent::UpdateCollisionState()
 {
-    SetCollisionEnabled(
-        bHasCollision
-            ? ECollisionEnabled::QueryAndPhysics
-            : ECollisionEnabled::NoCollision);
+    if (bHasCollision)
+    {
+        SetCollisionResponseToChannel(ECC_Pawn, ECR_Block);
+        SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+    }
+    else
+    {
+        SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
+        SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+    }
+
+    SetGenerateOverlapEvents(true);
 }
 
 void URandomCollisionTrapComponent::GetLifetimeReplicatedProps(
@@ -124,4 +136,27 @@ void URandomCollisionTrapComponent::GetLifetimeReplicatedProps(
     Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
     DOREPLIFETIME(URandomCollisionTrapComponent, bHasCollision);
+}
+
+void URandomCollisionTrapComponent::HandleBeginOverlap(
+    UPrimitiveComponent* OverlappedComponent,
+    AActor* OtherActor,
+    UPrimitiveComponent* OtherComp,
+    int32 OtherBodyIndex,
+    bool bFromSweep,
+    const FHitResult& SweepResult)
+{
+    if (bHasCollision)
+    {
+        return;
+    }
+
+    APawn* PlayerPawn = Cast<APawn>(OtherActor);
+    
+    if (!IsValid(PlayerPawn) || !PlayerPawn->IsLocallyControlled())
+    {
+        return;
+    }
+
+    OnFakePlatformOverlapped.Broadcast(PlayerPawn);
 }

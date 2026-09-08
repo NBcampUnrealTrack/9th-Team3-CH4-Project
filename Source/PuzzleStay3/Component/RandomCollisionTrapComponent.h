@@ -4,6 +4,14 @@
 #include "Components/BoxComponent.h"
 #include "RandomCollisionTrapComponent.generated.h"
 
+class APawn;
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(
+	FOnFakePlatformOverlapped,
+	APawn*,
+	PlayerPawn);
+
+
 UCLASS(ClassGroup = (Gimmick), meta = (BlueprintSpawnableComponent))
 class PUZZLESTAY3_API URandomCollisionTrapComponent : public UBoxComponent
 {
@@ -16,6 +24,9 @@ public:
 		Category = "Random Collision Trap")
 	void ApplyCollisionState(bool bShouldHaveCollision);
 
+	UPROPERTY(BlueprintAssignable, Category = "Random Collision Trap|Events")
+	FOnFakePlatformOverlapped OnFakePlatformOverlapped;
+	
 protected:
 	virtual void OnRegister() override;
 	virtual void BeginPlay() override;
@@ -31,6 +42,15 @@ protected:
 
 	UFUNCTION()
 	void OnRep_HasCollision();
+	
+	UFUNCTION()
+	void HandleBeginOverlap(
+		UPrimitiveComponent* OverlappedComponent,
+		AActor* OtherActor,
+		UPrimitiveComponent* OtherComp,
+		int32 OtherBodyIndex,
+		bool bFromSweep,
+		const FHitResult& SweepResult);
 
 private:
 	void ApplyCollisionFromStage2GameMode();
