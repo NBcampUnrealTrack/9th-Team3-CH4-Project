@@ -56,35 +56,6 @@ AJeoul::AJeoul()
 	SetupBlockingMesh(CheckButtonMesh, ECR_Block);
 }
 
-bool AJeoul::CanInteract_Implementation(AActor* Requestor) const
-{
-	// 저울이 대기(Idle) 상태일 때만 버튼 조작 가능
-	return CurrentState == EJeoulState::Idle;
-}
-
-bool AJeoul::Interact_Implementation(AActor* Requestor)
-{
-	if (!HasAuthority())
-	{
-		return false;
-	}
-
-	if (!CanInteract_Implementation(Requestor))
-	{
-		return false;
-	}
-
-	// 스위치 컴포넌트의 TryInteract를 호출하여 Cosmetic 델리게이트 및 방송을 정상적으로 트리거
-	if (InteractionSwitchComp)
-	{
-		InteractionSwitchComp->TryInteract(Requestor);
-	}
-	
-	// 검증 통과 시 저울 무게 체크 서버 로직 작동
-	Server_CheckBalance();
-	return true;
-}
-
 void AJeoul::BeginPlay()
 {
 	Super::BeginPlay();
@@ -235,8 +206,6 @@ void AJeoul::Server_CheckBalance_Implementation()
 	}
 	
 	CurrentState = EJeoulState::Checking;
-
-	// 서버에서만 Broadcast하지 않고, 모든 클라이언트로 Multicast 호출
 	Multicast_OnJeoulCheckStarted();
 
 	// 스위치를 누른 순간의 무게 스냅샷 측정
@@ -284,6 +253,7 @@ void AJeoul::Server_CheckBalance_Implementation()
 			if (InteractionSwitchComp)
 			{
 				InteractionSwitchComp->ResetSwitch(); // 컷씬 종료 시점에 리셋
+				InteractionSwitchComp->SetLocked(true);
 			}
 		}
 		else
