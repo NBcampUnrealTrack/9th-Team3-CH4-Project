@@ -1,10 +1,10 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "S5_DoorType.generated.h"
+#include "ControlDoorType.generated.h"
 
 UENUM(BlueprintType)
-enum class ES5_DoorType : uint8
+enum class EControlDoorType : uint8
 {
 	None UMETA(DisplayName = "None"),
 	Door_A UMETA(DisplayName = "Door_A"),

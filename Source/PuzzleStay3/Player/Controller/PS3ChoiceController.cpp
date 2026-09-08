@@ -39,7 +39,7 @@ void APS3ChoiceController::ReceivedPlayer()
 
 void APS3ChoiceController::UpdateRotation(float DeltaTime)
 {
-	//아무것도 없지만 지우면 안되는 함수
+	//고의로 아무것도 적지않고 부모의 내용을 차단하고 현 내용으로 함수 덮어씌기(오버라이드)
 }
 
 
@@ -104,6 +104,9 @@ void APS3ChoiceController::OnClickedFieldTypeButton(EPS3PlayerRole SelectType)
 	
 		ServerRPC_SelectedControllerType(SelectType);
 		
+		OnSuccessRoleSelect.Broadcast();
+		
+		//TODO 이 부분은 컨트롤러에서 실행하는게 아니라 뷰모델이 컨트롤러를 구독해서 방송을 듣고 바인딩 된 본인함수를 불러야함
 		if (IsValid(PS3ViewModel) == false) return;
 		PS3ViewModel->RequestHideStage5RoleSelect();
 	}
@@ -121,6 +124,9 @@ void APS3ChoiceController::OnClickedScreenTypeButton(EPS3PlayerRole SelectType)
 	
 		ServerRPC_SelectedControllerType(SelectType);
 		
+		OnSuccessRoleSelect.Broadcast();
+		
+		//TODO 이 부분은 컨트롤러에서 실행하는게 아니라 뷰모델이 컨트롤러를 구독해서 방송을 듣고 바인딩 된 본인함수를 불러야함
 		if (IsValid(PS3ViewModel) == false) return;
 		PS3ViewModel->RequestHideStage5RoleSelect();
 	}

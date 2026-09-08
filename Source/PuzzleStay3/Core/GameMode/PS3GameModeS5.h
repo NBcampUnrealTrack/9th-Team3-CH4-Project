@@ -10,6 +10,8 @@ class APS3PlayerCharacter;
 enum class EPS3PlayerRole : uint8;
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnIsGameStart, bool)
+DECLARE_MULTICAST_DELEGATE(FOnScreenPlayerSpawned)
+DECLARE_MULTICAST_DELEGATE(FOnStageClear)
 UCLASS()
 class PUZZLESTAY3_API APS3GameModeS5 : public APS3GameModeBase
 {
@@ -55,16 +57,15 @@ public:
 	void OnReduceGameTime();
 	void OnTimeDeduction(float TimeToDeducted);
 
+	
+	void OnInteractedEscapeDoor(bool bIsInteracted);
 	void RandomInitializeEscapeDoor();
-	void OnEscapeDoorUnlocked();
 	void OnCollectLoginUser();
 	int32 OnCollectEscapeDoor();
 	
-	void OnInteractedEscapeDoor();
-
-	
 public:
 	FOnIsGameStart OnIsGameStart;
+	FOnScreenPlayerSpawned OnScreenPlayerSpawned;
 	
 	int32 RoleSelectedPlayerCount = 0;
 	int32 MaxPlayerCount = 2;
@@ -82,9 +83,8 @@ protected:
 	int32 GoalEscapeDoorCount = 0;
 	int32 ActivatedEscapeDoorCount = 0;
 	
-private:
-	FName EscapeGimmickTagName = "EscapeGimmick" ;
-	
+	bool bIsScreenPlayerSpawnReady = false;
+	bool bIsScreenPlayerSpawnedField = false;
 
 };
 
