@@ -1,12 +1,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Data/Enum/ControlDoorType.h"
 #include "GameFramework/PlayerController.h"
 #include "PS3ScreenPlayerController.generated.h"
 
+struct FInputActionInstance;
+enum class EControlDoorType : uint8;
 class AControlDoor;
 class ADoor;
-enum class EControlDoorType : uint8;
 class UInputMappingContext;
 class UInputAction;
 
@@ -32,12 +34,14 @@ private:
 
 	
 	
-//TODO 추가 사항 확인 필요: 스테이지5 전용 동작관련 변수, 함수 추가 - 김명현
-#pragma region Stage5
 protected:
 	virtual void BeginPlay() override;
 	virtual void SetupInputComponent() override;
 	
+	EControlDoorType CurrentOpenedDoorType = EControlDoorType::None;
+	
+	void TryOpenDoor(EControlDoorType DoorType);
+	void TryCloseDoor(EControlDoorType DoorType);
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PS3|Screen Controller|Input")
 	TObjectPtr<UInputMappingContext> InputMappingContext;
@@ -59,8 +63,15 @@ protected:
 	
 	FTimerHandle PS3CameraTimerHandle;
 	
+	bool bIsPressHolding = false;
+	
 	UFUNCTION(Server, Reliable)
-	void ServerRPC_OperateDoor(EControlDoorType DoorType, bool bIsOpened);
+	void ServerRPC_OperateDoor(EControlDoorType DoorType, bool bIsOpen);
+	
+	EControlDoorType GetDoorTypeFromAction(const UInputAction* Action) const;
+	
+	void OpenDoor(const FInputActionInstance& Instance);
+	void CloseDoor(const FInputActionInstance& Instance);
 	
 	void OpenDoor_A();
 	void OpenDoor_B();
@@ -74,6 +85,4 @@ protected:
 	
 	void SetCameraView();
 	
-#pragma endregion 
-
 };

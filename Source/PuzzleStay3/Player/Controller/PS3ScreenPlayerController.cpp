@@ -4,6 +4,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "InputMappingContext.h"
 #include "Data/Enum/ControlDoorType.h"
+#include "Data/Enum/DoorType.h"
 #include "Kismet/GameplayStatics.h"
 #include "Object/ControlDoor.h"
 #include "Object/PS3CameraActor.h"
@@ -63,83 +64,76 @@ void APS3ScreenPlayerController::SetupInputComponent()
 	
 	if (IsValid(Button_A))
 	{
-		EIC->BindAction(Button_A, ETriggerEvent::Started, this, &ThisClass::OpenDoor_A);
-		EIC->BindAction(Button_A, ETriggerEvent::Completed, this, &ThisClass::CloseDoor_A);
+		EIC->BindAction(Button_A, ETriggerEvent::Started, this, &ThisClass::OpenDoor);
+		EIC->BindAction(Button_A, ETriggerEvent::Completed, this, &ThisClass::CloseDoor);
 	}
 	if (IsValid(Button_B))
 	{
-		EIC->BindAction(Button_B, ETriggerEvent::Started, this, &ThisClass::OpenDoor_B);
-		EIC->BindAction(Button_B, ETriggerEvent::Completed, this, &ThisClass::CloseDoor_B);
+		EIC->BindAction(Button_B, ETriggerEvent::Started, this, &ThisClass::OpenDoor);
+		EIC->BindAction(Button_B, ETriggerEvent::Completed, this, &ThisClass::CloseDoor);
 	}
 	if (IsValid(Button_C))
 	{
-		EIC->BindAction(Button_C, ETriggerEvent::Started, this, &ThisClass::OpenDoor_C);
-		EIC->BindAction(Button_C, ETriggerEvent::Completed, this, &ThisClass::CloseDoor_C);
+		EIC->BindAction(Button_C, ETriggerEvent::Started, this, &ThisClass::OpenDoor);
+		EIC->BindAction(Button_C, ETriggerEvent::Completed, this, &ThisClass::CloseDoor);
 	}
 	if (IsValid(Button_D))
 	{
-		EIC->BindAction(Button_D, ETriggerEvent::Started, this, &ThisClass::OpenDoor_D);
-		EIC->BindAction(Button_D, ETriggerEvent::Completed, this, &ThisClass::CloseDoor_D);
+		EIC->BindAction(Button_D, ETriggerEvent::Started, this, &ThisClass::OpenDoor);
+		EIC->BindAction(Button_D, ETriggerEvent::Completed, this, &ThisClass::CloseDoor);
 	}
 }
 
 
-void APS3ScreenPlayerController::OpenDoor_A()
+void APS3ScreenPlayerController::OpenDoor(const FInputActionInstance& Instance)
 {
-	ServerRPC_OperateDoor(EControlDoorType::Door_A, true);
-}
-
-void APS3ScreenPlayerController::OpenDoor_B()
-{
-	ServerRPC_OperateDoor(EControlDoorType::Door_B, true);
-}
-
-void APS3ScreenPlayerController::OpenDoor_C()
-{
-	ServerRPC_OperateDoor(EControlDoorType::Door_C, true);
-}
-
-void APS3ScreenPlayerController::OpenDoor_D()
-{
-	ServerRPC_OperateDoor(EControlDoorType::Door_D, true);
-}
-
-void APS3ScreenPlayerController::CloseDoor_A()
-{
-	ServerRPC_OperateDoor(EControlDoorType::Door_A, false);
-}
-
-void APS3ScreenPlayerController::CloseDoor_B()
-{
-	ServerRPC_OperateDoor(EControlDoorType::Door_B, false);
-}
-
-void APS3ScreenPlayerController::CloseDoor_C()
-{
-	ServerRPC_OperateDoor(EControlDoorType::Door_C, false);
-}
-
-void APS3ScreenPlayerController::CloseDoor_D()
-{
-	ServerRPC_OperateDoor(EControlDoorType::Door_D, false);
-}
-
-
-
-
-//TODO 추가 사항 확인 필요: 배치 된 Door 액터 중 일치하는 이넘 값을 찾아서 해당 도어 Operating(구동) - 김명현
-void APS3ScreenPlayerController::ServerRPC_OperateDoor_Implementation(EControlDoorType DoorType, bool bIsOpened)
-{
-	for (AControlDoor* ControllDoor : ControlDoorArray)
+	EControlDoorType PressedDoorType = GetDoorTypeFromAction(Instance.GetSourceAction());
+	if (PressedDoorType == EControlDoorType::None) return;
+	
+	if (CurrentOpenedDoorType == EControlDoorType::None)
 	{
-		if (IsValid(ControllDoor) == false) continue;
-		
-		ControllDoor->NetMulti_OnOperateDoor(DoorType, bIsOpened);
+		CurrentOpenedDoorType = PressedDoorType;
+		ServerRPC_OperateDoor(PressedDoorType, true);
+	}
+	
+}
+
+
+void APS3ScreenPlayerController::CloseDoor(const FInputActionInstance& Instance)
+{
+	EControlDoorType PressedDoorType = GetDoorTypeFromAction(Instance.GetSourceAction());
+	if (PressedDoorType == EControlDoorType::None) return;
+
+	if (CurrentOpenedDoorType == PressedDoorType)
+	{
+		CurrentOpenedDoorType = EControlDoorType::None;
+		ServerRPC_OperateDoor(PressedDoorType, false);
 	}
 }
 
 
-//TODO 추가 사항 확인 필요: 스크린플레이어용 인풋맵핑 추가 - 김명현
+EControlDoorType APS3ScreenPlayerController::GetDoorTypeFromAction(const UInputAction* Action) const
+{
+	if (Action == Button_A) return EControlDoorType::Door_A;
+	if (Action == Button_B) return EControlDoorType::Door_B;
+	if (Action == Button_C) return EControlDoorType::Door_C;
+	if (Action == Button_D) return EControlDoorType::Door_D;
+
+	return EControlDoorType::None;
+}
+
+
+void APS3ScreenPlayerController::ServerRPC_OperateDoor_Implementation(EControlDoorType DoorType, bool bIsOpen)
+{
+	for (AControlDoor* ControlDoor : ControlDoorArray)
+	{
+		if (IsValid(ControlDoor) == false) continue;
+		
+		ControlDoor->NetMulti_OnOperateDoor(DoorType, bIsOpen);
+	}
+}
+
+
 void APS3ScreenPlayerController::ConfigureLocalInputMode()
 {
 	if (bLocalInputModeConfigured == true || IsLocalController() == false) return;
