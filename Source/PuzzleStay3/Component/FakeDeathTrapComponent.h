@@ -32,7 +32,8 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
-
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+	
 	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "Fake Death Trap")
 	int32 TrapId = INDEX_NONE;
 
@@ -54,4 +55,6 @@ private:
 
 	void ResolveVisualMesh();
 	void SetLocalVisibility(bool bShouldBeVisible);
+	
+	bool bRegisteredToGameModeS3 = false;
 };

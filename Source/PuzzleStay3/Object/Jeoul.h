@@ -5,10 +5,10 @@
 #include "Player/Interaction/PS3InteractableInterface.h"
 #include "Jeoul.generated.h"
 
+class UInteractionSwitchComponent;
 class UCameraComponent;
 class ADumbbell;
 class UBoxComponent;
-class UInteractionSwitchComponent;
 
 DECLARE_MULTICAST_DELEGATE(FOnJeoulCheckStarted);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnJeoulCheckFinished, bool);
@@ -22,17 +22,12 @@ enum class EJeoulState : uint8
 };
 
 UCLASS()
-class PUZZLESTAY3_API AJeoul : public AActor, public IPS3InteractableInterface
+class PUZZLESTAY3_API AJeoul : public AActor
 {
 	GENERATED_BODY()
 	
 public:	
 	AJeoul();
-
-	virtual bool CanInteract_Implementation(AActor* Requestor) const override;
-	virtual bool Interact_Implementation(AActor* Requestor) override;
-	
-	// 외부(GameMode 등)에서 구독할 이벤트 델리게이트
 	FOnJeoulCheckStarted OnJeoulCheckStarted;
 	FOnJeoulCheckFinished OnJeoulCheckFinished;
 	

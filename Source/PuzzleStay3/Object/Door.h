@@ -13,7 +13,7 @@ class PUZZLESTAY3_API ADoor : public AActor
 public:	
 	ADoor();
 
-#pragma region Mesh
+#pragma region Mesh Component & Settings
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<USceneComponent> DefaultSceneRoot;
@@ -25,27 +25,33 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Door|Settings")
 	EDoorType DoorType = EDoorType::StageAllFinalDoor;
 	
+	// Stage 1 등 ID 식별이 필요한 문 번호 (에디터 디테일 창에서 설정)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Door|Settings")
+	int32 DoorID = 1;
+	
 	// 문이 열릴 때 이동할 상대 위치 (에디터에서 설정)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Door|Movement")
-	FVector TargetRelativeLocation = FVector(0.f, 0.f, 300.f);
+	FVector TargetRelativeLocation = FVector(0.f, 0.f, 250.f);
 	
 	// 문 열림 속도
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Door|Movement")
-	float OpenSpeed = 2.0f;
+	float OpenSpeed = 1.0f;
 	
 #pragma endregion 
 	
-#pragma region Direct Test Setup
+#pragma region Direct Test Binding (테스트 전용)
 protected:
-	// ★ [테스트용] 에디터 디테일 창에서 이 문과 직접 연결할 발판 액터를 지정합니다.
+	// TODO: [테스트용] GameState/GameMode 없이 직접 발판 액터와 연결할 때 사용 (나중에 미사용 시 주석 처리)
 	UPROPERTY(EditInstanceOnly, BlueprintReadWrite, Category = "Door|TestBinding")
 	TObjectPtr<AActor> TargetPressurePlateActor;
 
-	// ★ [테스트용] 발판의 OverlapSwitchComponent 델리게이트를 직접 수신하는 콜백
+	// TODO: [테스트용] 직통 발판 오버랩 수신 콜백 (나중에 미사용 시 주석 처리)
 	UFUNCTION()
 	void OnDirectOverlapStateChanged(bool bIsOverlapped);
+	
 #pragma endregion
 	
+#pragma region Door State & Callbacks
 protected:	
 	UPROPERTY(ReplicatedUsing = OnRep_bIsOpen)
 	bool bIsOpen = false;
@@ -53,17 +59,15 @@ protected:
 	UFUNCTION()
 	void OnRep_bIsOpen();
 	
-	// GameState의 OnEscapeDoorOpened 델리게이트 수신 콜백 (bool bOpened 매개변수 추가)
+	// 단일 bool 전달형 문 열림 콜백 (최종 탈출문, Stage4 등)
 	UFUNCTION()
 	void OnOpenDoor(bool bOpened);
-	
-	// Stage 1 등 식별이 필요한 문 ID (에디터 디테일 창에서 설정)
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Door|Settings")
-	int32 DoorID = 1;
 
-	// Stage1 문 상태 수신 콜백
+	// ID 식별형 문 열림 콜백 (Stage 1 등)
 	UFUNCTION()
 	void OnStage1DoorStateChanged(int32 InDoorID, bool bOpened);
+	
+#pragma endregion
 	
 protected:
 	virtual void BeginPlay() override;
