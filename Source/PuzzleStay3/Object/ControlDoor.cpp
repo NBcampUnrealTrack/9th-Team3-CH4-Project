@@ -144,11 +144,11 @@ void AControlDoor::NetMulti_OnOperateDoor_Implementation(EControlDoorType Presse
 	
 	if (bIsDoorOpen == true)
 	{
-		OnIsActiveCosmetic.Broadcast(true);
+		OnIsControlDoorOpen.Broadcast(true);
 	}
 	else
 	{
-		OnIsActiveCosmetic.Broadcast(false);
+		OnIsControlDoorOpen.Broadcast(false);
 	}
 	
 	if (PressedButtonType == ControlDoorType && IsValid(DoorTimelineComp) == true)

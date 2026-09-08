@@ -5,7 +5,7 @@
 #include "Data/Enum/ControlDoorType.h"
 #include "ControlDoor.generated.h"
 
-DECLARE_MULTICAST_DELEGATE_OneParam(FOnIsActiveCosmetic, bool)
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnIsControlDoorOpen, bool)
 
 class UBoxComponent;
 class UTimelineComponent;
@@ -33,7 +33,7 @@ protected:
 	TObjectPtr<UStaticMeshComponent> ControlDoorMesh;
 	
 public:
-	FOnIsActiveCosmetic OnIsActiveCosmetic;
+	FOnIsControlDoorOpen OnIsControlDoorOpen;
 	
 	UFUNCTION(NetMulticast, Reliable)
 	void NetMulti_OnOperateDoor(EControlDoorType PressedButtonType, bool bIsOpen);
