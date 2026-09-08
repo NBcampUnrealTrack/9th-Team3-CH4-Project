@@ -1,7 +1,7 @@
 #include "Component/FakeDeathTrapComponent.h"
-
+#include "Engine/World.h"
 #include "Components/StaticMeshComponent.h"
-
+#include "Core/GameMode/PS3GameModeS3.h"
 UFakeDeathTrapComponent::UFakeDeathTrapComponent()
 {
 	SetCollisionEnabled(ECollisionEnabled::NoCollision);
@@ -26,6 +26,25 @@ void UFakeDeathTrapComponent::BeginPlay()
 	{
 		SetLocalVisibility(false);
 	}
+	
+	APS3GameModeS3* GameMode = Cast<APS3GameModeS3>(GetWorld()->GetAuthGameMode());
+	if (!GameMode) return;
+
+	GameMode->RegisterFakeDeathTrapComponent(this);
+	bRegisteredToGameModeS3 = true;
+}
+
+void UFakeDeathTrapComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	Super::EndPlay(EndPlayReason);
+	
+	if (bRegisteredToGameModeS3 == false) return;
+	
+	APS3GameModeS3* GameMode = Cast<APS3GameModeS3>(GetWorld()->GetAuthGameMode());
+	if (!GameMode) return;
+
+	GameMode->UnregisterFakeDeathTrapComponent(this);
+	bRegisteredToGameModeS3 = false;
 }
 
 void UFakeDeathTrapComponent::ApplyLocalFakeTrapState(bool bShouldBeVisible)
