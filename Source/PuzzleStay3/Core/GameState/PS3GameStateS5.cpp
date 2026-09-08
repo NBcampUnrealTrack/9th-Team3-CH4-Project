@@ -1,7 +1,4 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
-
-
-#include "PS3GameStateS5.h"
+﻿#include "PS3GameStateS5.h"
 
 #include "Core/GameMode/PS3GameModeS5.h"
 #include "Data/DataAsset/S5_GameRuleDataAsset.h"
@@ -20,8 +17,35 @@ void APS3GameStateS5::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	if (IsValid(GetCastPS3GameModeS5()) == false) return;
-	GameLimitTime = S5_GameRuleDataAsset->MaxGameLimitTime;
+	InitializeToDataAssets();
+}
+
+
+void APS3GameStateS5::InitializeToDataAssets()
+{
+	if (HasAuthority() == true)
+	{
+		checkf(IsValid(S5_GameRuleDataAsset) == true, TEXT("[APS3GameStateS5]의 데이터어셋이 비어있습니다."));
+		GameLimitTime = S5_GameRuleDataAsset->MaxGameLimitTime;
+	}
+}
+
+
+//Caching으로 컨트롤러를 넣진않는다.
+APS3GameModeS5* APS3GameStateS5::GetCastPS3GameModeS5()
+{
+	if (HasAuthority() == false) return nullptr;
+	
+	if (IsValid(CastPS3GameModeS5) == false)
+	{
+		if (UWorld* World = GetWorld())
+		{
+			CastPS3GameModeS5 = Cast<APS3GameModeS5>(World->GetAuthGameMode());
+			
+		}
+	}	
+	
+	return CastPS3GameModeS5;
 }
 
 
@@ -41,7 +65,7 @@ void APS3GameStateS5::ReSpawnPlayer(APlayerController* TargetPlayerController)
 	if (HasAuthority() == true)
 	{
 		if (IsValid(TargetPlayerController) == false) return;
-		if (IsValid(CastPS3GameModeS5) == false) return;
+		if (IsValid(GetCastPS3GameModeS5()) == false) return;
 		
 		CastPS3GameModeS5->ReSpawnPlayer(TargetPlayerController);
 	}
@@ -116,36 +140,26 @@ void APS3GameStateS5::OnTimeDeduction(float TimeToDeducted)
 
 void APS3GameStateS5::StageRestart()
 {
-	if (IsValid(CastPS3GameModeS5) == false) return;
+	if (HasAuthority() == true)
+	{
+		if (IsValid(GetCastPS3GameModeS5()) == false) return;
 	
-	CastPS3GameModeS5->StageRestart();
+		CastPS3GameModeS5->StageRestart();
+	}
 }
 
 
 void APS3GameStateS5::OnQuitGame()
 {
-	APlayerController* CurrentPlayer = GetWorld()->GetFirstPlayerController();
-	if (CurrentPlayer == nullptr) return;
-	
-	if (IsValid(CastPS3GameModeS5) == false) return;
-		
-	CastPS3GameModeS5->OnQuitGame();
-}
-
-APS3GameModeS5* APS3GameStateS5::GetCastPS3GameModeS5()
-{
 	if (HasAuthority() == true)
 	{
-		if (IsValid(CastPS3GameModeS5)) return CastPS3GameModeS5;
-
-		if (UWorld* World = GetWorld())
-		{
-			CastPS3GameModeS5 = Cast<APS3GameModeS5>(World->GetAuthGameMode());
-			return CastPS3GameModeS5;
-		}
+		if (IsValid(GetCastPS3GameModeS5()) == false) return;
+		
+		CastPS3GameModeS5->OnQuitGame();
 	}
-	
-	return nullptr;
 }
+
+
+
 
 
