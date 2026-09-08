@@ -1,0 +1,7 @@
+﻿#pragma once
+
+#include "CoreMinimal.h"
+
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnIsGameStart, bool)
+DECLARE_MULTICAST_DELEGATE(FOnScreenPlayerSpawned)
+DECLARE_MULTICAST_DELEGATE(FOnStageClear)
