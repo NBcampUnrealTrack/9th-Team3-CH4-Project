@@ -7,6 +7,8 @@
 #include "PS3ChoiceController.generated.h"
 
 enum class EPS3PlayerRole : uint8;
+
+DECLARE_MULTICAST_DELEGATE(FOnSuccessRoleSelect)
 /**
  * 
  */
@@ -42,6 +44,8 @@ public:
 	
 	UPROPERTY()
 	TObjectPtr<class UPS3ViewModel> PS3ViewModel;
+	
+	FOnSuccessRoleSelect OnSuccessRoleSelect;
 	
 protected:
 	FTimerHandle InitTimerHandle;

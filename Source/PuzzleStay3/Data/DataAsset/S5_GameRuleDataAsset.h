@@ -34,5 +34,8 @@ public:
 	
 	UPROPERTY(EditDefaultsOnly, Category = "SwapController")
 	TSubclassOf<APlayerController> ScreenControllerClass;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "SwapController")
+	TSubclassOf<APlayerController> SpawnScreenControllerClass;
 
 };
