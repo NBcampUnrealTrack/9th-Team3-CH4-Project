@@ -3,6 +3,8 @@
 #include "Component/InteractionSwitchComponent.h"
 #include "Component/OverlapSwitchComponent.h"
 #include "Components/PointLightComponent.h"
+#include "Components/TimelineComponent.h"
+#include "Materials/MaterialInstanceDynamic.h"
 #include "Object/ControlDoor.h"
 #include "Object/Jeoul.h"
 #include "Particles/ParticleSystem.h"
@@ -153,9 +155,18 @@ void UCosmeticComponent::DestroyManagedComponents()
 
 	if (IsValid(ManagedParticleComponent))
 	{
+		StopDoorOpacityTimeline();
 		ManagedParticleComponent->DestroyComponent();
 		ManagedParticleComponent = nullptr;
 	}
+
+	if (IsValid(DoorOpacityTimelineComponent))
+	{
+		DoorOpacityTimelineComponent->DestroyComponent();
+		DoorOpacityTimelineComponent = nullptr;
+	}
+
+	DoorSmokeDynamicMaterial = nullptr;
 }
 
 void UCosmeticComponent::InitializeDoorState()
@@ -168,11 +179,53 @@ void UCosmeticComponent::InitializeDoorState()
 	DoorTravelDuration = FMath::Max(0.0f, DoorTravelDuration);
 	DoorProgressTime = DoorTravelDuration;
 	DoorTravelDirection = ECosmeticDoorTravelDirection::None;
+	InitializeDoorOpacityTimeline();
+	CreateDoorSmokeDynamicMaterial();
+	ApplyDoorSmokeOpacity();
 
 	if (const UWorld* World = GetWorld())
 	{
 		LastDoorStateChangeTime = World->GetTimeSeconds();
 	}
+}
+
+void UCosmeticComponent::InitializeDoorOpacityTimeline()
+{
+	if (EffectType != ECosmeticEffectType::Smoke)
+	{
+		return;
+	}
+
+	AActor* Owner = GetOwner();
+	if (!IsValid(Owner))
+	{
+		return;
+	}
+
+	DoorOpacityTimelineComponent = NewObject<UTimelineComponent>(Owner);
+	if (!IsValid(DoorOpacityTimelineComponent))
+	{
+		return;
+	}
+
+	DoorOpacityTimelineComponent->SetPropertySetObject(this);
+	DoorOpacityTimelineComponent->SetLooping(true);
+	DoorOpacityTimelineComponent->SetTimelineLength(1.0f);
+
+	FOnTimelineEvent OnTimelineUpdate;
+	OnTimelineUpdate.BindUFunction(this, FName("HandleDoorOpacityTimelineUpdate"));
+	DoorOpacityTimelineComponent->SetTimelinePostUpdateFunc(OnTimelineUpdate);
+	DoorOpacityTimelineComponent->RegisterComponent();
+}
+
+void UCosmeticComponent::CreateDoorSmokeDynamicMaterial()
+{
+	if (!IsValid(ManagedParticleComponent))
+	{
+		return;
+	}
+
+	DoorSmokeDynamicMaterial = ManagedParticleComponent->CreateDynamicMaterialInstance(0);
 }
 
 void UCosmeticComponent::BindActivationDelegates()
@@ -380,6 +433,7 @@ void UCosmeticComponent::HandleDoorOpenStateChanged(bool bIsOpen)
 	{
 		World->GetTimerManager().ClearTimer(DoorTravelTimerHandle);
 	}
+	StopDoorOpacityTimeline();
 
 	const bool bOpening = bIsOpen;
 	if (DoorTravelDuration <= KINDA_SMALL_NUMBER)
@@ -407,7 +461,12 @@ void UCosmeticComponent::HandleDoorOpenStateChanged(bool bIsOpen)
 		? ECosmeticDoorTravelDirection::Opening
 		: ECosmeticDoorTravelDirection::Closing;
 
-	SetCosmeticActive(true);
+	if (!bIsCosmeticActive)
+	{
+		SetCosmeticActive(true);
+	}
+	ApplyDoorSmokeOpacity();
+	StartDoorOpacityTimeline();
 
 	if (World)
 	{
@@ -436,6 +495,7 @@ void UCosmeticComponent::UpdateDoorProgressToNow()
 
 	const double CurrentTime = World->GetTimeSeconds();
 	const float ElapsedTime = static_cast<float>(FMath::Max(0.0, CurrentTime - LastDoorStateChangeTime));
+	LastDoorStateChangeTime = CurrentTime;
 
 	if (DoorTravelDirection == ECosmeticDoorTravelDirection::Opening)
 	{
@@ -447,6 +507,47 @@ void UCosmeticComponent::UpdateDoorProgressToNow()
 	}
 
 	DoorProgressTime = FMath::Clamp(DoorProgressTime, 0.0f, ClampedDoorTravelDuration);
+}
+
+void UCosmeticComponent::HandleDoorOpacityTimelineUpdate()
+{
+	UpdateDoorProgressToNow();
+	ApplyDoorSmokeOpacity();
+}
+
+void UCosmeticComponent::StartDoorOpacityTimeline()
+{
+	if (!IsValid(DoorOpacityTimelineComponent) || !IsValid(DoorSmokeDynamicMaterial))
+	{
+		return;
+	}
+
+	DoorOpacityTimelineComponent->PlayFromStart();
+}
+
+void UCosmeticComponent::StopDoorOpacityTimeline()
+{
+	if (IsValid(DoorOpacityTimelineComponent))
+	{
+		DoorOpacityTimelineComponent->Stop();
+	}
+}
+
+void UCosmeticComponent::ApplyDoorSmokeOpacity()
+{
+	if (!IsValid(DoorSmokeDynamicMaterial))
+	{
+		return;
+	}
+
+	float Opacity = 0.0f;
+	if (DoorTravelDuration > KINDA_SMALL_NUMBER)
+	{
+		const float NormalizedDoorProgress = FMath::Clamp(DoorProgressTime / DoorTravelDuration, 0.0f, 1.0f);
+		Opacity = 1.0f - FMath::Abs(NormalizedDoorProgress * 2.0f - 1.0f);
+	}
+
+	DoorSmokeDynamicMaterial->SetScalarParameterValue(SmokeOpacityParameterName, Opacity);
 }
 
 void UCosmeticComponent::FinishDoorTravel()
@@ -465,6 +566,8 @@ void UCosmeticComponent::FinishDoorTravel()
 		DoorProgressTime = FMath::Max(0.0f, DoorTravelDuration);
 	}
 
+	StopDoorOpacityTimeline();
+	ApplyDoorSmokeOpacity();
 	DoorTravelDirection = ECosmeticDoorTravelDirection::None;
 
 	if (const UWorld* World = GetWorld())
@@ -478,6 +581,8 @@ void UCosmeticComponent::FinishDoorTravel()
 void UCosmeticComponent::FinishDoorTravelImmediately(bool bOpening)
 {
 	DoorProgressTime = bOpening ? 0.0f : FMath::Max(0.0f, DoorTravelDuration);
+	StopDoorOpacityTimeline();
+	ApplyDoorSmokeOpacity();
 	DoorTravelDirection = ECosmeticDoorTravelDirection::None;
 
 	if (const UWorld* World = GetWorld())

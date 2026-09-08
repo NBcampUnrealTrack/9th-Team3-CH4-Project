@@ -13,6 +13,8 @@ class UOverlapSwitchComponent;
 class UParticleSystem;
 class UParticleSystemComponent;
 class UPointLightComponent;
+class UTimelineComponent;
+class UMaterialInstanceDynamic;
 
 enum class ECosmeticDoorTravelDirection : uint8
 {
@@ -50,6 +52,10 @@ protected:
 		meta = (EditCondition = "ActivationType == ECosmeticActivationType::Door", ClampMin = "0.0"))
 	float DoorTravelDuration = 2.0f;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Cosmetic|Door",
+		meta = (EditCondition = "ActivationType == ECosmeticActivationType::Door"))
+	FName SmokeOpacityParameterName = TEXT("OpacityScale");
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Cosmetic|Light",
 		meta = (EditCondition = "EffectType == ECosmeticEffectType::BlueLight || EffectType == ECosmeticEffectType::RedLight || EffectType == ECosmeticEffectType::ColorJudgement", ClampMin = "0.0"))
 	float LightIntensity = 3000.0f;
@@ -72,6 +78,8 @@ private:
 	void ApplyActiveState();
 	void DestroyManagedComponents();
 	void InitializeDoorState();
+	void InitializeDoorOpacityTimeline();
+	void CreateDoorSmokeDynamicMaterial();
 	void BindActivationDelegates();
 	void BindOwnerSwitchDelegates();
 	void BindOwnerJudgementDelegates();
@@ -85,6 +93,11 @@ private:
 	void HandleJudgementFinished(bool bIsSuccess);
 	void HandleDoorOpenStateChanged(bool bIsOpen);
 	void UpdateDoorProgressToNow();
+	UFUNCTION()
+	void HandleDoorOpacityTimelineUpdate();
+	void StartDoorOpacityTimeline();
+	void StopDoorOpacityTimeline();
+	void ApplyDoorSmokeOpacity();
 	void FinishDoorTravel();
 	void FinishDoorTravelImmediately(bool bOpening);
 	void StartTimedActivation();
@@ -107,6 +120,12 @@ private:
 
 	UPROPERTY(Transient)
 	TWeakObjectPtr<AControlDoor> BoundControlDoorOwner;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UTimelineComponent> DoorOpacityTimelineComponent;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UMaterialInstanceDynamic> DoorSmokeDynamicMaterial;
 
 	FTimerHandle ActiveDurationTimerHandle;
 	FTimerHandle DoorTravelTimerHandle;
