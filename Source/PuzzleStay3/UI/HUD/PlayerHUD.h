@@ -1,7 +1,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Data/Enum/PS3InteractionNotifyType.h"
 #include "Data/Enum/PS3PlayerRole.h"
+#include "Data/Enum/PS3TextNotifyType.h"
 #include "GameFramework/HUD.h"
 #include "PlayerHUD.generated.h"
 
@@ -79,40 +81,31 @@ public:
 	bool IsUIReady() const;
 
 	UFUNCTION(BlueprintCallable, Category = "UI|TextNotify")
-	void ShowTextNotify(const FText& InDisplayText, float InFontSize, float InDisplayDuration);
+	void ShowTextNotify(EPS3TextNotifyType NotifyType);
 
 	UFUNCTION(BlueprintCallable, Category = "UI|TextNotify")
-	void HideTextNotify();
+	void SetTextNotifyVisible(bool bVisible);
 
 	UFUNCTION(BlueprintCallable, Category = "UI|LifeCount")
-	void ShowLifeCount();
-
-	UFUNCTION(BlueprintCallable, Category = "UI|LifeCount")
-	void HideLifeCount();
+	void SetLifeCountVisible(bool bVisible);
 
 	UFUNCTION(BlueprintCallable, Category = "UI|LifeCount")
 	void UpdateLifeCount(int32 InCurrentLifeCount, int32 InMaxLifeCount);
 
 	UFUNCTION(BlueprintCallable, Category = "UI|InteractionNotify")
-	void ShowInteractionNotifyWidget();
+	void SetInteractionNotifyVisible(bool bVisible);
 
 	UFUNCTION(BlueprintCallable, Category = "UI|InteractionNotify")
-	void HideInteractionNotifyWidget();
+	void ShowInteractionNotify(EPS3InteractionNotifyType NotifyType);
 
 	UFUNCTION(BlueprintCallable, Category = "UI|InteractionNotify")
-	void ShowInteractionNotify(FName InNotifyId, const FText& InKeyName);
-
-	UFUNCTION(BlueprintCallable, Category = "UI|InteractionNotify")
-	void HideInteractionNotify(FName InNotifyId);
+	void HideInteractionNotify(EPS3InteractionNotifyType NotifyType);
 
 	UFUNCTION(BlueprintCallable, Category = "UI|InteractionNotify")
 	void HideAllInteractionNotifies();
 
 	UFUNCTION(BlueprintCallable, Category = "UI|TimerNotify")
-	void ShowTimerNotify();
-
-	UFUNCTION(BlueprintCallable, Category = "UI|TimerNotify")
-	void HideTimerNotifyWidget();
+	void SetTimerNotifyVisible(bool bVisible);
 
 	UFUNCTION(BlueprintCallable, Category = "UI|TimerNotify")
 	void UpdateTimerNotify(FName InTimerId, float InDuration);
@@ -121,19 +114,13 @@ public:
 	void ReduceTimerNotify(FName InTimerId, float InReduceTime);
 
 	UFUNCTION(BlueprintCallable, Category = "UI|TimerNotify")
-	void HideTimerNotify();
+	void ResetTimerNotify();
 
 	UFUNCTION(BlueprintCallable, Category = "UI|TutorialNotify")
-	void ShowTutorialNotify();
-
-	UFUNCTION(BlueprintCallable, Category = "UI|TutorialNotify")
-	void HideTutorialNotify();
+	void SetTutorialNotifyVisible(bool bVisible);
 
 	UFUNCTION(BlueprintCallable, Category = "UI|DoorOpenButton")
-	void ShowDoorOpenButton();
-
-	UFUNCTION(BlueprintCallable, Category = "UI|DoorOpenButton")
-	void HideDoorOpenButton();
+	void SetDoorOpenButtonVisible(bool bVisible);
 
 	UFUNCTION(BlueprintCallable, Category = "UI|DoorOpenButton")
 	void UpdateDoorOpenButtons(
@@ -150,16 +137,10 @@ public:
 	void UpdateVoiceChatIcon(bool bInIsSpeaking);
 
 	UFUNCTION(BlueprintCallable, Category = "UI|VoiceChatIcon")
-	void ShowVoiceChatIcon();
-
-	UFUNCTION(BlueprintCallable, Category = "UI|VoiceChatIcon")
-	void HideVoiceChatIcon();
+	void SetVoiceChatIconVisible(bool bVisible);
 
 	UFUNCTION(BlueprintCallable, Category = "UI|OptionPopup")
-	void ShowOptionPopup();
-
-	UFUNCTION(BlueprintCallable, Category = "UI|OptionPopup")
-	void HideOptionPopup();
+	void SetOptionPopupVisible(bool bVisible);
 
 	UFUNCTION(BlueprintCallable, Category = "UI|OptionPopup")
 	void ToggleOptionPopup();
@@ -180,10 +161,7 @@ public:
 	void RequestResolutionChanged(const FString& Resolution);
 
 	UFUNCTION(BlueprintCallable, Category = "UI|Title")
-	void ShowTitle();
-
-	UFUNCTION(BlueprintCallable, Category = "UI|Title")
-	void HideTitle();
+	void SetTitleVisible(bool bVisible);
 
 	UFUNCTION(BlueprintCallable, Category = "UI|Title")
 	void RequestGameStart();
@@ -195,19 +173,13 @@ public:
 	void RequestGameExit();
 
 	UFUNCTION(BlueprintCallable, Category = "UI|GameOver")
-	void ShowGameOver();
-
-	UFUNCTION(BlueprintCallable, Category = "UI|GameOver")
-	void HideGameOver();
+	void SetGameOverVisible(bool bVisible);
 
 	UFUNCTION(BlueprintCallable, Category = "UI|GameOver")
 	void RequestGameRestart();
 
 	UFUNCTION(BlueprintCallable, Category = "UI|Stage5RoleSelect")
-	void ShowStage5RoleSelect();
-
-	UFUNCTION(BlueprintCallable, Category = "UI|Stage5RoleSelect")
-	void HideStage5RoleSelect();
+	void SetStage5RoleSelectVisible(bool bVisible);
 
 	UFUNCTION(BlueprintCallable, Category = "UI|Stage5RoleSelect")
 	void RequestStage5RoleSelection(EPS3PlayerRole SelectedRole);

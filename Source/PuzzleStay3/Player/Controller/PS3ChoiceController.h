@@ -1,7 +1,6 @@
 ﻿#pragma once
 
 #include "CoreMinimal.h"
-#include "Data/Delegates/UIDelegates.h"
 #include "GameFramework/PlayerController.h"
 #include "PS3ChoiceController.generated.h"
 
@@ -41,16 +40,10 @@ public:
 	UPROPERTY()
 	TObjectPtr<class UCameraComponent> FixedCameraComponent;
 	
-	UPROPERTY()
-	TObjectPtr<class UPS3ViewModel> PS3ViewModel;
-	
-	
 protected:
 	FTimerHandle InitTimerHandle;
 	
 	
-public:
-	FOnRoleSelectionUI OnRoleSelectionUI;
 	
 
 	

@@ -58,7 +58,7 @@ void UTimerNotifyWidget::ReduceTimerNotify(FName InTimerId, float InReduceTime)
 	}
 }
 
-void UTimerNotifyWidget::HideTimerNotify()
+void UTimerNotifyWidget::ResetTimerNotify()
 {
 	for (UTimerNotifyEntryWidget* TimerEntryWidget : ActiveTimerEntries)
 	{
@@ -81,7 +81,7 @@ void UTimerNotifyWidget::HideTimerNotify()
 
 void UTimerNotifyWidget::NativeDestruct()
 {
-	HideTimerNotify();
+	ResetTimerNotify();
 	Super::NativeDestruct();
 }
 

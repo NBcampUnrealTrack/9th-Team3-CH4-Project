@@ -2,9 +2,10 @@
 
 #include "CoreMinimal.h"
 #include "Components/BoxComponent.h"
-#include "Data/Delegates/UIDelegates.h"
+#include "Data/Enum/TimerUIType.h"
 #include "OverlapVolumeTimeDeductionComponent.generated.h"
 
+enum class EPS3TimerUIType : uint8;
 class APS3GameModeS5;
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
@@ -17,6 +18,9 @@ protected:
 	
 protected:
 	virtual void BeginPlay() override;
+	
+public:
+	EPS3TimerUIType TimeDeductTimerUIType = EPS3TimerUIType::None;
 	
 protected:
 	UFUNCTION()
@@ -52,15 +56,17 @@ protected:
 	UPROPERTY()
 	TArray<TObjectPtr<AActor>> OverlappedCharacters;
 	
+
+	
 	UPROPERTY(EditAnywhere,Category = "GameRule")
 	float DeductedTimeRange = 3.0f;
 
 	
 public:
-	FOnTimeDeduct OnTimeDeduct;
 	bool bIsEscapeDoor = true;
 	
 private:
+	void ErrorCheck_S5();
 	APS3GameModeS5* GetCastPS3GameModeS5();
 	void OnBindWhenGameStarted(bool bIsGameStart);
 	

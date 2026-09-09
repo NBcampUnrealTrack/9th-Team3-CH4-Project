@@ -3,7 +3,6 @@
 
 #include "CoreMinimal.h"
 #include "PS3GameStateBase.h"
-#include "Data/Delegates/UIDelegates.h"
 #include "PS3GameStateS5.generated.h"
 
 
@@ -73,11 +72,6 @@ private:
 	void InitializeToDataAssets();
 	void InitializeBindFunction();
 	APS3GameModeS5* GetCastPS3GameModeS5();
-	
-	
 public:
-	FOnIsGameOver OnIsGameOver;
-	FOnStartGameTimer OnStartGameTimer;
-	FOnScreenPlayerUI OnScreenPlayerUI;
-	FOnFieldPlayerUI OnFieldPlayerUI;
+
 };

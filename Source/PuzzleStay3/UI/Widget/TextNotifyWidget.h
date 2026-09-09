@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "Data/Enum/PS3TextNotifyType.h"
 #include "TimerManager.h"
 #include "TextNotifyWidget.generated.h"
 
@@ -14,7 +15,10 @@ class PUZZLESTAY3_API UTextNotifyWidget : public UUserWidget
 
 public:
 	UFUNCTION(BlueprintCallable, Category = "UI|TextNotify")
-	void ShowTextNotify(const FText& InDisplayText, float InFontSize, float InDisplayDuration);
+	void ShowTextNotify(EPS3TextNotifyType NotifyType);
+
+	UFUNCTION(BlueprintCallable, Category = "UI|TextNotify")
+	void SetTextNotifyVisible(bool bVisible);
 
 	UFUNCTION(BlueprintCallable, Category = "UI|TextNotify")
 	void HideTextNotify();
@@ -24,5 +28,7 @@ protected:
 	TObjectPtr<UTextBlock> TextNotifyText;
 
 private:
+	void ShowTextNotifyInternal(const FText& InDisplayText, float InFontSize, float InDisplayDuration);
+
 	FTimerHandle TextNotifyTimerHandle;
 };

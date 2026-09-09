@@ -115,44 +115,48 @@ bool APlayerHUD::IsUIReady() const
 	return bIsUIReady;
 }
 
-void APlayerHUD::ShowTextNotify(const FText& InDisplayText, float InFontSize, float InDisplayDuration)
+void APlayerHUD::ShowTextNotify(EPS3TextNotifyType NotifyType)
 {
 	if (!Widgets.TextNotifyWidget)
 	{
 		return;
 	}
 
-	Widgets.TextNotifyWidget->ShowTextNotify(InDisplayText, InFontSize, InDisplayDuration);
+	Widgets.TextNotifyWidget->ShowTextNotify(NotifyType);
 }
 
-void APlayerHUD::HideTextNotify()
+void APlayerHUD::SetTextNotifyVisible(bool bVisible)
 {
 	if (!Widgets.TextNotifyWidget)
 	{
 		return;
 	}
 
-	Widgets.TextNotifyWidget->HideTextNotify();
+	if (bVisible)
+	{
+		Widgets.TextNotifyWidget->SetTextNotifyVisible(true);
+	}
+	else
+	{
+		Widgets.TextNotifyWidget->SetTextNotifyVisible(false);
+	}
 }
 
-void APlayerHUD::ShowLifeCount()
+void APlayerHUD::SetLifeCountVisible(bool bVisible)
 {
 	if (!Widgets.LifeCountWidget)
 	{
 		return;
 	}
 
-	Widgets.LifeCountWidget->ShowLifeCount();
-}
-
-void APlayerHUD::HideLifeCount()
-{
-	if (!Widgets.LifeCountWidget)
+	if (bVisible)
 	{
-		return;
+		Widgets.LifeCountWidget->ShowLifeCount();
 	}
-
-	Widgets.LifeCountWidget->HideLifeCount();
+	else
+	{
+		Widgets.LifeCountWidget->HideLifeCount();
+	}
 }
 
 void APlayerHUD::UpdateLifeCount(int32 InCurrentLifeCount, int32 InMaxLifeCount)
@@ -165,44 +169,41 @@ void APlayerHUD::UpdateLifeCount(int32 InCurrentLifeCount, int32 InMaxLifeCount)
 	Widgets.LifeCountWidget->UpdateLifeCount(InCurrentLifeCount, InMaxLifeCount);
 }
 
-void APlayerHUD::ShowInteractionNotifyWidget()
+void APlayerHUD::SetInteractionNotifyVisible(bool bVisible)
 {
 	if (!Widgets.InteractionNotifyWidget)
 	{
 		return;
 	}
 
-	Widgets.InteractionNotifyWidget->ShowInteractionNotifyWidget();
+	if (bVisible)
+	{
+		Widgets.InteractionNotifyWidget->ShowInteractionNotifyWidget();
+	}
+	else
+	{
+		Widgets.InteractionNotifyWidget->HideInteractionNotifyWidget();
+	}
 }
 
-void APlayerHUD::HideInteractionNotifyWidget()
+void APlayerHUD::ShowInteractionNotify(EPS3InteractionNotifyType NotifyType)
 {
 	if (!Widgets.InteractionNotifyWidget)
 	{
 		return;
 	}
 
-	Widgets.InteractionNotifyWidget->HideInteractionNotifyWidget();
+	Widgets.InteractionNotifyWidget->ShowInteractionNotify(NotifyType);
 }
 
-void APlayerHUD::ShowInteractionNotify(FName InNotifyId, const FText& InKeyName)
+void APlayerHUD::HideInteractionNotify(EPS3InteractionNotifyType NotifyType)
 {
 	if (!Widgets.InteractionNotifyWidget)
 	{
 		return;
 	}
 
-	Widgets.InteractionNotifyWidget->ShowInteractionNotify(InNotifyId, InKeyName);
-}
-
-void APlayerHUD::HideInteractionNotify(FName InNotifyId)
-{
-	if (!Widgets.InteractionNotifyWidget)
-	{
-		return;
-	}
-
-	Widgets.InteractionNotifyWidget->HideInteractionNotify(InNotifyId);
+	Widgets.InteractionNotifyWidget->HideInteractionNotify(NotifyType);
 }
 
 void APlayerHUD::HideAllInteractionNotifies()
@@ -215,24 +216,21 @@ void APlayerHUD::HideAllInteractionNotifies()
 	Widgets.InteractionNotifyWidget->HideAllInteractionNotifies();
 }
 
-void APlayerHUD::ShowTimerNotify()
+void APlayerHUD::SetTimerNotifyVisible(bool bVisible)
 {
 	if (!Widgets.TimerNotifyWidget)
 	{
 		return;
 	}
 
-	Widgets.TimerNotifyWidget->ShowTimerNotify();
-}
-
-void APlayerHUD::HideTimerNotifyWidget()
-{
-	if (!Widgets.TimerNotifyWidget)
+	if (bVisible)
 	{
-		return;
+		Widgets.TimerNotifyWidget->ShowTimerNotify();
 	}
-
-	Widgets.TimerNotifyWidget->HideTimerNotifyWidget();
+	else
+	{
+		Widgets.TimerNotifyWidget->HideTimerNotifyWidget();
+	}
 }
 
 void APlayerHUD::UpdateTimerNotify(FName InTimerId, float InDuration)
@@ -255,54 +253,48 @@ void APlayerHUD::ReduceTimerNotify(FName InTimerId, float InReduceTime)
 	Widgets.TimerNotifyWidget->ReduceTimerNotify(InTimerId, InReduceTime);
 }
 
-void APlayerHUD::HideTimerNotify()
+void APlayerHUD::ResetTimerNotify()
 {
 	if (!Widgets.TimerNotifyWidget)
 	{
 		return;
 	}
 
-	Widgets.TimerNotifyWidget->HideTimerNotify();
+	Widgets.TimerNotifyWidget->ResetTimerNotify();
 }
 
-void APlayerHUD::ShowTutorialNotify()
+void APlayerHUD::SetTutorialNotifyVisible(bool bVisible)
 {
 	if (!Widgets.TutorialNotifyWidget)
 	{
 		return;
 	}
 
-	Widgets.TutorialNotifyWidget->ShowTutorialNotify();
-}
-
-void APlayerHUD::HideTutorialNotify()
-{
-	if (!Widgets.TutorialNotifyWidget)
+	if (bVisible)
 	{
-		return;
+		Widgets.TutorialNotifyWidget->ShowTutorialNotify();
 	}
-
-	Widgets.TutorialNotifyWidget->HideTutorialNotify();
+	else
+	{
+		Widgets.TutorialNotifyWidget->HideTutorialNotify();
+	}
 }
 
-void APlayerHUD::ShowDoorOpenButton()
+void APlayerHUD::SetDoorOpenButtonVisible(bool bVisible)
 {
 	if (!Widgets.DoorOpenButtonWidget)
 	{
 		return;
 	}
 
-	Widgets.DoorOpenButtonWidget->ShowDoorOpenButton();
-}
-
-void APlayerHUD::HideDoorOpenButton()
-{
-	if (!Widgets.DoorOpenButtonWidget)
+	if (bVisible)
 	{
-		return;
+		Widgets.DoorOpenButtonWidget->ShowDoorOpenButton();
 	}
-
-	Widgets.DoorOpenButtonWidget->HideDoorOpenButton();
+	else
+	{
+		Widgets.DoorOpenButtonWidget->HideDoorOpenButton();
+	}
 }
 
 void APlayerHUD::UpdateDoorOpenButtons(
@@ -345,44 +337,38 @@ void APlayerHUD::UpdateVoiceChatIcon(bool bInIsSpeaking)
 	Widgets.VoiceChatIconWidget->SetSpeaking(bInIsSpeaking);
 }
 
-void APlayerHUD::ShowVoiceChatIcon()
+void APlayerHUD::SetVoiceChatIconVisible(bool bVisible)
 {
 	if (!Widgets.VoiceChatIconWidget)
 	{
 		return;
 	}
 
-	Widgets.VoiceChatIconWidget->ShowVoiceChatIcon();
-}
-
-void APlayerHUD::HideVoiceChatIcon()
-{
-	if (!Widgets.VoiceChatIconWidget)
+	if (bVisible)
 	{
-		return;
+		Widgets.VoiceChatIconWidget->ShowVoiceChatIcon();
 	}
-
-	Widgets.VoiceChatIconWidget->HideVoiceChatIcon();
+	else
+	{
+		Widgets.VoiceChatIconWidget->HideVoiceChatIcon();
+	}
 }
 
-void APlayerHUD::ShowOptionPopup()
+void APlayerHUD::SetOptionPopupVisible(bool bVisible)
 {
 	if (!Widgets.OptionPopupWidget)
 	{
 		return;
 	}
 
-	Widgets.OptionPopupWidget->ShowOptionPopup();
-}
-
-void APlayerHUD::HideOptionPopup()
-{
-	if (!Widgets.OptionPopupWidget)
+	if (bVisible)
 	{
-		return;
+		Widgets.OptionPopupWidget->ShowOptionPopup();
 	}
-
-	Widgets.OptionPopupWidget->HideOptionPopup();
+	else
+	{
+		Widgets.OptionPopupWidget->HideOptionPopup();
+	}
 }
 
 void APlayerHUD::ToggleOptionPopup()
@@ -445,24 +431,21 @@ void APlayerHUD::RequestResolutionChanged(const FString& Resolution)
 	ViewModel->RequestResolutionChanged(Resolution);
 }
 
-void APlayerHUD::ShowTitle()
+void APlayerHUD::SetTitleVisible(bool bVisible)
 {
 	if (!Widgets.TitleWidget)
 	{
 		return;
 	}
 
-	Widgets.TitleWidget->ShowTitle();
-}
-
-void APlayerHUD::HideTitle()
-{
-	if (!Widgets.TitleWidget)
+	if (bVisible)
 	{
-		return;
+		Widgets.TitleWidget->ShowTitle();
 	}
-
-	Widgets.TitleWidget->HideTitle();
+	else
+	{
+		Widgets.TitleWidget->HideTitle();
+	}
 }
 
 void APlayerHUD::RequestGameStart()
@@ -482,7 +465,7 @@ void APlayerHUD::RequestTitleOption()
 		return;
 	}
 
-	ViewModel->RequestShowOptionPopup();
+	ViewModel->RequestSetOptionPopupVisible(true);
 }
 
 void APlayerHUD::RequestGameExit()
@@ -495,24 +478,21 @@ void APlayerHUD::RequestGameExit()
 	ViewModel->RequestGameExit();
 }
 
-void APlayerHUD::ShowGameOver()
+void APlayerHUD::SetGameOverVisible(bool bVisible)
 {
 	if (!Widgets.GameOverWidget)
 	{
 		return;
 	}
 
-	Widgets.GameOverWidget->ShowGameOver();
-}
-
-void APlayerHUD::HideGameOver()
-{
-	if (!Widgets.GameOverWidget)
+	if (bVisible)
 	{
-		return;
+		Widgets.GameOverWidget->ShowGameOver();
 	}
-
-	Widgets.GameOverWidget->HideGameOver();
+	else
+	{
+		Widgets.GameOverWidget->HideGameOver();
+	}
 }
 
 void APlayerHUD::RequestGameRestart()
@@ -525,24 +505,21 @@ void APlayerHUD::RequestGameRestart()
 	ViewModel->RequestGameRestart();
 }
 
-void APlayerHUD::ShowStage5RoleSelect()
+void APlayerHUD::SetStage5RoleSelectVisible(bool bVisible)
 {
 	if (!Widgets.Stage5RoleSelectWidget)
 	{
 		return;
 	}
 
-	Widgets.Stage5RoleSelectWidget->ShowStage5RoleSelect();
-}
-
-void APlayerHUD::HideStage5RoleSelect()
-{
-	if (!Widgets.Stage5RoleSelectWidget)
+	if (bVisible)
 	{
-		return;
+		Widgets.Stage5RoleSelectWidget->ShowStage5RoleSelect();
 	}
-
-	Widgets.Stage5RoleSelectWidget->HideStage5RoleSelect();
+	else
+	{
+		Widgets.Stage5RoleSelectWidget->HideStage5RoleSelect();
+	}
 }
 
 void APlayerHUD::RequestStage5RoleSelection(EPS3PlayerRole SelectedRole)
