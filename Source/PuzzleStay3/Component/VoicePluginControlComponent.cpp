@@ -5,6 +5,7 @@
 #include "Interfaces/OnlineIdentityInterface.h"
 #include "OnlineSubsystem.h"
 #include "OnlineSubsystemNames.h"
+#include "OnlineSubsystemUtils.h"
 #include "VoiceChat.h"
 
 UVoicePluginControlComponent::UVoicePluginControlComponent()
@@ -25,7 +26,8 @@ bool UVoicePluginControlComponent::InitializeEOSVoice(const int32 LocalUserNum)
 		return false;
 	}
 
-	IOnlineSubsystem* OnlineSubsystem = IOnlineSubsystem::Get(EOS_SUBSYSTEM);
+	// 로비와 동일한 월드의 EOS 사용자를 제어합니다 (PIE 인스턴스 분리).
+	IOnlineSubsystem* OnlineSubsystem = Online::GetSubsystem(GetWorld(), EOS_SUBSYSTEM);
 	if (OnlineSubsystem == nullptr)
 	{
 		return false;
@@ -43,17 +45,24 @@ bool UVoicePluginControlComponent::InitializeEOSVoice(const int32 LocalUserNum)
 		return false;
 	}
 
+	IOnlineSubsystemEOS* EOSSubsystem = static_cast<IOnlineSubsystemEOS*>(OnlineSubsystem);
+	IVoiceChatUser* NewVoiceChatUser = EOSSubsystem->GetVoiceChatUserInterface(*UserId);
+	if (NewVoiceChatUser == nullptr)
+	{
+		return false;
+	}
+	if (VoiceChatUser == NewVoiceChatUser)
+	{
+		// BP에서 초기화를 다시 호출해도 콜백을 중복 등록하지 않습니다.
+		OnVoiceReadyChanged.Broadcast(bVoiceReady);
+		return true;
+	}
 	if (VoiceChatUser != nullptr)
 	{
 		ShutdownEOSVoice();
 	}
 
-	IOnlineSubsystemEOS* EOSSubsystem = static_cast<IOnlineSubsystemEOS*>(OnlineSubsystem);
-	VoiceChatUser = EOSSubsystem->GetVoiceChatUserInterface(*UserId);
-	if (VoiceChatUser == nullptr)
-	{
-		return false;
-	}
+	VoiceChatUser = NewVoiceChatUser;
 
 	ChannelJoinedHandle = VoiceChatUser->OnVoiceChatChannelJoined().AddUObject(this, &ThisClass::HandleChannelJoined);
 	ChannelExitedHandle = VoiceChatUser->OnVoiceChatChannelExited().AddUObject(this, &ThisClass::HandleChannelExited);
@@ -101,12 +110,12 @@ void UVoicePluginControlComponent::ShutdownEOSVoice()
 
 void UVoicePluginControlComponent::SetTransmitEnabled(const bool bEnabled)
 {
-	if (VoiceChatUser == nullptr || !bVoiceReady)
+	if (VoiceChatUser == nullptr)
 	{
 		return;
 	}
 
-	if (bEnabled)
+	if (bEnabled && bVoiceReady)
 	{
 		VoiceChatUser->TransmitToAllChannels();
 	}

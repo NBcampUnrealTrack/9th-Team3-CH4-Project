@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/BoxComponent.h"
+#include "Data/Delegates/UIDelegates.h"
 #include "OverlapVolumeTimeDeductionComponent.generated.h"
 
 class APS3GameModeS5;
@@ -38,8 +39,11 @@ protected:
 		int32 OtherBodyIndex
 	);
 	
+	UFUNCTION(NetMulticast, Reliable)
+	void NetMultiRPC_RemindingTimeDeduct();
 	
 	void ReSpawnPlayer(APlayerController* TargetPlayerController);
+	
 	
 protected:
 	UPROPERTY()
@@ -48,10 +52,12 @@ protected:
 	UPROPERTY()
 	TArray<TObjectPtr<AActor>> OverlappedCharacters;
 	
-	UPROPERTY(EditAnywhere, Category = "GameRule")
+	UPROPERTY(EditAnywhere,Category = "GameRule")
 	float DeductedTimeRange = 3.0f;
+
 	
 public:
+	FOnTimeDeduct OnTimeDeduct;
 	bool bIsEscapeDoor = true;
 	
 private:

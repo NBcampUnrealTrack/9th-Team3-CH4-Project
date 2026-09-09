@@ -2,6 +2,7 @@
 
 #include "Core/GameMode/PS3GameModeS5.h"
 #include "Core/GameState/PS3GameStateS5.h"
+#include "Net/UnrealNetwork.h"
 #include "Player/Character/PS3PlayerCharacter.h"
 #include "Player/Controller/PS3PlayerController.h"
 
@@ -72,6 +73,8 @@ void UOverlapVolumeTimeDeductionComponent::OnCharacterOverLapped(UPrimitiveCompo
 		
 		if (IsValid(CastPS3GameModeS5) == false) return;
 		
+		NetMultiRPC_RemindingTimeDeduct();
+		
 		CastPS3GameModeS5->OnTimeDeduction(DeductedTimeRange);
 	
 		ReSpawnPlayer(PS3PlayerController);
@@ -94,6 +97,12 @@ void UOverlapVolumeTimeDeductionComponent::OnCharacterEndOverlap(UPrimitiveCompo
 }
 
 
+void UOverlapVolumeTimeDeductionComponent::NetMultiRPC_RemindingTimeDeduct_Implementation()
+{
+	OnTimeDeduct.Broadcast();
+}
+
+
 void UOverlapVolumeTimeDeductionComponent::ReSpawnPlayer(APlayerController* TargetPlayerController)
 {
 	if (IsValid(TargetPlayerController) == false) return;
@@ -103,6 +112,5 @@ void UOverlapVolumeTimeDeductionComponent::ReSpawnPlayer(APlayerController* Targ
 	
 	PS3GameStateS5->ReSpawnPlayer(TargetPlayerController);
 }
-
 
 

@@ -8,6 +8,7 @@
 #include "Data/DataAsset/S5_GameRuleDataAsset.h"
 #include "Data/Enum/PlayerStartType.h"
 #include "Data/Enum/PS3PlayerRole.h"
+#include "Data/Enum/PS3StageType.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Object/GimmickBase.h"
@@ -45,6 +46,8 @@ void APS3GameModeS5::BeginPlay()
 {
 	Super::BeginPlay();
 	
+	OnStageType.Broadcast(EPS3StageType::Stage5);
+	
 	InitializeToDataAssets();
 	RandomInitializeEscapeDoor();
 }
@@ -61,6 +64,8 @@ void APS3GameModeS5::InitializeToDataAssets()
 	MaxPlayerCount = S5_GameRuleDataAsset->MaxPlayerCount;
 	ReducedTimeRange = S5_GameRuleDataAsset->ReducedTimeRange;
 	MaxEscapeDoorCount = S5_GameRuleDataAsset->MaxEscapeDoorCount;
+	WaitingTime = S5_GameRuleDataAsset->WaitingTime;
+	
 }
 
 
@@ -133,7 +138,7 @@ void APS3GameModeS5::UnPossessedAndDestroyOldPawn(APlayerController* OldPlayerCo
 
 void APS3GameModeS5::OnTimerForGameStart()
 {
-	GetWorld()->GetTimerManager().SetTimer(TimerForGameStartHandle, this, &ThisClass::OnGameStart, 3.0f, false);
+	GetWorld()->GetTimerManager().SetTimer(TimerForGameStartHandle, this, &ThisClass::OnGameStart, WaitingTime, false);
 }
 
 

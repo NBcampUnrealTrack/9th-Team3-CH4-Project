@@ -1,6 +1,7 @@
 #include "ControlDoor.h"
 
 #include "EngineUtils.h"
+#include "Algo/RandomShuffle.h"
 #include "Components/BoxComponent.h"
 #include "Components/DecalComponent.h"
 #include "Components/TimelineComponent.h"
@@ -30,27 +31,27 @@ AControlDoor::AControlDoor()
 	DecalComp_A->SetupAttachment(ControlDoorMesh);
 	DecalComp_A->DecalSize = FVector(128.0f, 256.0f, 256.0f);
 	DecalComp_A->SetRelativeRotation(FRotator(0.0f, -90.0f, 0.0f));
-	DecalComp_A->SetVisibility(false);
+	DecalComp_A->SetVisibility(true);
 	
 	DecalComp_B = CreateDefaultSubobject<UDecalComponent>(TEXT("DecalComp_B"));
 	DecalComp_B->SetupAttachment(ControlDoorMesh);
 	DecalComp_B->DecalSize = FVector(128.0f, 256.0f, 256.0f);
 	DecalComp_B->SetRelativeRotation(FRotator(0.0f, -90.0f, 0.0f));
-	DecalComp_B->SetVisibility(false);
+	DecalComp_B->SetVisibility(true);
 	
 	
 	DecalComp_C = CreateDefaultSubobject<UDecalComponent>(TEXT("DecalComp_C"));
 	DecalComp_C->SetupAttachment(ControlDoorMesh);
 	DecalComp_C->DecalSize = FVector(128.0f, 256.0f, 256.0f);
 	DecalComp_C->SetRelativeRotation(FRotator(0.0f, -90.0f, 0.0f));
-	DecalComp_C->SetVisibility(false);
+	DecalComp_C->SetVisibility(true);
 	
 	
 	DecalComp_D = CreateDefaultSubobject<UDecalComponent>(TEXT("DecalComp_D"));
 	DecalComp_D->SetupAttachment(ControlDoorMesh);
 	DecalComp_D->DecalSize = FVector(128.0f, 256.0f, 256.0f);
 	DecalComp_D->SetRelativeRotation(FRotator(0.0f, -90.0f, 0.0f));
-	DecalComp_D->SetVisibility(false);
+	DecalComp_D->SetVisibility(true);
 }
 
 
@@ -59,24 +60,21 @@ void AControlDoor::BeginPlay()
 	Super::BeginPlay();
 	
 	ErrorCheck_S5();
+	InitializeRandomControlDoorType();
+	InitializeBindFunction();
 	TimeLineCurveBind();
+	
 	SetVisibleDecalToDoorType();
-	
-	if (HasAuthority() == true)
-	{
-	
-		auto* PS3GameModeS5 = Cast<APS3GameModeS5>(GetWorld()->GetAuthGameMode());
-		if (IsValid(PS3GameModeS5) == false) return;
-		
-		PS3GameModeS5->OnIsGameStart.AddUObject(this, &ThisClass::OnGameStart);
-		PS3GameModeS5->OnScreenPlayerSpawned.AddUObject(this, &ThisClass::OnScreenPlayerSpawned);
-	}
-	
 }
 
 
 void AControlDoor::SetVisibleDecalToDoorType()
 {
+	if (IsValid(DecalComp_A) == true) DecalComp_A->SetVisibility(false);
+	if (IsValid(DecalComp_B) == true) DecalComp_B->SetVisibility(false);
+	if (IsValid(DecalComp_C) == true) DecalComp_C->SetVisibility(false);
+	if (IsValid(DecalComp_D) == true) DecalComp_D->SetVisibility(false);
+	
 	if (ControlDoorType == EControlDoorType::Door_A)
 	{
 		DecalComp_A->SetVisibility(true);
@@ -95,6 +93,13 @@ void AControlDoor::SetVisibleDecalToDoorType()
 	}
 }
 
+
+void AControlDoor::OnRep_ControlDoorType()
+{
+	SetVisibleDecalToDoorType();
+}
+
+
 void AControlDoor::OnGameStart(bool CurrentGameState)
 {
 	if (HasAuthority() == true)
@@ -102,6 +107,40 @@ void AControlDoor::OnGameStart(bool CurrentGameState)
 		if (CurrentGameState == false) return;
 	
 		bIsGameStart = CurrentGameState;
+	}
+}
+
+
+void AControlDoor::InitializeRandomControlDoorType()
+{
+	if (HasAuthority() == false) return;
+	
+	if (ControlDoorType == EControlDoorType::Random)
+	{
+		TArray<EControlDoorType>  ShuffledControlDoorTypeArray = 
+		{
+			EControlDoorType::Door_A,
+			EControlDoorType::Door_B,
+			EControlDoorType::Door_C,
+			EControlDoorType::Door_D
+		};
+
+		Algo::RandomShuffle( ShuffledControlDoorTypeArray);
+
+		ControlDoorType =  ShuffledControlDoorTypeArray[0];
+	}
+}
+
+
+void AControlDoor::InitializeBindFunction()
+{
+	if (HasAuthority() == true)
+	{
+		auto* PS3GameModeS5 = Cast<APS3GameModeS5>(GetWorld()->GetAuthGameMode());
+		if (IsValid(PS3GameModeS5) == false) return;
+		
+		PS3GameModeS5->OnIsGameStart.AddUObject(this, &ThisClass::OnGameStart);
+		PS3GameModeS5->OnScreenPlayerSpawned.AddUObject(this, &ThisClass::OnScreenPlayerSpawned);
 	}
 }
 
@@ -127,6 +166,7 @@ void AControlDoor::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
+	DOREPLIFETIME(ThisClass, ControlDoorType);
 	DOREPLIFETIME(ThisClass, bIsGameStart);
 	DOREPLIFETIME(ThisClass, bIsEscapeDoorOpen);
 	DOREPLIFETIME(ThisClass, bIsDoorOpen);
@@ -223,24 +263,27 @@ void AControlDoor::NetMultiRPC_OnScreenPlayerSpawned_Implementation()
 
 void AControlDoor::ErrorCheck_S5()
 {
-	int32 InvalidDoorCount = 0;
+	if (HasAuthority() == false) return;
+	
 	int32 TotalDoorCount = 0;
+	int32 InvalidDoorCount = 0;
 
 	for (TActorIterator<AControlDoor> It(GetWorld()); It; ++It)
 	{
 		AControlDoor* Door = *It;
-		if (IsValid(Door) == false) continue;
-		
-		TotalDoorCount++;
-		if (Door->ControlDoorType == EControlDoorType::None)
+		if (IsValid(Door) == true)
 		{
-			InvalidDoorCount++;
-		}	
-		
+			TotalDoorCount++;
+			
+			if (Door->ControlDoorType == EControlDoorType::None)
+			{
+				InvalidDoorCount++;
+			}
+		}
 	}
 
 	checkf(InvalidDoorCount == 0, 
-		TEXT("Type 선정 오류: 배치 된 [AControlDoor] 전체 %d개 중, 현재 %d개의 Type이 <None> 입니다. Type을 선정해주세요."), 
+		TEXT("Type 선정 오류: 전체 %d 개의 [AControlDoor] 중 Type이 <None>으로 선정 된 액터가 %d개 있습니다. Type을 선정해주세요."), 
 		TotalDoorCount, InvalidDoorCount);
 }
 

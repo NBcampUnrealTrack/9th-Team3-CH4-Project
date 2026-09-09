@@ -14,6 +14,7 @@ APS3ScreenPlayerController::APS3ScreenPlayerController()
 	bShowMouseCursor = true;
 }
 
+
 void APS3ScreenPlayerController::ReceivedPlayer()
 {
 	Super::ReceivedPlayer();
@@ -24,17 +25,30 @@ void APS3ScreenPlayerController::ReceivedPlayer()
 	World->GetTimerManager().SetTimer(PS3CameraTimerHandle, this, &ThisClass::SetCameraView, 0.1f, false);
 }
 
-bool APS3ScreenPlayerController::IsScreenPlayer() const
-{
-	return true;
-}
 
-
-
-//TODO 추가 사항 확인 필요: 배치 된 Door액터 배열 보관 - 김명현
 void APS3ScreenPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
+	
+	ContainDoorArray();
+	
+	OnScreenPlayerUI_Show();
+
+}
+
+
+void APS3ScreenPlayerController::OnScreenPlayerUI_Show() const
+{	
+	if (IsLocalController() == true)
+	{
+		OnScreenPlayerUI.Broadcast(true);
+	}
+}
+
+
+void APS3ScreenPlayerController::ContainDoorArray()
+{
+	if (HasAuthority() == false) return;
 	
 	TArray<AActor*> ActorArray;
 	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AControlDoor::StaticClass(),ActorArray);
@@ -46,12 +60,9 @@ void APS3ScreenPlayerController::BeginPlay()
 		
 		ControlDoorArray.Add(ControlDoor);
 	}
-	
-	
-	
 }
 
-//TODO 추가 사항 확인 필요: 키바인딩 추가 - 김명현
+
 void APS3ScreenPlayerController::SetupInputComponent()
 {
 	Super::SetupInputComponent();
@@ -123,6 +134,8 @@ EControlDoorType APS3ScreenPlayerController::GetDoorTypeFromAction(const UInputA
 }
 
 
+
+
 void APS3ScreenPlayerController::ServerRPC_OperateDoor_Implementation(EControlDoorType DoorType, bool bIsOpen)
 {
 	for (AControlDoor* ControlDoor : ControlDoorArray)
@@ -154,6 +167,7 @@ void APS3ScreenPlayerController::ConfigureLocalInputMode()
 		
 }
 
+
 void APS3ScreenPlayerController::SetCameraView()
 {
 	UWorld* World = GetWorld();
@@ -164,5 +178,7 @@ void APS3ScreenPlayerController::SetCameraView()
 	
 	SetViewTargetWithBlend(PS3CameraActor, 0.0f);
 }
+
+
 
 
