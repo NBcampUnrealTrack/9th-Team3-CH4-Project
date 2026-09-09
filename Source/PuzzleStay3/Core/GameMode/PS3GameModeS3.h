@@ -14,7 +14,7 @@ class URandomCollisionTrapComponent;
 class UFakeDeathTrapComponent;
 class APS3PlayerState;
 
-DECLARE_MULTICAST_DELEGATE_ThreeParams(FOnRandomVisibleResultsChanged,APS3PlayerController*, const TArray<int32>, const TArray<bool>&);
+DECLARE_MULTICAST_DELEGATE_ThreeParams(FOnRandomVisibleResultsChanged, APS3PlayerController*, const TArray<int32>&, const TArray<bool>&);
 
 UCLASS()
 class PUZZLESTAY3_API APS3GameModeS3 : public APS3GameModeBase
