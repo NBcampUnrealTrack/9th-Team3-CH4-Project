@@ -45,10 +45,14 @@ void APS3PlayerController::BeginPlay()
 	{
 		if (APS3GameModeS3* GameMode = GetWorld()->GetAuthGameMode<APS3GameModeS3>())
 		{
+			// 먼저 구독해야 등록 직후 Broadcast가 발생해도 받을 수 있습니다.
+			Stage3VisibilityDelegateHandle =
+				GameMode->OnRandomVisibleResultsChanged.AddUObject(
+					this, &ThisClass::HandleRandomVisibleResultsChanged);
+
 			GameMode->RegisterPlayerController(this);
 		}
 	}
-	
 	
 	ConfigureLocalInput();
 	RefreshVoiceStateBinding();
@@ -83,7 +87,11 @@ void APS3PlayerController::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	{
 		if (APS3GameModeS3* GameMode = GetWorld()->GetAuthGameMode<APS3GameModeS3>())
 		{
-			// 구독한 델리게이트도 이곳에서 해제
+			if (Stage3VisibilityDelegateHandle.IsValid())
+			{
+				GameMode->OnRandomVisibleResultsChanged.Remove(
+					Stage3VisibilityDelegateHandle);
+			}
 			GameMode->UnregisterPlayerController(this);
 		}
 	}
@@ -407,6 +415,8 @@ void APS3PlayerController::ApplyStage3Visibility()
 	}
 }
 
+
+
 void APS3PlayerController::Client_BeginJeoulCutscene_Implementation(AJeoul* Jeoul)
 {
 	if (!IsLocalController() || !IsValid(Jeoul)) return;
@@ -538,4 +548,23 @@ void APS3PlayerController::ShutdownVoiceSystem()
 	{
 		VoicePluginControlComponent->ShutdownEOSVoice();
 	}
+}
+
+void APS3PlayerController::HandleRandomVisibleResultsChanged(
+	APS3PlayerController* TargetController,
+	const TArray<int32>& TrapIds,
+	const TArray<bool>& Results)
+{
+	if (!HasAuthority() || TargetController != this)
+	{
+		return;
+	}
+
+	if (TrapIds.Num() != Results.Num())
+	{
+		return;
+	}
+
+	// 이 Controller를 소유한 클라이언트로 전달합니다.
+	Client_ReceiveStage3Visibility(TrapIds, Results);
 }
