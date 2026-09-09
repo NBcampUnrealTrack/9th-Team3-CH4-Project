@@ -334,7 +334,7 @@ void APS3PlayerController::HandleInteractStarted()
 	{
 		if (JeoulCutsceneState == EJeoulCutsceneState::AwaitingReturn)
 		{
-			EndJeoulCutscene();
+			Server_RequestJeoulCutsceneReturn(ActiveCutsceneJeoul.Get());
 		}
 		return;
 	}
@@ -466,6 +466,19 @@ void APS3PlayerController::PlayerTick(float DeltaTime)
 	const float Yaw = CutsceneStartRotation.Yaw
 		+ FMath::FindDeltaAngleDegrees(CutsceneStartRotation.Yaw, Direction.Rotation().Yaw) * Alpha;
 	CutscenePlayerCharacter->SetActorRotation(FRotator(0.0f, Yaw, 0.0f));
+}
+
+void APS3PlayerController::Server_RequestJeoulCutsceneReturn_Implementation(AJeoul* Jeoul)
+{
+	if (IsValid(Jeoul)) Jeoul->RequestCutsceneReturn(this);
+}
+
+void APS3PlayerController::Client_EndJeoulCutscene_Implementation(AJeoul* Jeoul)
+{
+	if (IsLocalController() && IsValid(Jeoul) && ActiveCutsceneJeoul.Get() == Jeoul)
+	{
+		EndJeoulCutscene();
+	}
 }
 
 void APS3PlayerController::EndJeoulCutscene()

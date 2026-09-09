@@ -36,6 +36,9 @@ public:
 	UFUNCTION(Client, Reliable, BlueprintCallable, Category = "PS3|Cutscene")
 	void Client_BeginJeoulCutscene(AJeoul* Jeoul);
 
+	UFUNCTION(Client, Reliable)
+	void Client_EndJeoulCutscene(AJeoul* Jeoul);
+
 	UFUNCTION(BlueprintCallable, Category = "PS3|Cutscene")
 	void EndJeoulCutscene();
 
@@ -99,6 +102,9 @@ protected:
 	void ShutdownVoiceSystem();
 
 private:
+	UFUNCTION(Server, Reliable)
+	void Server_RequestJeoulCutsceneReturn(AJeoul* Jeoul);
+
 	void HandleJeoulCheckFinished(bool bIsSuccess);
 	UFUNCTION()
 	void HandleCutsceneTargetDestroyed(AActor* DestroyedActor);
