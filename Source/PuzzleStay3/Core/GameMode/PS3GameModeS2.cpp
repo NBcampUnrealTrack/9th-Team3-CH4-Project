@@ -5,6 +5,7 @@
 
 #include "Component/RandomCollisionTrapComponent.h"
 #include "GameFramework/GameStateBase.h"
+#include "opensubdiv/far/error.h"
 #include "Player/PlayerState/PS3PlayerState.h"
 
 void APS3GameModeS2::BeginPlay()
@@ -96,5 +97,19 @@ void APS3GameModeS2::UnregisterRandomCollisionTrapCompo(URandomCollisionTrapComp
 
 TArray<bool> APS3GameModeS2::GetRandomCollisionLayoutResults()
 {
+//로그용 시작
+	FString ResultString;
+	for (int32 i = 0; i < RandomCollisionLayoutResults.Num(); ++i)
+	{
+		if (i > 0)
+		{
+			ResultString += TEXT(", ");
+		}
+
+		ResultString += RandomCollisionLayoutResults[i] ? TEXT("True") : TEXT("False");
+	}
+
+	UE_LOG(LogTemp, Warning, TEXT("GetRandomCollisionLayoutResults: [%s]"), *ResultString);
+	//로그 끝
 	return RandomCollisionLayoutResults;
 }
