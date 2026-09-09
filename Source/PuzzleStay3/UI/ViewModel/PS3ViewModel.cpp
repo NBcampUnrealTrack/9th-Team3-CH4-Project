@@ -1,10 +1,51 @@
 #include "PS3ViewModel.h"
 
+#include "Data/Delegates/UIDelegatesSubsystem.h"
 #include "../HUD/PlayerHUD.h"
 
 void UPS3ViewModel::SetPlayerHUD(APlayerHUD* InPlayerHUD)
 {
 	PlayerHUD = InPlayerHUD;
+	BindRoleSelectionUIDelegate();
+}
+
+void UPS3ViewModel::BeginDestroy()
+{
+	UnbindRoleSelectionUIDelegate();
+
+	Super::BeginDestroy();
+}
+
+void UPS3ViewModel::BindRoleSelectionUIDelegate()
+{
+	UUIDelegatesSubsystem* UIDelegatesSubsystem =
+		UUIDelegatesSubsystem::GetUIDelegateManager(this);
+	if (!IsValid(UIDelegatesSubsystem))
+	{
+		return;
+	}
+
+	UIDelegatesSubsystem->OnRoleSelection_UI.RemoveAll(this);
+	UIDelegatesSubsystem->OnRoleSelection_UI.AddUObject(
+		this,
+		&ThisClass::HandleRoleSelection_UI);
+}
+
+void UPS3ViewModel::UnbindRoleSelectionUIDelegate()
+{
+	UUIDelegatesSubsystem* UIDelegatesSubsystem =
+		UUIDelegatesSubsystem::GetUIDelegateManager(this);
+	if (!IsValid(UIDelegatesSubsystem))
+	{
+		return;
+	}
+
+	UIDelegatesSubsystem->OnRoleSelection_UI.RemoveAll(this);
+}
+
+void UPS3ViewModel::HandleRoleSelection_UI(bool bVisible)
+{
+	RequestSetStage5RoleSelectVisible(bVisible);
 }
 
 void UPS3ViewModel::RequestTextNotify(EPS3TextNotifyType NotifyType)

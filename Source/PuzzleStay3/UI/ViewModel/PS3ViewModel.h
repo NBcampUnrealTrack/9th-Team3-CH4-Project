@@ -29,6 +29,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "UI|HUD")
 	void SetPlayerHUD(APlayerHUD* InPlayerHUD);
 
+	virtual void BeginDestroy() override;
+
 	UFUNCTION(BlueprintCallable, Category = "UI|TextNotify")
 	void RequestTextNotify(EPS3TextNotifyType NotifyType);
 
@@ -207,6 +209,10 @@ public:
 	void SetIsOpen(bool bInIsOpen);
 
 private:
+	void BindRoleSelectionUIDelegate();
+	void UnbindRoleSelectionUIDelegate();
+	void HandleRoleSelection_UI(bool bVisible);
+
 	UPROPERTY(BlueprintReadOnly, Category = "UI|HUD", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<APlayerHUD> PlayerHUD;
 
