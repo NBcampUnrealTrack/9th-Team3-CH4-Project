@@ -19,7 +19,7 @@ void APS3PlayerControllerBase::BeginPlay()
 
 void APS3PlayerControllerBase::OnClickedRestartGameButton()
 {
-	PS3_BROADCAST_TO_UI_OneParams(OnIsGameOver_UI, true);
+	PS3_BROADCAST_TO_MVVM_OneParams(OnIsGameOver_UI, true);
 	
 	ServerRPC_OnClickedMainMenuButton();
 }
@@ -60,9 +60,9 @@ void APS3PlayerControllerBase::ConfigureInputMapping()
 	PS3ViewModel = Cast<UPS3ViewModel>(HUD->GetViewModel());
 	if (PS3ViewModel == nullptr) return;
 
-	//TODO 이거 참고해서 현준님한테 버튼 클릭 시 브로드캐스트 해달라하고 내가 바인드하는거라고 말하기
-	/*PS3ViewModel->OnStage5RoleSelectionRequested.AddDynamic(this, &ThisClass::OnClickedRestartGameButton);
-	PS3ViewModel->OnStage5RoleSelectionRequested.AddDynamic(this, &ThisClass::OnClickedMainMenuButton);*/
+	
+	PS3ViewModel->OnGameRestartRequested_UI.AddDynamic(this, &ThisClass::OnClickedRestartGameButton);
+	PS3ViewModel->OnExitToMainRequested_UI.AddDynamic(this, &ThisClass::OnClickedMainMenuButton);
 	
 	
 	FInputModeUIOnly UIOnlyMode;

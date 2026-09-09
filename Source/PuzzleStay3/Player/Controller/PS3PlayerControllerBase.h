@@ -24,7 +24,9 @@ protected:
 	
 	void ConfigureInputMapping();
 	
+	UFUNCTION()
 	void OnClickedRestartGameButton();
+	UFUNCTION()
 	void OnClickedMainMenuButton();
 	
 	UFUNCTION(Server, Unreliable)

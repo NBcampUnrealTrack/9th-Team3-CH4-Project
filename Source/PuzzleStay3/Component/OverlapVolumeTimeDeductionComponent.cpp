@@ -4,7 +4,6 @@
 #include "Core/GameMode/PS3GameModeS5.h"
 #include "Core/GameState/PS3GameStateS5.h"
 #include "Data/Delegates/UIDelegatesSubsystem.h"
-#include "Net/UnrealNetwork.h"
 #include "Player/Character/PS3PlayerCharacter.h"
 #include "Player/Controller/PS3PlayerController.h"
 
@@ -103,7 +102,7 @@ void UOverlapVolumeTimeDeductionComponent::OnCharacterEndOverlap(UPrimitiveCompo
 
 void UOverlapVolumeTimeDeductionComponent::NetMultiRPC_RemindingTimeDeduct_Implementation()
 {
-	PS3_BROADCAST_TO_UI_TwoParams(OnTimeDeduct_UI, TimeDeductTimerUIType, DeductedTimeRange);
+	PS3_BROADCAST_TO_MVVM_TwoParams(OnTimeDeduct_UI, TimeDeductTimerUIType, DeductedTimeRange);
 }
 
 

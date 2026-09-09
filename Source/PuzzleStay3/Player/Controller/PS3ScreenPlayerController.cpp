@@ -5,7 +5,6 @@
 #include "InputMappingContext.h"
 #include "Data/Delegates/UIDelegatesSubsystem.h"
 #include "Data/Enum/ControlDoorType.h"
-#include "Data/Enum/DoorType.h"
 #include "Kismet/GameplayStatics.h"
 #include "Object/ControlDoor.h"
 #include "Object/PS3CameraActor.h"
@@ -42,7 +41,7 @@ void APS3ScreenPlayerController::OnScreenPlayerUI_Show() const
 {	
 	if (IsLocalController() == true)
 	{
-		PS3_BROADCAST_TO_UI_OneParams(OnScreenPlayer_UI, true);
+		PS3_BROADCAST_TO_MVVM_OneParams(OnScreenPlayer_UI, true);
 	}
 }
 
@@ -105,7 +104,7 @@ void APS3ScreenPlayerController::OpenDoor(const FInputActionInstance& Instance)
 	if (CurrentOpenedDoorType == EControlDoorType::None)
 	{
 		CurrentOpenedDoorType = PressedDoorType;
-		PS3_BROADCAST_TO_UI_TwoParams(OnButtonEnabled_UI, CurrentOpenedDoorType, false);
+		PS3_BROADCAST_TO_MVVM_TwoParams(OnButtonEnabled_UI, PressedDoorType, false);
 		ServerRPC_OperateDoor(PressedDoorType, true);
 	}
 	
@@ -121,7 +120,7 @@ void APS3ScreenPlayerController::CloseDoor(const FInputActionInstance& Instance)
 	{
 		CurrentOpenedDoorType = EControlDoorType::None;
 		
-		PS3_BROADCAST_TO_UI_TwoParams(OnButtonEnabled_UI, CurrentOpenedDoorType, true);
+		PS3_BROADCAST_TO_MVVM_TwoParams(OnButtonEnabled_UI, CurrentOpenedDoorType, true);
 		ServerRPC_OperateDoor(PressedDoorType, false);
 	}
 }

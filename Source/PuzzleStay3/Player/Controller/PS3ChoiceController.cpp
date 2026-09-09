@@ -3,7 +3,6 @@
 
 #include "PS3ChoiceController.h"
 
-#include "Blueprint/UserWidget.h"
 #include "Camera/CameraComponent.h"
 #include "Core/GameMode/PS3GameModeS5.h"
 #include "Core/GameState/PS3GameStateS5.h"
@@ -59,7 +58,7 @@ void APS3ChoiceController::ConfigureInputMapping()
 	PS3ViewModel->OnStage5RoleSelectionRequested.AddDynamic(this, &ThisClass::OnClickedFieldTypeButton);
 	PS3ViewModel->OnStage5RoleSelectionRequested.AddDynamic(this, &ThisClass::OnClickedScreenTypeButton);
 	
-	PS3_BROADCAST_TO_UI_OneParams(OnRoleSelection_UI, true);
+	PS3_BROADCAST_TO_MVVM_OneParams(OnRoleSelection_UI, true);
 	
 	FInputModeUIOnly UIOnlyMode;
 	SetInputMode(UIOnlyMode);
@@ -105,7 +104,7 @@ void APS3ChoiceController::OnClickedFieldTypeButton(EPS3PlayerRole SelectType)
 	
 		ServerRPC_SelectedControllerType(SelectType);
 		
-		PS3_BROADCAST_TO_UI_OneParams(OnRoleSelection_UI, false);
+		PS3_BROADCAST_TO_MVVM_OneParams(OnRoleSelection_UI, false);
 		
 	}
 }
@@ -122,7 +121,7 @@ void APS3ChoiceController::OnClickedScreenTypeButton(EPS3PlayerRole SelectType)
 	
 		ServerRPC_SelectedControllerType(SelectType);
 		
-		PS3_BROADCAST_TO_UI_OneParams(OnRoleSelection_UI, false);
+		PS3_BROADCAST_TO_MVVM_OneParams(OnRoleSelection_UI, false);
 		
 	}
 }
