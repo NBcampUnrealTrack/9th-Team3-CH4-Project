@@ -10,7 +10,7 @@
 class APlayerHUD;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnDoorActivationRequested_UI, int32, DoorIndex, bool, bIsActive);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnStage5RoleSelectionRequested, EPS3PlayerRole, SelectedRole);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnStage5RoleSelectionRequested_UI, EPS3PlayerRole, SelectedRole);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnExitToMainRequested_UI);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnBGMVolumeChanged_UI, float, Value);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnSFXVolumeChanged_UI, float, Value);
@@ -198,7 +198,7 @@ public:
 	void RequestStage5RoleSelection(EPS3PlayerRole SelectedRole);
 
 	UPROPERTY(BlueprintAssignable, Category = "UI|Stage5RoleSelect")
-	FOnStage5RoleSelectionRequested OnStage5RoleSelectionRequested;
+	FOnStage5RoleSelectionRequested_UI OnStage5RoleSelectionRequested_UI;
 
 	UFUNCTION(BlueprintPure, FieldNotify, Category = "UI|ViewModel")
 	bool GetIsOpen() const;

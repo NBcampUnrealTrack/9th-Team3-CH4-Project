@@ -55,8 +55,8 @@ void APS3ChoiceController::ConfigureInputMapping()
 	auto* PS3ViewModel = Cast<UPS3ViewModel>(HUD->GetViewModel());
 	if (PS3ViewModel == nullptr) return;
 
-	PS3ViewModel->OnStage5RoleSelectionRequested.AddDynamic(this, &ThisClass::OnClickedFieldTypeButton);
-	PS3ViewModel->OnStage5RoleSelectionRequested.AddDynamic(this, &ThisClass::OnClickedScreenTypeButton);
+	PS3ViewModel->OnStage5RoleSelectionRequested_UI.AddDynamic(this, &ThisClass::OnClickedFieldTypeButton);
+	PS3ViewModel->OnStage5RoleSelectionRequested_UI.AddDynamic(this, &ThisClass::OnClickedScreenTypeButton);
 	
 	PS3_BROADCAST_TO_MVVM_OneParams(OnRoleSelection_UI, true);
 	
