@@ -307,7 +307,7 @@ void UPS3ViewModel::RequestSetStage5RoleSelectVisible(bool bVisible)
 
 void UPS3ViewModel::RequestStage5RoleSelection(EPS3PlayerRole SelectedRole)
 {
-	OnStage5RoleSelectionRequested.Broadcast(SelectedRole);
+	OnStage5RoleSelectionRequested_UI.Broadcast(SelectedRole);
 }
 
 bool UPS3ViewModel::GetIsOpen() const
