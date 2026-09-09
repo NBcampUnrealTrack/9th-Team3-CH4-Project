@@ -3,9 +3,13 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Data/Enum/PS3StageType.h"
+#include "Data/Enum/TimerUIType.h"
 #include "Engine/DataAsset.h"
 #include "S5_GameRuleDataAsset.generated.h"
 
+enum class EPS3StageType : uint8;
+enum class EPS3TimerUIType : uint8;
 class APS3PlayerCharacter;
 /**
  * 
@@ -16,6 +20,9 @@ class PUZZLESTAY3_API US5_GameRuleDataAsset : public UDataAsset
 	GENERATED_BODY()
 	
 public:	
+	UPROPERTY(EditAnywhere, Category = "GameRule")
+	EPS3StageType StageType_S5 = EPS3StageType::Stage5;
+	
 	UPROPERTY(VisibleAnywhere, Category = "GameRule")
 	int32 MaxPlayerCount = 2;
 	
@@ -30,6 +37,9 @@ public:
 	
 	UPROPERTY(EditAnywhere, Category = "GameRule")
 	float WaitingTime = 3.0f;
+	
+	UPROPERTY(EditAnywhere, Category = "GameRule")
+	EPS3TimerUIType GameStartTimerUIType = EPS3TimerUIType::GameStartTimer;
 	
 	UPROPERTY(EditDefaultsOnly, Category = "SwapController")
 	TSubclassOf<APS3PlayerCharacter> FieldCharacterClass;

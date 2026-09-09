@@ -5,6 +5,7 @@
 
 #include "Core/GameMode/PS3GamemodeBase.h"
 #include "Core/GameMode/PS3GameModeS5.h"
+#include "Data/Delegates/UIDelegatesSubsystem.h"
 #include "UI/HUD/PlayerHUD.h"
 #include "UI/ViewModel/PS3ViewModel.h"
 
@@ -18,7 +19,7 @@ void APS3PlayerControllerBase::BeginPlay()
 
 void APS3PlayerControllerBase::OnClickedRestartGameButton()
 {
-	OnIsGameOver.Broadcast(false);
+	PS3_BROADCAST_TO_UI_OneParams(OnIsGameOver_UI, true);
 	
 	ServerRPC_OnClickedMainMenuButton();
 }
@@ -26,7 +27,8 @@ void APS3PlayerControllerBase::OnClickedRestartGameButton()
 
 void APS3PlayerControllerBase::OnClickedMainMenuButton()
 {
-	OnIsGameOver.Broadcast(false);
+	auto* UIManager = UUIDelegatesSubsystem::GetUIDelegateManager(GetWorld());
+	UIManager->OnIsGameOver_UI.Broadcast(false);
 	
 	ServerRPC_OnClickedRestartGameButton();
 	

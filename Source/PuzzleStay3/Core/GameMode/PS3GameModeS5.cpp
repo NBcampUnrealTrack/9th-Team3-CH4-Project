@@ -4,8 +4,11 @@
 #include "Algo/RandomShuffle.h"
 #include "Component/InteractionSwitchComponent.h"
 #include "Component/OverlapVolumeTimeDeductionComponent.h"
+#include "Component/OverlapVolumeTimeDeductionComponent.h"
+#include "Component/OverlapVolumeTimeDeductionComponent.h"
 #include "Core/GameState/PS3GameStateS5.h"
 #include "Data/DataAsset/S5_GameRuleDataAsset.h"
+#include "Data/Delegates/UIDelegatesSubsystem.h"
 #include "Data/Enum/PlayerStartType.h"
 #include "Data/Enum/PS3PlayerRole.h"
 #include "Data/Enum/PS3StageType.h"
@@ -46,7 +49,7 @@ void APS3GameModeS5::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	OnStageType.Broadcast(EPS3StageType::Stage5);
+
 	
 	InitializeToDataAssets();
 	RandomInitializeEscapeDoor();
@@ -75,8 +78,23 @@ void APS3GameModeS5::RandomInitializeEscapeDoor()
 	
 	if (AllEscapeDoorCount <= MaxEscapeDoorCount) return;
 	
+	TimeDeductTimerUITypeArray = 
+		{
+			EPS3TimerUIType::GimmickB_1,
+			EPS3TimerUIType::GimmickB_2,
+			EPS3TimerUIType::GimmickB_3,
+			EPS3TimerUIType::GimmickB_4,
+			EPS3TimerUIType::GimmickB_5,
+			EPS3TimerUIType::GimmickB_6,
+			EPS3TimerUIType::GimmickB_7,
+			EPS3TimerUIType::GimmickB_8,
+			EPS3TimerUIType::GimmickB_9,
+			EPS3TimerUIType::GimmickB_10,
+		};
+	
 	Algo::RandomShuffle(GimmickBaseArray);
 	
+	int32 GiveIDNumber = 0;
 	int32 FakeEscapeDoorCount = 0;
 	
 	for (AGimmickBase* GimmickBase : GimmickBaseArray)
@@ -89,13 +107,17 @@ void APS3GameModeS5::RandomInitializeEscapeDoor()
 		auto* TimeDeductionComp = GimmickBase->FindComponentByClass<UOverlapVolumeTimeDeductionComponent>();
 		if (IsValid(TimeDeductionComp) == false) continue;
 		
+		if (TimeDeductTimerUITypeArray.IsValidIndex(GiveIDNumber) == false) break;
+		
 		RegisterInteractionSwitch(InteractionSwitchComp);
 		
 		InteractionSwitchComp->OnSwitchActivatedChanged.AddUObject(this, &ThisClass::OnInteractedEscapeDoor);
-		
 		InteractionSwitchComp->bIsEscapeDoor = false;
-		TimeDeductionComp->bIsEscapeDoor = false;
 		
+		TimeDeductionComp->bIsEscapeDoor = false;
+		TimeDeductionComp->TimeDeductTimerUIType = TimeDeductTimerUITypeArray[GiveIDNumber];
+		
+		++GiveIDNumber;
 		++FakeEscapeDoorCount;
 		--GoalEscapeDoorCount;
 		

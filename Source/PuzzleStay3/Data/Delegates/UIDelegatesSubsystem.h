@@ -41,6 +41,7 @@ public:
 		return nullptr;
 	}
 	
+	
 public:
 	FOnButtonEnabled_UI OnButtonEnabled_UI;
 	FOnGameTimer_UI OnGameTimer_UI;
@@ -72,7 +73,7 @@ public:
 	}
 
 
-#define PS3_BIND_UI_DELEGATE_FUNCTION(DelegateVar, BindingFunc) \
+#define PS3_BINDING_FUNCTION_UI(DelegateVar, BindingFunc) \
 	{ \
 		auto* UIManager = UUIDelegatesSubsystem::GetUIDelegateManager(this); \
 		if (IsValid(UIManager) == true) { UIManager->DelegateVar.AddUObject(this, &ThisClass::BindingFunc); } \

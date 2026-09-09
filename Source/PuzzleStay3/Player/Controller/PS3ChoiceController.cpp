@@ -7,6 +7,7 @@
 #include "Camera/CameraComponent.h"
 #include "Core/GameMode/PS3GameModeS5.h"
 #include "Core/GameState/PS3GameStateS5.h"
+#include "Data/Delegates/UIDelegatesSubsystem.h"
 #include "Data/Enum/PS3PlayerRole.h"
 #include "UI/HUD/PlayerHUD.h"
 #include "UI/ViewModel/PS3ViewModel.h"
@@ -52,19 +53,20 @@ void APS3ChoiceController::ConfigureInputMapping()
 	auto* HUD = Cast<APlayerHUD>(GetHUD());
 	if (HUD == nullptr) return;
 
-	PS3ViewModel = Cast<UPS3ViewModel>(HUD->GetViewModel());
+	auto* PS3ViewModel = Cast<UPS3ViewModel>(HUD->GetViewModel());
 	if (PS3ViewModel == nullptr) return;
 
 	PS3ViewModel->OnStage5RoleSelectionRequested.AddDynamic(this, &ThisClass::OnClickedFieldTypeButton);
 	PS3ViewModel->OnStage5RoleSelectionRequested.AddDynamic(this, &ThisClass::OnClickedScreenTypeButton);
 	
-	OnRoleSelectionUI.Broadcast(true);
-	//TODO 현준님 UI 바인딩 후 아래 주석 삭제
-	//PS3ViewModel->RequestShowStage5RoleSelect();
+	PS3_BROADCAST_TO_UI_OneParams(OnRoleSelection_UI, true);
+	
+	//TODO 현준님 UI 내 브로드 캐스트에 바인딩 후 아래 주석 삭제
+	PS3ViewModel->RequestShowStage5RoleSelect();
 
+	
 	FInputModeUIOnly UIOnlyMode;
 	SetInputMode(UIOnlyMode);
-
 	bShowMouseCursor = true;
 }
 
@@ -107,11 +109,15 @@ void APS3ChoiceController::OnClickedFieldTypeButton(EPS3PlayerRole SelectType)
 	
 		ServerRPC_SelectedControllerType(SelectType);
 		
-		OnRoleSelectionUI.Broadcast(false);
+		PS3_BROADCAST_TO_UI_OneParams(OnRoleSelection_UI, false);
 		
-		//TODO 현준님 UI 바인딩 후 아래 주석 삭제
-		/*if (IsValid(PS3ViewModel) == false) return;
-		PS3ViewModel->RequestHideStage5RoleSelect();*/
+		//TODO 현준님 UI 내 브로드 캐스트에 바인딩 후 아래 주석 삭제
+		auto* HUD = Cast<APlayerHUD>(GetHUD());
+		if (HUD == nullptr) return;
+		auto* PS3ViewModel = Cast<UPS3ViewModel>(HUD->GetViewModel());
+		if (PS3ViewModel == nullptr) return;
+		if (IsValid(PS3ViewModel) == false) return;
+		PS3ViewModel->RequestHideStage5RoleSelect();
 	}
 }
 
@@ -127,11 +133,15 @@ void APS3ChoiceController::OnClickedScreenTypeButton(EPS3PlayerRole SelectType)
 	
 		ServerRPC_SelectedControllerType(SelectType);
 		
-		OnRoleSelectionUI.Broadcast(false);
+		PS3_BROADCAST_TO_UI_OneParams(OnRoleSelection_UI, false);
 		
 		//TODO 현준님 UI 바인딩 후 아래 주석 삭제
-		/*if (IsValid(PS3ViewModel) == false) return;
-		PS3ViewModel->RequestHideStage5RoleSelect();*/
+		auto* HUD = Cast<APlayerHUD>(GetHUD());
+		if (HUD == nullptr) return;
+		auto* PS3ViewModel = Cast<UPS3ViewModel>(HUD->GetViewModel());
+		if (PS3ViewModel == nullptr) return;
+		if (IsValid(PS3ViewModel) == false) return;
+		PS3ViewModel->RequestHideStage5RoleSelect();
 	}
 }
 
