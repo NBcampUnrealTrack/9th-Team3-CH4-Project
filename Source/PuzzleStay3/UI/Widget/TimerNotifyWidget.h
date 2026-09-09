@@ -26,7 +26,7 @@ public:
 	void ReduceTimerNotify(FName InTimerId, float InReduceTime);
 
 	UFUNCTION(BlueprintCallable, Category = "UI|TimerNotify")
-	void HideTimerNotify();
+	void ResetTimerNotify();
 
 protected:
 	virtual void NativeDestruct() override;
