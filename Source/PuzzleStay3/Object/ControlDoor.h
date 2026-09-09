@@ -40,19 +40,19 @@ public:
 	void NetMulti_OnOperateDoor(EControlDoorType PressedButtonType, bool bIsOpen);
 	
 protected:
-	UPROPERTY(EditAnywhere, Category = "ControlDoor|Settings")
+	UPROPERTY(EditAnywhere, ReplicatedUsing = OnRep_ControlDoorType, Category = "ControlDoor|Settings")
 	EControlDoorType ControlDoorType = EControlDoorType::None;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "ControlDoor|Settings")
 	TObjectPtr<UDecalComponent> DecalComp_A;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "ControlDoor|Settings")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly,  Category = "ControlDoor|Settings")
 	TObjectPtr<UDecalComponent> DecalComp_B;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "ControlDoor|Settings")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly,  Category = "ControlDoor|Settings")
 	TObjectPtr<UDecalComponent> DecalComp_C;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "ControlDoor|Settings")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly,  Category = "ControlDoor|Settings")
 	TObjectPtr<UDecalComponent> DecalComp_D;
 	
 	
@@ -98,13 +98,19 @@ protected:
 	
 	UFUNCTION(BlueprintCallable)
 	void OnScreenPlayerSpawned();
-
+	
+	UFUNCTION()
+	void OnRep_ControlDoorType();
+	
 	void SetVisibleDecalToDoorType();
+
 	
 	void OnGameStart(bool CurrentGameState);
 		
 	
 private:
+	void InitializeRandomControlDoorType();
+	void InitializeBindFunction();
 	void TimeLineCurveBind();
 	void ErrorCheck_S5();
 };

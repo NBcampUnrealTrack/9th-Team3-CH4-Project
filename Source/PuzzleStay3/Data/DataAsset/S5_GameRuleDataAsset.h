@@ -28,6 +28,9 @@ public:
 	UPROPERTY(EditAnywhere, Category = "GameRule")
 	float MaxGameLimitTime = 60.0f;
 	
+	UPROPERTY(EditAnywhere, Category = "GameRule")
+	float WaitingTime = 3.0f;
+	
 	UPROPERTY(EditDefaultsOnly, Category = "SwapController")
 	TSubclassOf<APS3PlayerCharacter> FieldCharacterClass;
 	

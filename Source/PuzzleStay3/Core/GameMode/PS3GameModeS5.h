@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "PS3GamemodeBase.h"
 #include "Data/Delegates/GameModeDelegates.h"
+#include "Data/Delegates/UIDelegates.h"
 #include "PS3GameModeS5.generated.h"
 
 enum class EPS3PlayerRole : uint8;
@@ -66,9 +67,12 @@ public:
 public:
 	FOnIsGameStart OnIsGameStart;
 	FOnScreenPlayerSpawned OnScreenPlayerSpawned;
+	FOnStageType OnStageType;
 	
 	int32 RoleSelectedPlayerCount = 0;
 	int32 MaxPlayerCount = 2;
+	float WaitingTime = 3.0f;
+	
 	
 	bool bIsAllPlayerSelectedRole = false;
 	
