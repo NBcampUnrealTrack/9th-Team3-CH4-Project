@@ -16,7 +16,7 @@ public class PuzzleStay3 : ModuleRules
 			"OnlineSubsystem",
 			"OnlineSubsystemUtils",
 			"OnlineSubsystemEOS",
-			"VoiceChat"
+			"VoiceChat", "OpenSubdiv"
 		});
 	}
 	
