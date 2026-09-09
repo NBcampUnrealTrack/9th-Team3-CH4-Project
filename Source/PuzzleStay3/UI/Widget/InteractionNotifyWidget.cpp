@@ -12,31 +12,44 @@ void UInteractionNotifyWidget::HideInteractionNotifyWidget()
 	SetVisibility(ESlateVisibility::Collapsed);
 }
 
-void UInteractionNotifyWidget::ShowInteractionNotify(FName InNotifyId, const FText& InKeyName)
+void UInteractionNotifyWidget::ShowInteractionNotify(EPS3InteractionNotifyType NotifyType)
 {
-	if (InNotifyId.IsNone())
+	switch (NotifyType)
 	{
-		return;
+	case EPS3InteractionNotifyType::Interact:
+		++InteractCount;
+		break;
+	case EPS3InteractionNotifyType::Drop:
+		++DropCount;
+		break;
+	default:
+		break;
 	}
 
-	ActiveInteractionNotifies.Add(InNotifyId, InKeyName);
 	RefreshInteractionImage();
 }
 
-void UInteractionNotifyWidget::HideInteractionNotify(FName InNotifyId)
+void UInteractionNotifyWidget::HideInteractionNotify(EPS3InteractionNotifyType NotifyType)
 {
-	if (InNotifyId.IsNone())
+	switch (NotifyType)
 	{
-		return;
+	case EPS3InteractionNotifyType::Interact:
+		InteractCount = FMath::Max(InteractCount - 1, 0);
+		break;
+	case EPS3InteractionNotifyType::Drop:
+		DropCount = FMath::Max(DropCount - 1, 0);
+		break;
+	default:
+		break;
 	}
 
-	ActiveInteractionNotifies.Remove(InNotifyId);
 	RefreshInteractionImage();
 }
 
 void UInteractionNotifyWidget::HideAllInteractionNotifies()
 {
-	ActiveInteractionNotifies.Empty();
+	InteractCount = 0;
+	DropCount = 0;
 	RefreshInteractionImage();
 }
 
@@ -47,25 +60,8 @@ void UInteractionNotifyWidget::RefreshInteractionImage()
 		return;
 	}
 
-	UTexture2D* TextureToShow = nullptr;
-	bool bHasFInteraction = false;
-
-	for (const TPair<FName, FText>& ActiveInteractionNotify : ActiveInteractionNotifies)
-	{
-		const FString KeyName = ActiveInteractionNotify.Value.ToString();
-		if (KeyName.Equals(TEXT("G"), ESearchCase::IgnoreCase))
-		{
-			TextureToShow = GInteractionTexture;
-			break;
-		}
-
-		if (KeyName.Equals(TEXT("F"), ESearchCase::IgnoreCase))
-		{
-			bHasFInteraction = true;
-		}
-	}
-
-	if (!TextureToShow && bHasFInteraction)
+	UTexture2D* TextureToShow = DropCount > 0 ? GInteractionTexture : nullptr;
+	if (!TextureToShow && InteractCount > 0)
 	{
 		TextureToShow = FInteractionTexture;
 	}
