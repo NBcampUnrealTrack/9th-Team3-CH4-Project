@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Data/Enum/JeoulCutsceneState.h"
 #include "GameFramework/PlayerController.h"
 #include "InputActionValue.h"
 #include "PS3PlayerController.generated.h"
@@ -12,6 +13,7 @@ class UVoicePluginControlComponent;
 class APS3PlayerState;
 class UPS3ViewModel;
 class AJeoul;
+class APS3PlayerCharacter;
 
 UCLASS()
 class PUZZLESTAY3_API APS3PlayerController : public APlayerController
@@ -34,15 +36,26 @@ public:
 	UFUNCTION(Client, Reliable, BlueprintCallable, Category = "PS3|Cutscene")
 	void Client_BeginJeoulCutscene(AJeoul* Jeoul);
 
+	UFUNCTION(Client, Reliable)
+	void Client_EndJeoulCutscene(AJeoul* Jeoul);
+
 	UFUNCTION(BlueprintCallable, Category = "PS3|Cutscene")
 	void EndJeoulCutscene();
 
 	UFUNCTION(BlueprintPure, Category = "PS3|Cutscene")
-	bool IsJeoulCutsceneActive() const { return bJeoulCutsceneActive; }
+	bool IsJeoulCutsceneActive() const { return JeoulCutsceneState != EJeoulCutsceneState::Inactive; }
+
+	UFUNCTION(BlueprintPure, Category = "PS3|Cutscene")
+	EJeoulCutsceneState GetJeoulCutsceneState() const { return JeoulCutsceneState; }
 
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "PS3|Cutscene", meta = (ClampMin = "0.0"))
 	float JeoulCameraBlendTime = 0.35f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "PS3|Cutscene", meta = (ClampMin = "0.0"))
+	float JeoulCharacterTurnTime = 0.35f;
+
+	virtual void PlayerTick(float DeltaTime) override;
 
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
@@ -89,13 +102,22 @@ protected:
 	void ShutdownVoiceSystem();
 
 private:
+	UFUNCTION(Server, Reliable)
+	void Server_RequestJeoulCutsceneReturn(AJeoul* Jeoul);
+
 	void HandleJeoulCheckFinished(bool bIsSuccess);
 	UFUNCTION()
 	void HandleCutsceneTargetDestroyed(AActor* DestroyedActor);
 	TWeakObjectPtr<AJeoul> ActiveCutsceneJeoul;
 	TWeakObjectPtr<AActor> PreviousCutsceneViewTarget;
 	FDelegateHandle JeoulCheckFinishedHandle;
-	bool bJeoulCutsceneActive = false;
+	EJeoulCutsceneState JeoulCutsceneState = EJeoulCutsceneState::Inactive;
+	TWeakObjectPtr<APS3PlayerCharacter> CutsceneCharacter;
+	FRotator CutsceneStartRotation = FRotator::ZeroRotator;
+	float CutsceneTurnElapsed = 0.0f;
+	bool bSavedOrientRotationToMovement = false;
+	bool bSavedUseControllerDesiredRotation = false;
+	bool bSavedUseControllerRotationYaw = false;
 
 	void ApplyStage3Visibility();
 	TMap<int32, bool> Stage3VisibilityByTrapId;

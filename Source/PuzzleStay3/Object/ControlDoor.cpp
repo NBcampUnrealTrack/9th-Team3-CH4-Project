@@ -126,7 +126,10 @@ void AControlDoor::InitializeRandomControlDoorType()
 		};
 
 		Algo::RandomShuffle( ShuffledControlDoorTypeArray);
-
+		
+		//이렇게 할 수도 있다.
+		//int32 RandomValue = FMath::Floor(FMath::FRandRange(0.0, 3.0));
+		
 		ControlDoorType =  ShuffledControlDoorTypeArray[0];
 	}
 }
