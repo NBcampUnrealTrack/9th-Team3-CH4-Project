@@ -204,14 +204,15 @@ void UCustomVoiceComponent::UpdateTransmission()
 		!bMicrophoneMuted &&
 		bGameAllowsTransmission;
 
+	if (IsValid(PluginControlComponent))
+	{
+		// 채널 연결/재초기화 시 캐시가 같아도 실제 EOS 송신 상태를 적용합니다.
+		PluginControlComponent->SetTransmitEnabled(bShouldTransmit);
+	}
+
 	if (bTransmissionRequested == bShouldTransmit)
 	{
 		return;
-	}
-
-	if (IsValid(PluginControlComponent))
-	{
-		PluginControlComponent->SetTransmitEnabled(bShouldTransmit);
 	}
 
 	bTransmissionRequested = bShouldTransmit;
