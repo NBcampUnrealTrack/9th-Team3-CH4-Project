@@ -295,7 +295,7 @@ void APS3PlayerController::SetupInputComponent()
 
 void APS3PlayerController::HandleMoveInput(const FInputActionValue& InValue)
 {
-	if (bJeoulCutsceneActive) return;
+	if (IsJeoulCutsceneActive()) return;
 	if (APS3PlayerCharacter* PlayerCharacter = GetPawn<APS3PlayerCharacter>())
 	{
 		PlayerCharacter->Move(InValue.Get<FVector2D>());
@@ -304,7 +304,7 @@ void APS3PlayerController::HandleMoveInput(const FInputActionValue& InValue)
 
 void APS3PlayerController::HandleLookInput(const FInputActionValue& InValue)
 {
-	if (bJeoulCutsceneActive) return;
+	if (IsJeoulCutsceneActive()) return;
 	if (APS3PlayerCharacter* PlayerCharacter = GetPawn<APS3PlayerCharacter>())
 	{
 		PlayerCharacter->Look(InValue.Get<FVector2D>());
@@ -313,7 +313,7 @@ void APS3PlayerController::HandleLookInput(const FInputActionValue& InValue)
 
 void APS3PlayerController::HandleJumpStarted()
 {
-	if (bJeoulCutsceneActive) return;
+	if (IsJeoulCutsceneActive()) return;
 	if (APS3PlayerCharacter* PlayerCharacter = GetPawn<APS3PlayerCharacter>())
 	{
 		PlayerCharacter->StartJump();
@@ -330,9 +330,12 @@ void APS3PlayerController::HandleJumpCompleted()
 
 void APS3PlayerController::HandleInteractStarted()
 {
-	if (bJeoulCutsceneActive)
+	if (IsJeoulCutsceneActive())
 	{
-		EndJeoulCutscene();
+		if (JeoulCutsceneState == EJeoulCutsceneState::AwaitingReturn)
+		{
+			EndJeoulCutscene();
+		}
 		return;
 	}
 	UE_LOG(LogTemp, Warning, TEXT("[Input] Interact pressed"));
@@ -345,7 +348,7 @@ void APS3PlayerController::HandleInteractStarted()
 
 void APS3PlayerController::HandleDropStarted()
 {
-	if (bJeoulCutsceneActive) return;
+	if (IsJeoulCutsceneActive()) return;
 	UE_LOG(LogTemp, Warning, TEXT("[Input] Drop pressed"));
 
 	if (APS3PlayerCharacter* PlayerCharacter = GetPawn<APS3PlayerCharacter>())
@@ -357,7 +360,6 @@ void APS3PlayerController::HandleDropStarted()
 
 void APS3PlayerController::HandleVoiceStarted()
 {
-	if (bJeoulCutsceneActive) return;
 	UE_LOG(LogTemp, Warning, TEXT("Voice: V pressed"));
 	if (IsValid(VoiceComponent))
 	{
@@ -410,36 +412,81 @@ void APS3PlayerController::Client_BeginJeoulCutscene_Implementation(AJeoul* Jeou
 	if (!IsLocalController() || !IsValid(Jeoul)) return;
 	UCameraComponent* CutsceneCamera = Jeoul->GetCutsceneCamera();
 	if (!IsValid(CutsceneCamera) || !CutsceneCamera->IsActive()) return;
-	if (bJeoulCutsceneActive && ActiveCutsceneJeoul.Get() == Jeoul) return;
+	if (IsJeoulCutsceneActive() && ActiveCutsceneJeoul.Get() == Jeoul) return;
 	EndJeoulCutscene();
 
 	PreviousCutsceneViewTarget = GetViewTarget();
 	ActiveCutsceneJeoul = Jeoul;
-	bJeoulCutsceneActive = true;
+	JeoulCutsceneState = EJeoulCutsceneState::Playing;
 	SetIgnoreMoveInput(true);
 	SetIgnoreLookInput(true);
 	if (APS3PlayerCharacter* PlayerCharacter = GetPawn<APS3PlayerCharacter>())
 	{
 		PlayerCharacter->StopJump();
 		PlayerCharacter->GetCharacterMovement()->StopMovementImmediately();
+		PlayerCharacter->ConsumeMovementInputVector();
+		CutsceneCharacter = PlayerCharacter;
+		CutsceneStartRotation = PlayerCharacter->GetActorRotation();
+		CutsceneTurnElapsed = 0.0f;
+		UCharacterMovementComponent* Movement = PlayerCharacter->GetCharacterMovement();
+		bSavedOrientRotationToMovement = Movement->bOrientRotationToMovement;
+		bSavedUseControllerDesiredRotation = Movement->bUseControllerDesiredRotation;
+		bSavedUseControllerRotationYaw = PlayerCharacter->bUseControllerRotationYaw;
+		Movement->bOrientRotationToMovement = false;
+		Movement->bUseControllerDesiredRotation = false;
+		PlayerCharacter->bUseControllerRotationYaw = false;
 	}
-	if (IsValid(VoiceComponent)) VoiceComponent->StopPushToTalk();
 	JeoulCheckFinishedHandle = Jeoul->OnJeoulCheckFinished.AddUObject(this, &ThisClass::HandleJeoulCheckFinished);
 	Jeoul->OnDestroyed.AddUniqueDynamic(this, &ThisClass::HandleCutsceneTargetDestroyed);
 	SetViewTargetWithBlend(Jeoul, JeoulCameraBlendTime);
 }
 
+void APS3PlayerController::PlayerTick(float DeltaTime)
+{
+	Super::PlayerTick(DeltaTime);
+	if (!IsLocalController() || !IsJeoulCutsceneActive()) return;
+
+	APS3PlayerCharacter* CutscenePlayerCharacter = CutsceneCharacter.Get();
+	AJeoul* Jeoul = ActiveCutsceneJeoul.Get();
+	if (!IsValid(CutscenePlayerCharacter) || CutscenePlayerCharacter != GetPawn() || !IsValid(Jeoul)
+		|| !IsValid(Jeoul->GetCutsceneCamera()))
+	{
+		EndJeoulCutscene();
+		return;
+	}
+
+	// 로컬 연출 전용. 다른 클라이언트에 보이는 회전은 서버 연동이 필요합니다.
+	FVector Direction = Jeoul->GetCutsceneCamera()->GetComponentLocation() - CutscenePlayerCharacter->GetActorLocation();
+	Direction.Z = 0.0f;
+	if (Direction.IsNearlyZero()) return;
+
+	CutsceneTurnElapsed += DeltaTime;
+	const float Alpha = JeoulCharacterTurnTime > 0.0f
+		? FMath::Clamp(CutsceneTurnElapsed / JeoulCharacterTurnTime, 0.0f, 1.0f) : 1.0f;
+	const float Yaw = CutsceneStartRotation.Yaw
+		+ FMath::FindDeltaAngleDegrees(CutsceneStartRotation.Yaw, Direction.Rotation().Yaw) * Alpha;
+	CutscenePlayerCharacter->SetActorRotation(FRotator(0.0f, Yaw, 0.0f));
+}
+
 void APS3PlayerController::EndJeoulCutscene()
 {
-	if (!bJeoulCutsceneActive) return;
+	if (!IsJeoulCutsceneActive()) return;
 	if (AJeoul* Jeoul = ActiveCutsceneJeoul.Get())
 	{
 		Jeoul->OnJeoulCheckFinished.Remove(JeoulCheckFinishedHandle);
 		Jeoul->OnDestroyed.RemoveDynamic(this, &ThisClass::HandleCutsceneTargetDestroyed);
 	}
 	JeoulCheckFinishedHandle.Reset();
+	if (APS3PlayerCharacter* CutscenePlayerCharacter = CutsceneCharacter.Get())
+	{
+		UCharacterMovementComponent* Movement = CutscenePlayerCharacter->GetCharacterMovement();
+		Movement->bOrientRotationToMovement = bSavedOrientRotationToMovement;
+		Movement->bUseControllerDesiredRotation = bSavedUseControllerDesiredRotation;
+		CutscenePlayerCharacter->bUseControllerRotationYaw = bSavedUseControllerRotationYaw;
+	}
+	CutsceneCharacter.Reset();
 	ActiveCutsceneJeoul.Reset();
-	bJeoulCutsceneActive = false;
+	JeoulCutsceneState = EJeoulCutsceneState::Inactive;
 	// 이 컷신에서 추가한 입력 잠금 한 번만 해제합니다.
 	SetIgnoreMoveInput(false);
 	SetIgnoreLookInput(false);
@@ -451,7 +498,10 @@ void APS3PlayerController::EndJeoulCutscene()
 
 void APS3PlayerController::HandleJeoulCheckFinished(bool bIsSuccess)
 {
-	EndJeoulCutscene();
+	if (JeoulCutsceneState == EJeoulCutsceneState::Playing)
+	{
+		JeoulCutsceneState = EJeoulCutsceneState::AwaitingReturn;
+	}
 }
 
 void APS3PlayerController::HandleCutsceneTargetDestroyed(AActor* DestroyedActor)
