@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "PS3GamemodeBase.h"
 #include "Data/Delegates/GameModeDelegates.h"
+#include "Data/Enum/TimerUIType.h"
 #include "PS3GameModeS5.generated.h"
 
 enum class EPS3PlayerRole : uint8;
@@ -36,15 +37,24 @@ public:
 	
 	
 protected:
-	UPROPERTY()
-	TArray<TObjectPtr<class APlayerController>> LoginUserArray;
-	UPROPERTY()
-	TArray<TObjectPtr<class AGimmickBase>> GimmickBaseArray;
+
 	
 	UPROPERTY(EditAnywhere, Category = "GameRule")
 	TObjectPtr<class US5_GameRuleDataAsset> S5_GameRuleDataAsset;
 	
-	TArray<EPS3TimerUIType> TimeDeductTimerUITypeArray;
+	TArray<EPS3TimerUIType> TimeDeductTimerUITypeArray =
+	{
+		EPS3TimerUIType::GimmickB_1,
+		EPS3TimerUIType::GimmickB_2,
+		EPS3TimerUIType::GimmickB_3,
+		EPS3TimerUIType::GimmickB_4,
+		EPS3TimerUIType::GimmickB_5,
+		EPS3TimerUIType::GimmickB_6,
+		EPS3TimerUIType::GimmickB_7,
+		EPS3TimerUIType::GimmickB_8,
+		EPS3TimerUIType::GimmickB_9,
+		EPS3TimerUIType::GimmickB_10,
+	};
 	
 public:
 	void ReSpawnPlayer(APlayerController* TargetPlayerController);
@@ -59,10 +69,9 @@ public:
 	void OnTimeDeduction(float TimeToDeducted);
 
 	
-	void OnInteractedEscapeDoor(bool bIsInteracted);
-	void RandomInitializeEscapeDoor();
+	void OnInteractedGimmick(bool bIsInteracted);
 	void OnCollectLoginUser();
-	int32 OnCollectEscapeDoor();
+	int32 OnCollectGimmickBase();
 	
 public:
 	FOnIsGameStart OnIsGameStart;
@@ -85,8 +94,9 @@ protected:
 	FTimerHandle GameLimitTimeHandle;
 
 	int32 MaxEscapeDoorCount = 2;
-	int32 GoalEscapeDoorCount = 0;
-	int32 ActivatedEscapeDoorCount = 0;
+	int32 MaxInteractionGimmickCount = 2;
+	int32 GoalInteractionGimmickCount = 0;
+	int32 ActivatedInteractionGimmickCount = 0;
 	
 	float ReducedTimeRange = 1.0f;
 	
@@ -95,7 +105,18 @@ protected:
 	
 	
 private:
+	UPROPERTY()
+	TArray<TObjectPtr<class APlayerController>> LoginUserArray;
+	UPROPERTY()
+	TArray<TObjectPtr<class AGimmickBase>> GimmickBaseArray;
+	
+	FTimerHandle InitTimerHandle;
+	
 	void InitializeToDataAssets();
+	void InitializeGimmick();
+	void FindAndRandomShuffleFakeGimmick();
+	void FindAndBindInteractionGimmick();
+	void FindAndResistEscapeGimmick();
 	
 };
 

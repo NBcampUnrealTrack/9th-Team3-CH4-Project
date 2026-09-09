@@ -48,7 +48,8 @@ void APS3GameModeS5::BeginPlay()
 
 	
 	InitializeToDataAssets();
-	RandomInitializeEscapeDoor();
+	InitializeGimmick();
+	//GetWorld()->GetTimerManager().SetTimer(InitTimerHandle, this, &ThisClass::InitializeGimmick, 0.1f, false);
 }
 
 
@@ -63,35 +64,108 @@ void APS3GameModeS5::InitializeToDataAssets()
 	MaxPlayerCount = S5_GameRuleDataAsset->MaxPlayerCount;
 	ReducedTimeRange = S5_GameRuleDataAsset->ReducedTimeRange;
 	MaxEscapeDoorCount = S5_GameRuleDataAsset->MaxEscapeDoorCount;
+	MaxInteractionGimmickCount = S5_GameRuleDataAsset->MaxInteractionGimmickCount;
 	WaitingTime = S5_GameRuleDataAsset->WaitingTime;
-	
 }
 
 
-void APS3GameModeS5::RandomInitializeEscapeDoor()
+void APS3GameModeS5::InitializeGimmick()
 {
-	int32 AllEscapeDoorCount = OnCollectEscapeDoor();
+	//GetWorld()->GetTimerManager().ClearTimer(InitTimerHandle);
 	
-	if (AllEscapeDoorCount <= MaxEscapeDoorCount) return;
+	FindAndRandomShuffleFakeGimmick();
+	FindAndBindInteractionGimmick();
+	FindAndResistEscapeGimmick();
+}
+
+
+int32 APS3GameModeS5::OnCollectGimmickBase()
+{
+	GimmickBaseArray.Empty();
 	
-	TimeDeductTimerUITypeArray = 
+	GoalInteractionGimmickCount = 0;
+	
+	TArray<AActor*> FoundActors;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AGimmickBase::StaticClass(), FoundActors);
+	
+	for (AActor* Actor : FoundActors)
+	{
+		auto* GimmickBase = Cast<AGimmickBase>(Actor);
+		if (IsValid(GimmickBase) == false) continue;
+		
+		GimmickBaseArray.Add(GimmickBase);
+		++GoalInteractionGimmickCount;
+		
+		auto* InteractionSwitchComp = GimmickBase->FindComponentByClass<UInteractionSwitchComponent>();
+		if (IsValid(InteractionSwitchComp) == true)
 		{
-			EPS3TimerUIType::GimmickB_1,
-			EPS3TimerUIType::GimmickB_2,
-			EPS3TimerUIType::GimmickB_3,
-			EPS3TimerUIType::GimmickB_4,
-			EPS3TimerUIType::GimmickB_5,
-			EPS3TimerUIType::GimmickB_6,
-			EPS3TimerUIType::GimmickB_7,
-			EPS3TimerUIType::GimmickB_8,
-			EPS3TimerUIType::GimmickB_9,
-			EPS3TimerUIType::GimmickB_10,
-		};
+			InteractionSwitchComp->bIsEscapeDoor = true;
+		}
+	
+		auto* TimeDeductionComp = GimmickBase->FindComponentByClass<UOverlapVolumeTimeDeductionComponent>();
+		if (IsValid(TimeDeductionComp) == true)
+		{
+			TimeDeductionComp->bIsInteractionGimmick = true;
+		}
+	}
+	
+	UE_LOG(LogTemp, Warning, TEXT("감지된 GimmickBase 총 %d개"), GimmickBaseArray.Num());
+	return GimmickBaseArray.Num();
+}
+
+
+
+
+
+void APS3GameModeS5::FindAndRandomShuffleFakeGimmick()
+{
+	int32 AllGimmickBaseCount = OnCollectGimmickBase();
+	
+	if (AllGimmickBaseCount <= MaxEscapeDoorCount) return;
 	
 	Algo::RandomShuffle(GimmickBaseArray);
 	
-	int32 GiveIDNumber = 0;
-	int32 FakeEscapeDoorCount = 0;
+	int32 TargetInteractionCount = 0;
+	for (AGimmickBase* GimmickBase : GimmickBaseArray)
+	{
+		if (IsValid(GimmickBase) == true && GimmickBase->FindComponentByClass<UOverlapVolumeTimeDeductionComponent>()
+			&& GimmickBase->FindComponentByClass<UInteractionSwitchComponent>())
+		{
+			++TargetInteractionCount;
+		}
+	}
+	
+	
+	int32 FakeGimmickCount = 0;
+	const int32 TargetFakeGimmickCount = TargetInteractionCount - MaxInteractionGimmickCount;
+	for (AGimmickBase* GimmickBase : GimmickBaseArray)
+	{
+		if (IsValid(GimmickBase) == false) continue;
+		
+		auto* TimeDeductionComp = GimmickBase->FindComponentByClass<UOverlapVolumeTimeDeductionComponent>();
+		auto* InteractionSwitchComp = GimmickBase->FindComponentByClass<UInteractionSwitchComponent>();
+		
+		if (IsValid(TimeDeductionComp) == true && IsValid(InteractionSwitchComp) == true)
+		{
+			InteractionSwitchComp->bIsEscapeDoor = false;
+			TimeDeductionComp->bIsInteractionGimmick = false;
+			
+			++FakeGimmickCount;
+			--GoalInteractionGimmickCount;
+			
+			FString CompName = GimmickBase->GetName();
+			FString TagName = GimmickBase->Tags.Num() > 0 ? GimmickBase->Tags[0].ToString() : TEXT("NoTag");
+			UE_LOG(LogTemp, Warning, TEXT("감지된 Escape Door 중 감지 된 FakeDoor %d번 / %s - %s"), 
+				 FakeGimmickCount, *CompName, *TagName);
+		}
+		
+		if (FakeGimmickCount >= TargetFakeGimmickCount) return;
+	}
+}
+
+void APS3GameModeS5::FindAndBindInteractionGimmick()
+{
+	int32 IndexNumber = 0;
 	
 	for (AGimmickBase* GimmickBase : GimmickBaseArray)
 	{
@@ -99,31 +173,47 @@ void APS3GameModeS5::RandomInitializeEscapeDoor()
 		
 		auto* InteractionSwitchComp = GimmickBase->FindComponentByClass<UInteractionSwitchComponent>();
 		if (IsValid(InteractionSwitchComp) == false) continue;
-	
+		
 		auto* TimeDeductionComp = GimmickBase->FindComponentByClass<UOverlapVolumeTimeDeductionComponent>();
 		if (IsValid(TimeDeductionComp) == false) continue;
 		
-		if (TimeDeductTimerUITypeArray.IsValidIndex(GiveIDNumber) == false) break;
 		
-		RegisterInteractionSwitch(InteractionSwitchComp);
-		
-		InteractionSwitchComp->OnSwitchActivatedChanged.AddUObject(this, &ThisClass::OnInteractedEscapeDoor);
-		InteractionSwitchComp->bIsEscapeDoor = false;
-		
-		TimeDeductionComp->bIsEscapeDoor = false;
-		TimeDeductionComp->TimeDeductTimerUIType = TimeDeductTimerUITypeArray[GiveIDNumber];
-		
-		++GiveIDNumber;
-		++FakeEscapeDoorCount;
-		--GoalEscapeDoorCount;
-		
-		FString CompName = GimmickBase->GetName();
-		FString TagName = GimmickBase->Tags.Num() > 0 ? GimmickBase->Tags[0].ToString() : TEXT("NoTag");
-		UE_LOG(LogTemp, Warning, TEXT("감지된 Escape Door 중 감지 된 FakeDoor %d번 / %s - %s"), 
-			 FakeEscapeDoorCount, *CompName, *TagName);
+		if (InteractionSwitchComp->bIsEscapeDoor == true && TimeDeductionComp->bIsInteractionGimmick == true)
+		{
+			InteractionSwitchComp->OnSwitchActivatedChanged.AddUObject(this, &ThisClass::OnInteractedGimmick);
+			//InteractionSwitchComp->bToggleInteractionState = false;
+			//InteractionSwitchComp->bIsEscapeDoor = true;
+			
+			if (TimeDeductTimerUITypeArray.IsValidIndex(IndexNumber) == false) continue;
+			TimeDeductionComp->TimeDeductTimerUIType = TimeDeductTimerUITypeArray[IndexNumber];
+			++IndexNumber;
+		}
+	}
+}
 
+
+void APS3GameModeS5::FindAndResistEscapeGimmick()
+{
+	TArray<UInteractionSwitchComponent*> TempSwitches = InteractionSwitches;
+	for (UInteractionSwitchComponent* OldInteractionSwitchComp : TempSwitches)
+	{
+		UnregisterInteractionSwitch(OldInteractionSwitchComp);
+	}
+	
+	InteractionSwitches.Empty();
+	
+	for (AGimmickBase* GimmickBase : GimmickBaseArray)
+	{
+		if (IsValid(GimmickBase) == false) continue;
 		
-		if (AllEscapeDoorCount - FakeEscapeDoorCount == MaxEscapeDoorCount) return;
+		auto* InteractionSwitchComp = GimmickBase->FindComponentByClass<UInteractionSwitchComponent>();
+		if (IsValid(InteractionSwitchComp) == false) continue;
+		
+		if (InteractionSwitchComp->bIsEscapeDoor == true)
+		{
+			RegisterInteractionSwitch(InteractionSwitchComp);
+			//InteractionSwitchComp->OnSwitchActivatedChanged.AddUObject(this, &APS3GameModeBase::HandleSwitchActivatedChanged);
+		}
 	}
 }
 
@@ -252,47 +342,19 @@ void APS3GameModeS5::OnCollectLoginUser()
 }
 
 
-int32 APS3GameModeS5::OnCollectEscapeDoor()
-{
-	GimmickBaseArray.Empty();
-	GoalEscapeDoorCount = 0;
-	
-	TArray<AActor*> FoundActors;
-	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AGimmickBase::StaticClass(), FoundActors);
-	
-	for (AActor* Actor : FoundActors)
-	{
-		auto* GimmickBase = Cast<AGimmickBase>(Actor);
-		if (IsValid(GimmickBase) == false) continue;
-		
-		auto* InteractionSwitchComp = GimmickBase->FindComponentByClass<UInteractionSwitchComponent>();
-		if (IsValid(InteractionSwitchComp) == false) continue;
-	
-		auto* TimeDeductionComp = GimmickBase->FindComponentByClass<UOverlapVolumeTimeDeductionComponent>();
-		if (IsValid(TimeDeductionComp) == false) continue;
-		
-		InteractionSwitchComp->bIsEscapeDoor = true;
-		TimeDeductionComp->bIsEscapeDoor = true;
-	
-		GimmickBaseArray.Add(GimmickBase);
-		++GoalEscapeDoorCount;
-	}
-	
-	UE_LOG(LogTemp, Warning, TEXT("감지된 EscapeDoor 총 %d개"), GimmickBaseArray.Num());
-	return GimmickBaseArray.Num();
-}
 
 
-void APS3GameModeS5::OnInteractedEscapeDoor(bool bIsInteracted)
+
+void APS3GameModeS5::OnInteractedGimmick(bool bIsInteracted)
 {
 	if (bIsInteracted == false) return;
 	
 	UE_LOG(LogTemp, Warning, TEXT("상호작용 완료 됨"));
-	++ActivatedEscapeDoorCount;
+	++ActivatedInteractionGimmickCount;
 	
-	int32 ScreenPlayerSpawnConditionCount = GoalEscapeDoorCount - (GoalEscapeDoorCount - 1);
+	int32 ScreenPlayerSpawnConditionCount = GoalInteractionGimmickCount;
 	
-	if (ActivatedEscapeDoorCount >= ScreenPlayerSpawnConditionCount && bIsScreenPlayerSpawnedField == false)
+	if (ActivatedInteractionGimmickCount >= ScreenPlayerSpawnConditionCount && bIsScreenPlayerSpawnedField == false)
 	{
 		TArray<APS3ScreenPlayerController*> TargetController;
 		
