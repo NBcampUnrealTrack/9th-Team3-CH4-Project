@@ -15,6 +15,8 @@ class PUZZLESTAY3_API APS3PlayerControllerBase : public APlayerController
 {
 	GENERATED_BODY()
 	
+protected:
+	
 	virtual void BeginPlay() override;
 	
 protected:
