@@ -8,6 +8,7 @@
 #include "UIDelegatesSubsystem.generated.h"
 
 
+enum class EPS3InteractionNotifyType : uint8;
 enum class EControlDoorType : uint8;
 enum class EPS3TimerUIType : uint8;
 enum class EPS3StageType : uint8;
@@ -22,6 +23,8 @@ DECLARE_MULTICAST_DELEGATE_TwoParams(FOnLifeCount_UI, int32, int32)
 
 
 #pragma region OneParms_Declare_Delegate
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnInteractionNotifyRemoveRequested_UI, EPS3InteractionNotifyType)
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnInteractionNotifyAddRequested_UI, EPS3InteractionNotifyType)
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnTextNotify_UI, EPS3TextNotifyType)
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnStageType_UI, EPS3StageType)
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnTimerNotifyVisible_UI, bool)
@@ -74,6 +77,8 @@ public:
 	
 	
 #pragma region OneParms_Delegate
+	FOnInteractionNotifyRemoveRequested_UI OnInteractionNotifyRemoveRequested_UI;
+	FOnInteractionNotifyAddRequested_UI OnInteractionNotifyAddRequested_UI;
 	FOnTextNotify_UI OnTextNotify_UI;
 	FOnStageType_UI OnStageType_UI;
 	FOnTimerNotifyVisible_UI OnTimerNotifyVisible_UI;
