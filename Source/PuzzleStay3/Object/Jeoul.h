@@ -5,6 +5,7 @@
 #include "Player/Interaction/PS3InteractableInterface.h"
 #include "Jeoul.generated.h"
 
+class APS3PlayerController;
 class UInteractionSwitchComponent;
 class UCameraComponent;
 class ADumbbell;
@@ -30,6 +31,8 @@ public:
 	AJeoul();
 	FOnJeoulCheckStarted OnJeoulCheckStarted;
 	FOnJeoulCheckFinished OnJeoulCheckFinished;
+	
+	void RequestCutsceneReturn(APS3PlayerController* RequestingController);
 	
 protected:
 	virtual void BeginPlay() override;
@@ -69,6 +72,18 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<UStaticMeshComponent> CheckButtonMesh;
 	
+	// ★ 플레이어 1(P1) 정렬 위치 스폿
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components|Spots")
+	TObjectPtr<USceneComponent> Player1Spot;
+
+	// ★ 플레이어 2(P2) 정렬 위치 스폿
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components|Spots")
+	TObjectPtr<USceneComponent> Player2Spot;
+
+	// ★ 덤벨 자동 정렬용 위치 스폿 배열 (예: 3~5개 슬롯)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components|Spots")
+	TArray<TObjectPtr<USceneComponent>> DumbbellSpots;
+	
 #pragma endregion 
 
 public:
@@ -93,6 +108,9 @@ public:
 private:
 	// 스위치 상호작용 콜백
 	void OnCheckButtonPressed(bool bActivated);
+	
+	// ★ 검증 시작 시 플레이어 및 덤벨 위치/회전 자동 정렬 함수
+	void AlignPlayersAndDumbbells();
 	
 	UFUNCTION()
 	void OnRep_TargetBeamRotation();
@@ -128,4 +146,6 @@ private:
 	// 실패 시 저울대가 수평으로 복구되는 연출 대기 시간 (기본값: 1.5초)
 	UPROPERTY(EditAnywhere, Category = "Jeoul Settings")
 	float ResetBeamTime = 1.5f;
+	
+	TArray<TWeakObjectPtr<APS3PlayerController>> CutsceneParticipants;
 };
