@@ -3,7 +3,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Data/Delegates/UIDelegates.h"
 #include "GameFramework/PlayerController.h"
 #include "PS3PlayerControllerBase.generated.h"
 
@@ -25,7 +24,9 @@ protected:
 	
 	void ConfigureInputMapping();
 	
+	UFUNCTION()
 	void OnClickedRestartGameButton();
+	UFUNCTION()
 	void OnClickedMainMenuButton();
 	
 	UFUNCTION(Server, Unreliable)
@@ -34,7 +35,6 @@ protected:
 	void ServerRPC_OnClickedMainMenuButton();
 	
 public:
-	FOnIsGameOver OnIsGameOver;
 	
 	
 private:

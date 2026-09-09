@@ -12,5 +12,6 @@ enum class EPS3StageType : uint8
 	Stage3 UMETA(DisplayName = "Stage3"),
 	Stage4 UMETA(DisplayName = "Stage4"),
 	Stage5 UMETA(DisplayName = "Stage5"),
-	StageEnd UMETA(DisplayName = "StageEnd")
+	StageEnd UMETA(DisplayName = "StageEnd"),
+	StageLobby UMETA(DisplayName = "StageLobby")
 };

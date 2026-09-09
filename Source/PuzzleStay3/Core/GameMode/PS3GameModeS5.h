@@ -5,10 +5,10 @@
 #include "CoreMinimal.h"
 #include "PS3GamemodeBase.h"
 #include "Data/Delegates/GameModeDelegates.h"
-#include "Data/Delegates/UIDelegates.h"
 #include "PS3GameModeS5.generated.h"
 
 enum class EPS3PlayerRole : uint8;
+enum class EPS3TimerUIType: uint8;
 class APS3PlayerCharacter;
 
 UCLASS()
@@ -44,7 +44,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "GameRule")
 	TObjectPtr<class US5_GameRuleDataAsset> S5_GameRuleDataAsset;
 	
-	
+	TArray<EPS3TimerUIType> TimeDeductTimerUITypeArray;
 	
 public:
 	void ReSpawnPlayer(APlayerController* TargetPlayerController);
@@ -67,7 +67,6 @@ public:
 public:
 	FOnIsGameStart OnIsGameStart;
 	FOnScreenPlayerSpawned OnScreenPlayerSpawned;
-	FOnStageType OnStageType;
 	
 	int32 RoleSelectedPlayerCount = 0;
 	int32 MaxPlayerCount = 2;

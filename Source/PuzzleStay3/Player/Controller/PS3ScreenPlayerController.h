@@ -2,7 +2,6 @@
 
 #include "CoreMinimal.h"
 #include "PS3PlayerControllerBase.h"
-#include "Data/Delegates/UIDelegates.h"
 #include "Data/Enum/ControlDoorType.h"
 #include "PS3ScreenPlayerController.generated.h"
 
@@ -70,7 +69,5 @@ protected:
 	
 	void OnScreenPlayerUI_Show() const;
 	
-public:
-	FOnScreenPlayerUI OnScreenPlayerUI;
 	
 };
