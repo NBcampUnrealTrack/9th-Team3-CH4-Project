@@ -17,7 +17,8 @@ class PUZZLESTAY3_API APS3GameStateS3 : public APS3GameStateBase
 	//BlockingVolume
 public:
 	virtual void BeginPlay() override;
-	
+	void InitializeToDataAssets();
+
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	UFUNCTION(BlueprintPure)
