@@ -4,12 +4,14 @@
 
 #include "CoreMinimal.h"
 #include "PS3GamemodeBase.h"
+#include "Data/Delegates/GameModeDelegates.h"
+#include "Data/Enum/TimerUIType.h"
 #include "PS3GameModeS5.generated.h"
 
-class APS3PlayerCharacter;
 enum class EPS3PlayerRole : uint8;
+enum class EPS3TimerUIType: uint8;
+class APS3PlayerCharacter;
 
-DECLARE_MULTICAST_DELEGATE_OneParam(FOnIsGameStart, bool)
 UCLASS()
 class PUZZLESTAY3_API APS3GameModeS5 : public APS3GameModeBase
 {
@@ -35,19 +37,30 @@ public:
 	
 	
 protected:
-	UPROPERTY()
-	TArray<TObjectPtr<class APlayerController>> LoginUserArray;
-	UPROPERTY()
-	TArray<TObjectPtr<class AGimmickBase>> GimmickBaseArray;
+
 	
 	UPROPERTY(EditAnywhere, Category = "GameRule")
 	TObjectPtr<class US5_GameRuleDataAsset> S5_GameRuleDataAsset;
 	
+	TArray<EPS3TimerUIType> TimeDeductTimerUITypeArray =
+	{
+		EPS3TimerUIType::GimmickB_1,
+		EPS3TimerUIType::GimmickB_2,
+		EPS3TimerUIType::GimmickB_3,
+		EPS3TimerUIType::GimmickB_4,
+		EPS3TimerUIType::GimmickB_5,
+		EPS3TimerUIType::GimmickB_6,
+		EPS3TimerUIType::GimmickB_7,
+		EPS3TimerUIType::GimmickB_8,
+		EPS3TimerUIType::GimmickB_9,
+		EPS3TimerUIType::GimmickB_10,
+	};
 	
 public:
 	void ReSpawnPlayer(APlayerController* TargetPlayerController);
 	void UnPossessedAndDestroyOldPawn(APlayerController* OldPlayerController);
 	
+	void OnTimerForGameStart();
 	void OnGameStart();
 	void OnGameOver();
 	void OnQuitGame();
@@ -55,19 +68,19 @@ public:
 	void OnReduceGameTime();
 	void OnTimeDeduction(float TimeToDeducted);
 
-	void RandomInitializeEscapeDoor();
-	void OnEscapeDoorUnlocked();
-	void OnCollectLoginUser();
-	int32 OnCollectEscapeDoor();
 	
-	void OnInteractedEscapeDoor();
 
+	void OnCollectLoginUser();
+	int32 OnCollectGimmickBase();
 	
 public:
 	FOnIsGameStart OnIsGameStart;
+	FOnScreenPlayerSpawned OnScreenPlayerSpawned;
 	
 	int32 RoleSelectedPlayerCount = 0;
 	int32 MaxPlayerCount = 2;
+	float WaitingTime = 3.0f;
+	
 	
 	bool bIsAllPlayerSelectedRole = false;
 	
@@ -77,14 +90,39 @@ public:
 	
 protected:
 	FTimerHandle AllPlayerReadyTimeHandle;
+	FTimerHandle TimerForGameStartHandle;
 	FTimerHandle GameLimitTimeHandle;
 
-	int32 GoalEscapeDoorCount = 0;
-	int32 ActivatedEscapeDoorCount = 0;
+	int32 MaxEscapeDoorCount = 2;
+	int32 MaxInteractionGimmickCount = 2;
+	int32 TargetCountForSpawnScreenPlayer = 0;
+	int32 ActivatedInteractionGimmickCount = 0;
+	
+	float ReducedTimeRange = 1.0f;
+	
+	bool bIsScreenPlayerSpawnReady = false;
+	bool bIsScreenPlayerAlreadySpawned = false;
+	
 	
 private:
-	FName EscapeGimmickTagName = "EscapeGimmick" ;
+	UPROPERTY()
+	TArray<TObjectPtr<class APlayerController>> LoginUserArray;
+	UPROPERTY()
+	TArray<TObjectPtr<class AGimmickBase>> GimmickBaseArray;
 	
-
+	FTimerHandle InitTimerHandle;
+	int32 InteractionGimmickCount = 0;
+	bool bIsInteracted = false;
+	
+	void OnInteractedGimmick(bool bIsInteractedGimmick);
+	void InitializeToDataAssets();
+	void InitializeGimmick();
+	void RandomShuffleFakeGimmick();
+	void BindInteractionGimmick();
+	void ResistEscapeGimmick();
+	void UnResistEscapeGimmick();
+	
+	void AssignFakeGimmickIDForUI(class UOverlapVolumeTimeDeductionComponent* TimeDeductionComp, int32 IndexNumber);
+	
 };
 

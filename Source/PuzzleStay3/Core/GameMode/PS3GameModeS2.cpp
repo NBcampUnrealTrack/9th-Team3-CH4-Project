@@ -5,6 +5,7 @@
 
 #include "Component/RandomCollisionTrapComponent.h"
 #include "GameFramework/GameStateBase.h"
+#include "opensubdiv/far/error.h"
 #include "Player/PlayerState/PS3PlayerState.h"
 
 void APS3GameModeS2::BeginPlay()
@@ -13,10 +14,28 @@ void APS3GameModeS2::BeginPlay()
 
 	MakeRandomCollisionResults();
 	
-	for (APlayerState* PlayerState : GameState->PlayerArray)
+	//로그용 시작
+	FString ResultString;
+	for (int32 i = 0; i < RandomCollisionLayoutResults.Num(); ++i)
 	{
-		RegisterPlayerLifeCountState(Cast<APS3PlayerState>(PlayerState));
+		if (i > 0)
+		{
+			ResultString += TEXT(", ");
+		}
+
+		ResultString += RandomCollisionLayoutResults[i] ? TEXT("True") : TEXT("False");
 	}
+
+	UE_LOG(LogTemp, Warning, TEXT("GetRandomCollisionLayoutResults: [%s]"), *ResultString);
+	//로그 끝
+}
+
+void APS3GameModeS2::PostLogin(APlayerController* NewPlayer)
+{
+	Super::PostLogin(NewPlayer);
+	if (!IsValid(NewPlayer)) return;
+	
+	RegisterPlayerLifeCountState(NewPlayer->GetPlayerState<APS3PlayerState>());
 }
 
 void APS3GameModeS2::RegisterPlayerLifeCountState(APS3PlayerState* PS3PlayerState)

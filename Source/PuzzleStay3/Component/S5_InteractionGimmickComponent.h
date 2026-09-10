@@ -1,0 +1,20 @@
+﻿#pragma once
+
+#include "CoreMinimal.h"
+#include "Components/ActorComponent.h"
+#include "Player/Interaction/PS3InteractableInterface.h"
+#include "S5_InteractionGimmickComponent.generated.h"
+
+
+UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
+class PUZZLESTAY3_API US5_InteractionGimmickComponent : public UActorComponent , public IPS3InteractableInterface
+{
+	GENERATED_BODY()
+
+public:
+	US5_InteractionGimmickComponent();
+
+protected:
+	virtual void BeginPlay() override;
+
+};

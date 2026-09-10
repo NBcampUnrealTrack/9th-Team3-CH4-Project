@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "Data/Enum/PS3InteractionNotifyType.h"
 #include "InteractionNotifyWidget.generated.h"
 
 class UImage;
@@ -20,10 +21,10 @@ public:
 	void HideInteractionNotifyWidget();
 
 	UFUNCTION(BlueprintCallable, Category = "UI|InteractionNotify")
-	void ShowInteractionNotify(FName InNotifyId, const FText& InKeyName);
+	void ShowInteractionNotify(EPS3InteractionNotifyType NotifyType);
 
 	UFUNCTION(BlueprintCallable, Category = "UI|InteractionNotify")
-	void HideInteractionNotify(FName InNotifyId);
+	void HideInteractionNotify(EPS3InteractionNotifyType NotifyType);
 
 	UFUNCTION(BlueprintCallable, Category = "UI|InteractionNotify")
 	void HideAllInteractionNotifies();
@@ -41,5 +42,6 @@ protected:
 private:
 	void RefreshInteractionImage();
 
-	TMap<FName, FText> ActiveInteractionNotifies;
+	int32 InteractCount = 0;
+	int32 DropCount = 0;
 };

@@ -1,5 +1,4 @@
-﻿
-#include "PS3GameModeBase.h"
+﻿#include "PS3GameModeBase.h"
 
 #include "GameFramework/GameStateBase.h"
 #include "GameFramework/PlayerState.h"
@@ -9,17 +8,16 @@
 #include "Player/PlayerState/PS3PlayerState.h"
 
 
-
 void APS3GameModeBase::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
 	//레벨 시작 시 플레이어의 사망 상태 변경 이벤트를 구독
 	for (APlayerState* PlayerState : GameState->PlayerArray)
 	{
 		RegisterPlayerDeadState(Cast<APS3PlayerState>(PlayerState));
 	}
-	
+
 	if (AllInteractionSwitchActivated())
 	{
 		OpenEscapeDoor();
@@ -31,8 +29,42 @@ void APS3GameModeBase::PostLogin(APlayerController* NewPlayer)
 	Super::PostLogin(NewPlayer);
 	if (!IsValid(NewPlayer)) return;
 
+	APS3PlayerState* NewPlayerState = NewPlayer->GetPlayerState<APS3PlayerState>();
+	if (!IsValid(NewPlayerState)) return;
+
 	// 새 플레이어 접속 시 해당 플레이어의 사망 상태 변경 이벤트를 구독
-	RegisterPlayerDeadState(NewPlayer->GetPlayerState<APS3PlayerState>());
+	RegisterPlayerDeadState(NewPlayerState);
+
+	SetPlayerIdentity(NewPlayerState);
+}
+
+void APS3GameModeBase::SetPlayerIdentity(APS3PlayerState* NewPlayerState)
+{
+	bool bPlayer1Taken = false;
+
+	if (NewPlayerState->GetPlayerIdentity() != EPS3PlayerIdentity::Unassigned) return;
+
+	for (APlayerState* PlayerState : GameState->PlayerArray)
+	{
+		APS3PlayerState* PS3PlayerState = Cast<APS3PlayerState>(PlayerState);
+
+		if (!IsValid(PS3PlayerState)) continue;
+
+		if (PS3PlayerState == NewPlayerState) continue;
+
+		if (PS3PlayerState->GetPlayerIdentity() != EPS3PlayerIdentity::Player1) continue;
+
+		bPlayer1Taken = true;
+		break;
+	}
+	if (bPlayer1Taken)
+	{
+		NewPlayerState->SetPlayerIdentity(EPS3PlayerIdentity::Player2);
+	}
+	else
+	{
+		NewPlayerState->SetPlayerIdentity(EPS3PlayerIdentity::Player1);
+	}	
 }
 
 void APS3GameModeBase::RegisterInteractionSwitch(UInteractionSwitchComponent* SwitchComp)
@@ -43,7 +75,7 @@ void APS3GameModeBase::RegisterInteractionSwitch(UInteractionSwitchComponent* Sw
 	InteractionSwitches.Add(SwitchComp);
 
 	InteractionSwitchCompoHandle =
-		SwitchComp->OnSwitchActivatedChanged.AddUObject(this,&APS3GameModeBase::HandleSwitchActivatedChanged);
+		SwitchComp->OnSwitchActivatedChanged.AddUObject(this, &APS3GameModeBase::HandleSwitchActivatedChanged);
 }
 
 void APS3GameModeBase::UnregisterInteractionSwitch(UInteractionSwitchComponent* SwitchComp)
@@ -52,7 +84,7 @@ void APS3GameModeBase::UnregisterInteractionSwitch(UInteractionSwitchComponent* 
 
 	SwitchComp->OnSwitchActivatedChanged.Remove(InteractionSwitchCompoHandle);
 	InteractionSwitchCompoHandle.Reset();
-	
+
 	InteractionSwitches.Remove(SwitchComp);
 }
 
@@ -75,21 +107,19 @@ void APS3GameModeBase::HandleSwitchActivatedChanged(bool bActivated)
 
 void APS3GameModeBase::OpenEscapeDoor()
 {
-	
 	if (AllInteractionSwitchActivated() == false) return;
-	
+
 	APS3GameStateBase* GS = GetGameState<APS3GameStateBase>();
 	if (!IsValid(GS)) return;
 	if (GS->IsEscapeDoorOpened()) return;
 
 	GS->SetEscapeDoorOpened(true);
-	
+
 	CallStageClearIfTimerOver();
 }
 
 void APS3GameModeBase::DisableBlockingVolume(EPS3StageNumber StageNumber)
 {
-
 }
 
 //플레이어 죽음 델리게이트 구독 함수
@@ -98,7 +128,7 @@ void APS3GameModeBase::RegisterPlayerDeadState(APS3PlayerState* PS3PlayerState)
 	if (!IsValid(PS3PlayerState)) return;
 
 	// PlayerState의 OnDeadStateChanged 델리게이트 시 HandlePlayerDeadState함수 호출
-	PS3PlayerState->OnDeadStateChanged.AddUniqueDynamic(this,&APS3GameModeBase::HandlePlayerDeadState);
+	PS3PlayerState->OnDeadStateChanged.AddUniqueDynamic(this, &APS3GameModeBase::HandlePlayerDeadState);
 }
 
 void APS3GameModeBase::HandlePlayerDeadState(bool bNewIsDead)
@@ -118,10 +148,10 @@ void APS3GameModeBase::HandlePlayerDeadState(bool bNewIsDead)
 void APS3GameModeBase::StageRestart()
 {
 	if (!HasAuthority()) return;
-	
+
 	//PlayerState의 IsDead 값을 False로 초기화
 	ResetAllPlayersDeadState();
-	
+
 	FString CurrentLevel = UGameplayStatics::GetCurrentLevelName(this, true);
 
 	if (CurrentLevel.IsEmpty()) return;
@@ -155,7 +185,7 @@ void APS3GameModeBase::CallStageClearIfTimerOver()
 		bStageClearTimerStarted = true;
 
 		UE_LOG(LogTemp, Warning, TEXT("Go to Next Stage After 10 Seconds"));
-		
+
 		GetWorldTimerManager().SetTimer(
 			StageClearTimerHandle,
 			this,

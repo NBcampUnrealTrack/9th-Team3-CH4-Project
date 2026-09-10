@@ -11,4 +11,11 @@ class PUZZLESTAY3_API APS3GameStateS2 : public APS3GameStateBase
 {
 	GENERATED_BODY()
 	
+public:
+	virtual void BeginPlay() override;
+	void InitializeToDataAssets();
+
+	UPROPERTY(EditAnywhere, Category = "GameRule")
+	TObjectPtr<class US2_GameRuleDataAsset> S2_GameRuleDataAsset;
+	
 };

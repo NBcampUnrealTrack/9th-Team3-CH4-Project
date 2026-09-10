@@ -6,7 +6,8 @@
 #include "InteractionSwitchComponent.generated.h"
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnSwitchActivatedChanged, bool);
-DECLARE_MULTICAST_DELEGATE(FOnInteractionSuccessed);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnInteractionSuccessed, bool);
+DECLARE_MULTICAST_DELEGATE(FOnCosmeticInteractionSuccessed);
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class PUZZLESTAY3_API UInteractionSwitchComponent : public UActorComponent, public IPS3InteractableInterface
@@ -18,56 +19,72 @@ public:
 
 	virtual bool CanInteract_Implementation(AActor* Requestor) const override;
 	virtual bool Interact_Implementation(AActor* Requestor) override;
-	
+
 protected:
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 public:
-	// GameMode가 바인딩할 델리게이트
 	FOnSwitchActivatedChanged OnSwitchActivatedChanged;
 	FOnInteractionSuccessed OnInteractionSuccessed;
-	
-	// GameMode의 AllInteractionSwitchActivated()에서 사용되는 Getter
+	FOnCosmeticInteractionSuccessed OnCosmeticInteractionSuccessed;
+
 	UFUNCTION(BlueprintCallable, Category = "Gimmick")
 	bool IsActivated() const { return bIsActivated; }
 
-	// PlayerCharacter F키 라인트레이스 수신 인터페이스에서 호출할 함수
 	bool TryInteract(AActor* Requestor);
 	void SetRegisterToGameMode(bool bRegister) { bRegisterToGameMode = bRegister; }
-	
-	// 타이머 시작 함수
+
 	void StartDisableTimer();
-	
-	// 타이머 만료/리셋 시 스위치 꺼짐 처리
 	void ResetSwitch();
-	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Gimmick")
+
+	UFUNCTION(BlueprintCallable, Category = "Gimmick")
+	void SetLocked(bool bNewLocked) { bIsLocked = bNewLocked; }
+
+	AActor* GetInteractingActor() const { return InteractingActor; }
+
+	UPROPERTY(Replicated)
 	bool bIsEscapeDoor = true;
 	
+	UPROPERTY(Replicated)
+	bool bIsInteractedGimmick = false;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gimmick|Settings")
+	int32 SwitchID = 1;
+	
+	// 스테이지 5 전용: true일 경우 내부 상태 로직을 수행하지 않고 브로드캐스트 후 종료
+	UPROPERTY(EditAnywhere, Replicated, BlueprintReadWrite, Category = "Gimmick")
+	bool bIsOtherInteractionGimmick = false;
+	
+	// true: 스위치를 켜도 플레이어 상태를 바꾸지 않음 (혼자서 4개 스위치 연속 조작 가능)
+	// false: 스위치를 켜면 플레이어가 상호작용 중(IsInteracting) 상태가 됨 (다른 상호작용 불가)
+	UPROPERTY(EditAnywhere, Replicated, BlueprintReadWrite, Category = "Gimmick")
+	bool bMultiInteractionState = false; 
+
 protected:
 	// 램프/버튼의 활성화 상태
-	UPROPERTY(ReplicatedUsing = OnRep_IsActivated, VisibleAnywhere, BlueprintReadOnly, Category = "Gimmick")
+	UPROPERTY(ReplicatedUsing = OnRep_IsActivated)
 	bool bIsActivated = false;
 
-	// GameMode의 글로벌 퍼즐 스위치 목록에 등록할지 여부
-	// 일반 퍼즐 스위치는 true, 저울 버튼 등 독립 기믹 스위치는 false로 설정
+	// true일 경우 CanInteract가 항상 false를 반환
+	UPROPERTY()
+	bool bIsLocked = false;
+	
+	UPROPERTY(Replicated, Transient, VisibleAnywhere, Category = "Gimmick")
+	TObjectPtr<AActor> InteractingActor = nullptr;
+
+	// GameMode의 글로벌 퍼즐 스위치 목록에 등록할지 여부 일반 퍼즐 스위치는 true, 저울 버튼 등 독립 기믹 스위치는 false로 설정
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Gimmick")
 	bool bRegisterToGameMode = true;
-	
-	// 비긴플레이 단계에서 타이머를 가동하여 시작할지 체크
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Gimmick|Timer")
-	bool bStartTimerOnBeginPlay = false;
-	
-	// 상호작용(TryInteract) 시에도 타이머를 사용할지 체크
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Gimmick|Timer")
 	bool bUseAutoDisableTimer = false;
-	
-	// 타이머 시간 (초 단위)
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Gimmick|Timer", meta = (EditCondition = "bUseAutoDisableTimer"))
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Gimmick|Timer",
+		meta = (EditCondition = "bUseAutoDisableTimer"))
 	float AutoDisableTime = 20.0f;
-	
+
 private:
 	FTimerHandle AutoDisableTimerHandle;
 

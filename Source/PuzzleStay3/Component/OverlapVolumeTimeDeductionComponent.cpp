@@ -1,7 +1,9 @@
 ﻿#include "OverlapVolumeTimeDeductionComponent.h"
 
+#include "EngineUtils.h"
 #include "Core/GameMode/PS3GameModeS5.h"
 #include "Core/GameState/PS3GameStateS5.h"
+#include "Data/Delegates/UIDelegatesSubsystem.h"
 #include "Player/Character/PS3PlayerCharacter.h"
 #include "Player/Controller/PS3PlayerController.h"
 
@@ -15,8 +17,10 @@ void UOverlapVolumeTimeDeductionComponent::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	if (GetCastPS3GameModeS5() == nullptr) return;
-	PS3GameModeS5->OnIsGameStart.AddUObject(this, &ThisClass::OnBindWhenGameStarted);
+	if (IsValid(GetCastPS3GameModeS5()) == false) return;
+	CastPS3GameModeS5->OnIsGameStart.AddUObject(this, &ThisClass::OnBindWhenGameStarted);
+	
+	//ErrorCheck_S5();
 }
 
 
@@ -39,12 +43,15 @@ APS3GameModeS5* UOverlapVolumeTimeDeductionComponent::GetCastPS3GameModeS5()
 	
 	if (GetOwner()->HasAuthority() == true)
 	{
-		UWorld* World = GetWorld();
-		if (World == nullptr) return nullptr;
-		
-		PS3GameModeS5 = Cast<APS3GameModeS5>(World->GetAuthGameMode());
-		return PS3GameModeS5;
+		if (IsValid(CastPS3GameModeS5)) return CastPS3GameModeS5;
+
+		if (UWorld* World = GetWorld())
+		{
+			CastPS3GameModeS5 = Cast<APS3GameModeS5>(World->GetAuthGameMode());
+			return CastPS3GameModeS5;
+		}
 	}
+	
 	return nullptr;
 }
 
@@ -52,7 +59,7 @@ APS3GameModeS5* UOverlapVolumeTimeDeductionComponent::GetCastPS3GameModeS5()
 void UOverlapVolumeTimeDeductionComponent::OnCharacterOverLapped(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	if (bIsEscapeDoor ==  true) return;
+	if (bIsInteractionGimmick ==  true) return;
 	
 	if (GetOwner() == nullptr) return;
 	
@@ -67,8 +74,11 @@ void UOverlapVolumeTimeDeductionComponent::OnCharacterOverLapped(UPrimitiveCompo
 		if (OverlappedCharacters.Contains(PS3PlayerCharacter) == true) return;
 		OverlappedCharacters.Add(PS3PlayerCharacter);
 		
-		if (GetCastPS3GameModeS5() == nullptr) return;
-		PS3GameModeS5->OnTimeDeduction(DeductedTimeRange);
+		if (IsValid(CastPS3GameModeS5) == false) return;
+		
+		NetMultiRPC_RemindingTimeDeduct();
+		
+		CastPS3GameModeS5->OnTimeDeduction(DeductedTimeRange);
 	
 		ReSpawnPlayer(PS3PlayerController);
 	}
@@ -90,6 +100,12 @@ void UOverlapVolumeTimeDeductionComponent::OnCharacterEndOverlap(UPrimitiveCompo
 }
 
 
+void UOverlapVolumeTimeDeductionComponent::NetMultiRPC_RemindingTimeDeduct_Implementation()
+{
+	PS3_BROADCAST_TO_MVVM_TwoParams(OnTimeDeduct_UI, TimeDeductTimerUIType, DeductedTimeRange);
+}
+
+
 void UOverlapVolumeTimeDeductionComponent::ReSpawnPlayer(APlayerController* TargetPlayerController)
 {
 	if (IsValid(TargetPlayerController) == false) return;
@@ -100,5 +116,31 @@ void UOverlapVolumeTimeDeductionComponent::ReSpawnPlayer(APlayerController* Targ
 	PS3GameStateS5->ReSpawnPlayer(TargetPlayerController);
 }
 
+void UOverlapVolumeTimeDeductionComponent::ErrorCheck_S5()
+{
+	if (GetOwner() == nullptr) return;
+	
+	if (GetOwner()->HasAuthority() == false) return;
+	
+	int32 TotalGimmickBaseCount = 0;
+	int32 InvalidEnumCount = 0;
 
+	for (TActorIterator<AActor> It(GetWorld()); It; ++It)
+	{
+		AActor* GimmickBase = *It;
+		if (IsValid(GimmickBase) == false) continue;
+		
+		TotalGimmickBaseCount++;
+		auto* UOverlapVolumeTimeDeductionComp = GimmickBase->FindComponentByClass<UOverlapVolumeTimeDeductionComponent>();
+		if (IsValid(UOverlapVolumeTimeDeductionComp) == false) continue;
+			
+		if (UOverlapVolumeTimeDeductionComp->TimeDeductTimerUIType == EPS3TimerUIType::None)
+		{
+			InvalidEnumCount++;
+		}
+	}
 
+	checkf(InvalidEnumCount == 0, 
+		TEXT("Type 선정 오류: 전체 %d 개의 [UOverlapVolumeTimeDeductionComponent] 중 %d개의 Type이 <None>입니다. Type을 선정해주세요."), 
+		TotalGimmickBaseCount, InvalidEnumCount);
+}

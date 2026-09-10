@@ -4,18 +4,20 @@
 #include "Core/GameState/PS3GameStateS3.h"
 #include "GameFramework/GameStateBase.h"
 #include "Player/PlayerState/PS3PlayerState.h"
-
+#include "Component/FakeDeathTrapComponent.h"
+#include "Player/Controller/PS3PlayerController.h"
 
 void APS3GameModeS3::BeginPlay()
 {
 	Super::BeginPlay();
-
-	MakeRandomVisibleResults();
 	
 	//스테이지 시작 시 모든 플레이어의 기본 보이스챗 비활성화
 	SetAllPlayersVoiceChatState(EVoiceChatState::Inactive);
 	
 	CheckVoiceObjectHeldPlayerCount();
+	
+	MaxPlayer = S3_GameRuleDataAsset->MaxPlayer;
+	MaxFakeDeathTrap = S3_GameRuleDataAsset->MaxFakeDeathTrap;
 }
 
 void APS3GameModeS3::PostLogin(APlayerController* NewPlayer)
@@ -28,6 +30,7 @@ void APS3GameModeS3::PostLogin(APlayerController* NewPlayer)
 		
 	ApplyVoiceChatStateToPlayer(PS);
 	
+	TryMakeRandomVisibleResults();
 }
 
 
@@ -111,16 +114,91 @@ void APS3GameModeS3::ApplyVoiceChatStateToPlayer(APS3PlayerState* PlayerState)
 	PlayerState->SetVoiceChatState(
 		bActivated ? EVoiceChatState::Conversion : EVoiceChatState::Inactive);
 }
-
+void APS3GameModeS3::TryMakeRandomVisibleResults()
+{
+	if (PlayerControllers.Num() != MaxPlayer) return;
+	if (FakeDeathTrapComponents.Num() != MaxFakeDeathTrap) return;
+	
+	MakeRandomVisibleResults();
+	BroadcastRandomVisibleResults();
+	
+}
 void APS3GameModeS3::MakeRandomVisibleResults()
 {
-	RandomVisibleResults = FMath::RandBool();
+	RandomVisibleResults.Empty();
+
+	const int32 PlayerCount = PlayerControllers.Num();
+	const int32 TrapCount = FakeDeathTrapComponents.Num();
+	RandomVisibleResults.Reserve(PlayerCount);
+
+	for (int32 PlayerIndex = 0; PlayerIndex < PlayerCount; ++PlayerIndex)
+	{
+		RandomVisibleResult.Empty();
+		RandomVisibleResult.Reserve(TrapCount);
+
+		for (int32 TrapIndex = 0; TrapIndex < TrapCount; ++TrapIndex)
+		{
+			RandomVisibleResult.Add(FMath::RandBool());
+		}
+
+		RandomVisibleResults.Add(RandomVisibleResult);
+	}
 }
 
-bool APS3GameModeS3::GetRandomVisibleResults()
+void APS3GameModeS3::BroadcastRandomVisibleResults()
 {
-	return RandomVisibleResults;
+	TArray<int32> TrapIds;
+	TrapIds.Reserve(FakeDeathTrapComponents.Num());
+
+	for (const UFakeDeathTrapComponent* Trap : FakeDeathTrapComponents)
+	{
+		if (!IsValid(Trap)) return;
+		TrapIds.Add(Trap->GetTrapId());
+	}
+	
+	for (int32 i = 0; i < PlayerControllers.Num(); ++i)
+	{
+		APS3PlayerController* PC = Cast<APS3PlayerController>(PlayerControllers[i]);
+		if (!IsValid(PC)) continue;
+		if (!RandomVisibleResults.IsValidIndex(i)) continue;
+		if (RandomVisibleResults[i].Num() != TrapIds.Num()) continue;
+		
+		OnRandomVisibleResultsChanged.Broadcast(PC, TrapIds, RandomVisibleResults[i]);
+	}
 }
+
+void APS3GameModeS3::RegisterFakeDeathTrapComponent(UFakeDeathTrapComponent* FakeDeathTrapComponent)
+{
+	if (!FakeDeathTrapComponent) return;
+
+	FakeDeathTrapComponents.AddUnique(FakeDeathTrapComponent);
+	
+	TryMakeRandomVisibleResults();
+	
+}
+
+void APS3GameModeS3::UnregisterFakeDeathTrapComponent(UFakeDeathTrapComponent* FakeDeathTrapComponent)
+{
+	if (!FakeDeathTrapComponent) return;
+
+	FakeDeathTrapComponents.Remove(FakeDeathTrapComponent);
+}
+
+void APS3GameModeS3::RegisterPlayerController(APlayerController* PlayerController)
+{
+	if (!PlayerController) return;
+
+	PlayerControllers.AddUnique(PlayerController);
+}
+
+void APS3GameModeS3::UnregisterPlayerController(APlayerController* PlayerController)
+{
+	if (!PlayerController) return;
+
+	PlayerControllers.Remove(PlayerController);
+}
+
+
 
 
 

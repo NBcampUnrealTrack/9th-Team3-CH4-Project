@@ -1,41 +1,271 @@
 #include "PS3ViewModel.h"
 
+#include "Data/Delegates/UIDelegatesSubsystem.h"
 #include "../HUD/PlayerHUD.h"
 
 void UPS3ViewModel::SetPlayerHUD(APlayerHUD* InPlayerHUD)
 {
 	PlayerHUD = InPlayerHUD;
+	BindRoleSelectionUIDelegate();
+	BindGameplayUIDelegates();
 }
 
-void UPS3ViewModel::RequestTextNotify(const FText& InDisplayText, float InFontSize, float InDisplayDuration)
+void UPS3ViewModel::BeginDestroy()
 {
-	if (PlayerHUD)
+	UnbindRoleSelectionUIDelegate();
+	UnbindGameplayUIDelegates();
+
+	Super::BeginDestroy();
+}
+
+void UPS3ViewModel::BindRoleSelectionUIDelegate()
+{
+	UUIDelegatesSubsystem* UIDelegatesSubsystem =
+		UUIDelegatesSubsystem::GetUIDelegateManager(this);
+	if (!IsValid(UIDelegatesSubsystem))
 	{
-		PlayerHUD->ShowTextNotify(InDisplayText, InFontSize, InDisplayDuration);
+		return;
+	}
+
+	UIDelegatesSubsystem->OnRoleSelection_UI.RemoveAll(this);
+	UIDelegatesSubsystem->OnRoleSelection_UI.AddUObject(
+		this,
+		&ThisClass::HandleRoleSelection_UI);
+}
+
+void UPS3ViewModel::UnbindRoleSelectionUIDelegate()
+{
+	UUIDelegatesSubsystem* UIDelegatesSubsystem =
+		UUIDelegatesSubsystem::GetUIDelegateManager(this);
+	if (!IsValid(UIDelegatesSubsystem))
+	{
+		return;
+	}
+
+	UIDelegatesSubsystem->OnRoleSelection_UI.RemoveAll(this);
+}
+
+void UPS3ViewModel::HandleRoleSelection_UI(bool bVisible)
+{
+	RequestSetStage5RoleSelectVisible(bVisible);
+}
+
+void UPS3ViewModel::BindGameplayUIDelegates()
+{
+	UUIDelegatesSubsystem* UIDelegatesSubsystem =
+		UUIDelegatesSubsystem::GetUIDelegateManager(this);
+	if (!IsValid(UIDelegatesSubsystem))
+	{
+		return;
+	}
+
+	UIDelegatesSubsystem->OnStageType_UI.RemoveAll(this);
+	UIDelegatesSubsystem->OnStageType_UI.AddUObject(
+		this,
+		&ThisClass::HandleStageType_UI);
+
+	UIDelegatesSubsystem->OnScreenPlayer_UI.RemoveAll(this);
+	UIDelegatesSubsystem->OnScreenPlayer_UI.AddUObject(
+		this,
+		&ThisClass::HandleScreenPlayer_UI);
+
+	UIDelegatesSubsystem->OnFieldPlayer_UI.RemoveAll(this);
+	UIDelegatesSubsystem->OnFieldPlayer_UI.AddUObject(
+		this,
+		&ThisClass::HandleFieldPlayer_UI);
+
+	UIDelegatesSubsystem->OnVoiceChatIcon_UI.RemoveAll(this);
+	UIDelegatesSubsystem->OnVoiceChatIcon_UI.AddUObject(
+		this,
+		&ThisClass::HandleVoiceChatIcon_UI);
+
+	UIDelegatesSubsystem->OnIsGameOver_UI.RemoveAll(this);
+	UIDelegatesSubsystem->OnIsGameOver_UI.AddUObject(
+		this,
+		&ThisClass::HandleIsGameOver_UI);
+
+	UIDelegatesSubsystem->OnButtonEnabled_UI.RemoveAll(this);
+	UIDelegatesSubsystem->OnButtonEnabled_UI.AddUObject(
+		this,
+		&ThisClass::HandleButtonEnabled_UI);
+
+	UIDelegatesSubsystem->OnGameTimer_UI.RemoveAll(this);
+	UIDelegatesSubsystem->OnGameTimer_UI.AddUObject(
+		this,
+		&ThisClass::HandleGameTimer_UI);
+
+	UIDelegatesSubsystem->OnTimeDeduct_UI.RemoveAll(this);
+	UIDelegatesSubsystem->OnTimeDeduct_UI.AddUObject(
+		this,
+		&ThisClass::HandleTimeDeduct_UI);
+}
+
+void UPS3ViewModel::UnbindGameplayUIDelegates()
+{
+	UUIDelegatesSubsystem* UIDelegatesSubsystem =
+		UUIDelegatesSubsystem::GetUIDelegateManager(this);
+	if (!IsValid(UIDelegatesSubsystem))
+	{
+		return;
+	}
+
+	UIDelegatesSubsystem->OnStageType_UI.RemoveAll(this);
+	UIDelegatesSubsystem->OnScreenPlayer_UI.RemoveAll(this);
+	UIDelegatesSubsystem->OnFieldPlayer_UI.RemoveAll(this);
+	UIDelegatesSubsystem->OnVoiceChatIcon_UI.RemoveAll(this);
+	UIDelegatesSubsystem->OnIsGameOver_UI.RemoveAll(this);
+	UIDelegatesSubsystem->OnButtonEnabled_UI.RemoveAll(this);
+	UIDelegatesSubsystem->OnGameTimer_UI.RemoveAll(this);
+	UIDelegatesSubsystem->OnTimeDeduct_UI.RemoveAll(this);
+}
+
+void UPS3ViewModel::HandleStageType_UI(EPS3StageType StageType)
+{
+	CurrentStageType = StageType;
+	ApplyStageUI();
+}
+
+void UPS3ViewModel::HandleScreenPlayer_UI(bool bVisible)
+{
+	if (CurrentStageType == EPS3StageType::Stage5 && bVisible)
+	{
+		RequestSetDoorOpenButtonVisible(true);
+		RequestSetInteractionNotifyVisible(false);
 	}
 }
 
-void UPS3ViewModel::RequestHideTextNotify()
+void UPS3ViewModel::HandleFieldPlayer_UI(bool bVisible)
 {
-	if (PlayerHUD)
+	if (CurrentStageType == EPS3StageType::Stage5 && bVisible)
 	{
-		PlayerHUD->HideTextNotify();
+		RequestSetDoorOpenButtonVisible(false);
+		RequestSetInteractionNotifyVisible(true);
 	}
 }
 
-void UPS3ViewModel::RequestShowLifeCount()
+void UPS3ViewModel::HandleVoiceChatIcon_UI(bool bVisible)
 {
-	if (PlayerHUD)
+	RequestSetVoiceChatIconVisible(bVisible);
+}
+
+void UPS3ViewModel::HandleIsGameOver_UI(bool bVisible)
+{
+	RequestSetGameOverVisible(bVisible);
+}
+
+void UPS3ViewModel::HandleButtonEnabled_UI(EControlDoorType DoorType, bool bEnabled)
+{
+	switch (DoorType)
 	{
-		PlayerHUD->ShowLifeCount();
+	case EControlDoorType::Door_A:
+		SetIsDoor1Unlocked(bEnabled);
+		break;
+	case EControlDoorType::Door_B:
+		SetIsDoor2Unlocked(bEnabled);
+		break;
+	case EControlDoorType::Door_C:
+		SetIsDoor3Unlocked(bEnabled);
+		break;
+	case EControlDoorType::Door_D:
+		SetIsDoor4Unlocked(bEnabled);
+		break;
+	default:
+		break;
 	}
 }
 
-void UPS3ViewModel::RequestHideLifeCount()
+void UPS3ViewModel::HandleGameTimer_UI(EPS3TimerUIType TimerUIType, float Duration)
+{
+	if (TimerUIType == EPS3TimerUIType::None)
+	{
+		return;
+	}
+
+	const FName TimerId(*StaticEnum<EPS3TimerUIType>()->GetNameStringByValue(static_cast<int64>(TimerUIType)));
+	RequestTimerNotify(TimerId, Duration);
+}
+
+void UPS3ViewModel::HandleTimeDeduct_UI(EPS3TimerUIType TimerUIType, float ReduceTime)
+{
+	if (TimerUIType == EPS3TimerUIType::None)
+	{
+		return;
+	}
+
+	const FName TimerId(*StaticEnum<EPS3TimerUIType>()->GetNameStringByValue(static_cast<int64>(TimerUIType)));
+	RequestReduceTimerNotify(TimerId, ReduceTime);
+}
+
+void UPS3ViewModel::ApplyStageUI()
+{
+	switch (CurrentStageType)
+	{
+	case EPS3StageType::Stage1:
+		RequestSetLifeCountVisible(false);
+		RequestSetVoiceChatIconVisible(true);
+		RequestSetInteractionNotifyVisible(true);
+		RequestSetTextNotifyVisible(true);
+		RequestSetTimerNotifyVisible(true);
+		RequestSetDoorOpenButtonVisible(false);
+		break;
+	case EPS3StageType::Stage2:
+		RequestSetLifeCountVisible(true);
+		RequestSetVoiceChatIconVisible(true);
+		RequestSetInteractionNotifyVisible(true);
+		RequestSetTextNotifyVisible(true);
+		RequestSetTimerNotifyVisible(false);
+		RequestSetDoorOpenButtonVisible(false);
+		break;
+	case EPS3StageType::Stage3:
+		RequestSetLifeCountVisible(true);
+		RequestSetVoiceChatIconVisible(false);
+		RequestSetInteractionNotifyVisible(true);
+		RequestSetTextNotifyVisible(true);
+		RequestSetTimerNotifyVisible(false);
+		RequestSetDoorOpenButtonVisible(false);
+		break;
+	case EPS3StageType::Stage4:
+		RequestSetLifeCountVisible(false);
+		RequestSetVoiceChatIconVisible(true);
+		RequestSetInteractionNotifyVisible(true);
+		RequestSetTextNotifyVisible(true);
+		RequestSetTimerNotifyVisible(false);
+		RequestSetDoorOpenButtonVisible(false);
+		break;
+	case EPS3StageType::Stage5:
+		RequestSetLifeCountVisible(false);
+		RequestSetVoiceChatIconVisible(true);
+		RequestSetInteractionNotifyVisible(true);
+		RequestSetTextNotifyVisible(true);
+		RequestSetTimerNotifyVisible(true);
+		RequestSetDoorOpenButtonVisible(false);
+		break;
+	default:
+		break;
+	}
+}
+
+void UPS3ViewModel::RequestTextNotify(EPS3TextNotifyType NotifyType)
 {
 	if (PlayerHUD)
 	{
-		PlayerHUD->HideLifeCount();
+		PlayerHUD->ShowTextNotify(NotifyType);
+	}
+}
+
+void UPS3ViewModel::RequestSetTextNotifyVisible(bool bVisible)
+{
+	if (PlayerHUD)
+	{
+		PlayerHUD->SetTextNotifyVisible(bVisible);
+	}
+}
+
+void UPS3ViewModel::RequestSetLifeCountVisible(bool bVisible)
+{
+	if (PlayerHUD)
+	{
+		PlayerHUD->SetLifeCountVisible(bVisible);
 	}
 }
 
@@ -47,35 +277,27 @@ void UPS3ViewModel::RequestUpdateLifeCount(int32 InCurrentLifeCount, int32 InMax
 	}
 }
 
-void UPS3ViewModel::RequestShowInteractionNotifyWidget()
+void UPS3ViewModel::RequestSetInteractionNotifyVisible(bool bVisible)
 {
 	if (PlayerHUD)
 	{
-		PlayerHUD->ShowInteractionNotifyWidget();
+		PlayerHUD->SetInteractionNotifyVisible(bVisible);
 	}
 }
 
-void UPS3ViewModel::RequestHideInteractionNotifyWidget()
+void UPS3ViewModel::RequestShowInteractionNotify(EPS3InteractionNotifyType NotifyType)
 {
 	if (PlayerHUD)
 	{
-		PlayerHUD->HideInteractionNotifyWidget();
+		PlayerHUD->ShowInteractionNotify(NotifyType);
 	}
 }
 
-void UPS3ViewModel::RequestShowInteractionNotify(FName InNotifyId, const FText& InKeyName)
+void UPS3ViewModel::RequestHideInteractionNotify(EPS3InteractionNotifyType NotifyType)
 {
 	if (PlayerHUD)
 	{
-		PlayerHUD->ShowInteractionNotify(InNotifyId, InKeyName);
-	}
-}
-
-void UPS3ViewModel::RequestHideInteractionNotify(FName InNotifyId)
-{
-	if (PlayerHUD)
-	{
-		PlayerHUD->HideInteractionNotify(InNotifyId);
+		PlayerHUD->HideInteractionNotify(NotifyType);
 	}
 }
 
@@ -87,19 +309,11 @@ void UPS3ViewModel::RequestHideAllInteractionNotifies()
 	}
 }
 
-void UPS3ViewModel::RequestShowTimerNotify()
+void UPS3ViewModel::RequestSetTimerNotifyVisible(bool bVisible)
 {
 	if (PlayerHUD)
 	{
-		PlayerHUD->ShowTimerNotify();
-	}
-}
-
-void UPS3ViewModel::RequestHideTimerNotifyWidget()
-{
-	if (PlayerHUD)
-	{
-		PlayerHUD->HideTimerNotifyWidget();
+		PlayerHUD->SetTimerNotifyVisible(bVisible);
 	}
 }
 
@@ -119,43 +333,27 @@ void UPS3ViewModel::RequestReduceTimerNotify(FName InTimerId, float InReduceTime
 	}
 }
 
-void UPS3ViewModel::RequestHideTimerNotify()
+void UPS3ViewModel::RequestResetTimerNotify()
 {
 	if (PlayerHUD)
 	{
-		PlayerHUD->HideTimerNotify();
+		PlayerHUD->ResetTimerNotify();
 	}
 }
 
-void UPS3ViewModel::RequestShowTutorialNotify()
+void UPS3ViewModel::RequestSetTutorialNotifyVisible(bool bVisible)
 {
 	if (PlayerHUD)
 	{
-		PlayerHUD->ShowTutorialNotify();
+		PlayerHUD->SetTutorialNotifyVisible(bVisible);
 	}
 }
 
-void UPS3ViewModel::RequestHideTutorialNotify()
+void UPS3ViewModel::RequestSetDoorOpenButtonVisible(bool bVisible)
 {
 	if (PlayerHUD)
 	{
-		PlayerHUD->HideTutorialNotify();
-	}
-}
-
-void UPS3ViewModel::RequestShowDoorOpenButton()
-{
-	if (PlayerHUD)
-	{
-		PlayerHUD->ShowDoorOpenButton();
-	}
-}
-
-void UPS3ViewModel::RequestHideDoorOpenButton()
-{
-	if (PlayerHUD)
-	{
-		PlayerHUD->HideDoorOpenButton();
+		PlayerHUD->SetDoorOpenButtonVisible(bVisible);
 	}
 }
 
@@ -246,7 +444,7 @@ void UPS3ViewModel::RequestDoorActivation(int32 InDoorIndex, bool bIsActive)
 		return;
 	}
 
-	OnDoorActivationRequested.Broadcast(InDoorIndex, bIsActive);
+	OnDoorActivationRequested_UI.Broadcast(InDoorIndex, bIsActive);
 }
 
 void UPS3ViewModel::RequestVoiceChatSpeaking(bool bInIsSpeaking)
@@ -257,35 +455,19 @@ void UPS3ViewModel::RequestVoiceChatSpeaking(bool bInIsSpeaking)
 	}
 }
 
-void UPS3ViewModel::RequestShowVoiceChatIcon()
+void UPS3ViewModel::RequestSetVoiceChatIconVisible(bool bVisible)
 {
 	if (PlayerHUD)
 	{
-		PlayerHUD->ShowVoiceChatIcon();
+		PlayerHUD->SetVoiceChatIconVisible(bVisible);
 	}
 }
 
-void UPS3ViewModel::RequestHideVoiceChatIcon()
+void UPS3ViewModel::RequestSetOptionPopupVisible(bool bVisible)
 {
 	if (PlayerHUD)
 	{
-		PlayerHUD->HideVoiceChatIcon();
-	}
-}
-
-void UPS3ViewModel::RequestShowOptionPopup()
-{
-	if (PlayerHUD)
-	{
-		PlayerHUD->ShowOptionPopup();
-	}
-}
-
-void UPS3ViewModel::RequestHideOptionPopup()
-{
-	if (PlayerHUD)
-	{
-		PlayerHUD->HideOptionPopup();
+		PlayerHUD->SetOptionPopupVisible(bVisible);
 	}
 }
 
@@ -299,95 +481,71 @@ void UPS3ViewModel::RequestToggleOptionPopup()
 
 void UPS3ViewModel::RequestExitToMain()
 {
-	OnExitToMainRequested.Broadcast();
+	OnExitToMainRequested_UI.Broadcast();
 }
 
 void UPS3ViewModel::RequestBGMVolumeChanged(float Value)
 {
-	OnBGMVolumeChanged.Broadcast(Value);
+	OnBGMVolumeChanged_UI.Broadcast(Value);
 }
 
 void UPS3ViewModel::RequestSFXVolumeChanged(float Value)
 {
-	OnSFXVolumeChanged.Broadcast(Value);
+	OnSFXVolumeChanged_UI.Broadcast(Value);
 }
 
 void UPS3ViewModel::RequestVoiceChatEnabledChanged(bool bEnabled)
 {
-	OnVoiceChatEnabledChanged.Broadcast(bEnabled);
+	OnVoiceChatEnabledChanged_UI.Broadcast(bEnabled);
 }
 
 void UPS3ViewModel::RequestResolutionChanged(const FString& Resolution)
 {
-	OnResolutionChanged.Broadcast(Resolution);
+	OnResolutionChanged_UI.Broadcast(Resolution);
 }
 
-void UPS3ViewModel::RequestShowTitle()
+void UPS3ViewModel::RequestSetTitleVisible(bool bVisible)
 {
 	if (PlayerHUD)
 	{
-		PlayerHUD->ShowTitle();
-	}
-}
-
-void UPS3ViewModel::RequestHideTitle()
-{
-	if (PlayerHUD)
-	{
-		PlayerHUD->HideTitle();
+		PlayerHUD->SetTitleVisible(bVisible);
 	}
 }
 
 void UPS3ViewModel::RequestGameStart()
 {
-	OnGameStartRequested.Broadcast();
+	OnGameStartRequested_UI.Broadcast();
 }
 
 void UPS3ViewModel::RequestGameExit()
 {
-	OnGameExitRequested.Broadcast();
+	OnGameExitRequested_UI.Broadcast();
 }
 
-void UPS3ViewModel::RequestShowGameOver()
+void UPS3ViewModel::RequestSetGameOverVisible(bool bVisible)
 {
 	if (PlayerHUD)
 	{
-		PlayerHUD->ShowGameOver();
-	}
-}
-
-void UPS3ViewModel::RequestHideGameOver()
-{
-	if (PlayerHUD)
-	{
-		PlayerHUD->HideGameOver();
+		PlayerHUD->SetGameOverVisible(bVisible);
 	}
 }
 
 void UPS3ViewModel::RequestGameRestart()
 {
-	OnGameRestartRequested.Broadcast();
+	OnGameRestartRequested_UI.Broadcast();
 }
 
-void UPS3ViewModel::RequestShowStage5RoleSelect()
+void UPS3ViewModel::RequestSetStage5RoleSelectVisible(bool bVisible)
 {
 	if (PlayerHUD)
 	{
-		PlayerHUD->ShowStage5RoleSelect();
-	}
-}
-
-void UPS3ViewModel::RequestHideStage5RoleSelect()
-{
-	if (PlayerHUD)
-	{
-		PlayerHUD->HideStage5RoleSelect();
+		PlayerHUD->SetStage5RoleSelectVisible(bVisible);
 	}
 }
 
 void UPS3ViewModel::RequestStage5RoleSelection(EPS3PlayerRole SelectedRole)
 {
-	OnStage5RoleSelectionRequested.Broadcast(SelectedRole);
+	OnStage5RoleSelectionRequested_UI.Broadcast(SelectedRole);
 }
 
 bool UPS3ViewModel::GetIsOpen() const

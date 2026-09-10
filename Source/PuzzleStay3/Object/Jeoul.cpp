@@ -7,8 +7,10 @@
 #include "Core/GameState/PS3GameStateBase.h"
 #include "Core/GameState/PS3GameStateS4.h"
 #include "GameFramework/Character.h"
+#include "GameFramework/PlayerState.h"
 #include "Net/UnrealNetwork.h"
 #include "Player/Character/PS3PlayerCharacter.h"
+#include "Player/Controller/PS3PlayerController.h"
 
 AJeoul::AJeoul()
 {
@@ -51,32 +53,59 @@ AJeoul::AJeoul()
 	InteractionSwitchComp = CreateDefaultSubobject<UInteractionSwitchComponent>(TEXT("InteractionSwitchComp"));
 	InteractionSwitchComp->SetRegisterToGameMode(false); // GM 집계 제외
 	
+	// ★ 플레이어 정렬용 스폿 생성 (BeamPivot 하위에 부착되어 저울과 함께 기울어짐)
+	Player1Spot = CreateDefaultSubobject<USceneComponent>(TEXT("Player1Spot"));
+	Player1Spot->SetupAttachment(BeamPivot);
+
+	Player2Spot = CreateDefaultSubobject<USceneComponent>(TEXT("Player2Spot"));
+	Player2Spot->SetupAttachment(BeamPivot);
+	
+	// ★ 덤벨 정렬용 슬롯 3개 생성
+	for (int32 i = 0; i < 3; ++i)
+	{
+		FName SpotName = *FString::Printf(TEXT("DumbbellSpot_%d"), i + 1);
+		USceneComponent* DumbbellSpot = CreateDefaultSubobject<USceneComponent>(SpotName);
+		DumbbellSpot->SetupAttachment(BeamPivot);
+		DumbbellSpots.Add(DumbbellSpot);
+	}
+	
 	SetupBlockingMesh(JeoulBaseMesh, ECR_Ignore);
 	SetupBlockingMesh(JeoulBeamMesh, ECR_Ignore);
 	SetupBlockingMesh(CheckButtonMesh, ECR_Block);
 }
 
-bool AJeoul::CanInteract_Implementation(AActor* Requestor) const
+void AJeoul::RequestCutsceneReturn(APS3PlayerController* RequestingController)
 {
-	// 저울이 대기(Idle) 상태일 때만 버튼 조작 가능
-	return CurrentState == EJeoulState::Idle;
-}
-
-bool AJeoul::Interact_Implementation(AActor* Requestor)
-{
-	if (!HasAuthority())
+	if (!HasAuthority()
+		|| CurrentState == EJeoulState::Checking
+		|| !IsValid(RequestingController))
 	{
-		return false;
+		return;
 	}
 
-	if (!CanInteract_Implementation(Requestor))
-	{
-		return false;
-	}
+	const bool bIsParticipant =
+		CutsceneParticipants.ContainsByPredicate(
+			[RequestingController](
+				const TWeakObjectPtr<APS3PlayerController>& Participant)
+			{
+				return Participant.Get() == RequestingController;
+			});
 
-	// 검증 통과 시 저울 무게 체크 서버 로직 작동
-	Server_CheckBalance();
-	return true;
+	if (!bIsParticipant) return;
+
+	// 먼저 비워 중복 F 입력을 무시합니다.
+	const TArray<TWeakObjectPtr<APS3PlayerController>> Participants =
+		MoveTemp(CutsceneParticipants);
+
+	CutsceneParticipants.Reset();
+
+	for (const TWeakObjectPtr<APS3PlayerController>& Participant : Participants)
+	{
+		if (APS3PlayerController* PlayerController = Participant.Get())
+		{
+			PlayerController->Client_EndJeoulCutscene(this);
+		}
+	}
 }
 
 void AJeoul::BeginPlay()
@@ -153,6 +182,65 @@ void AJeoul::OnCheckButtonPressed(bool bActivated)
 	}
 }
 
+void AJeoul::AlignPlayersAndDumbbells()
+{
+	if (!HasAuthority() || !PlateTrigger) return;
+
+	TArray<AActor*> OverlappingActors;
+	PlateTrigger->GetOverlappingActors(OverlappingActors);
+
+	int32 DumbbellIndex = 0;
+
+	for (AActor* Actor : OverlappingActors)
+	{
+		if (!Actor) continue;
+
+		// 1. 저울판 위 플레이어 위치 및 정면 바라보기 정렬
+		if (ACharacter* Character = Cast<ACharacter>(Actor))
+		{
+			APlayerController* PC = Cast<APlayerController>(Character->GetController());
+			int32 PlayerIndex = (PC && PC->PlayerState) ? PC->PlayerState->GetPlayerId() : 0;
+
+			// P1(0번)과 P2(1번) 각각의 지정 위치 스폿 선택
+			USceneComponent* TargetSpot = (PlayerIndex == 0) ? Player1Spot : Player2Spot;
+			if (TargetSpot)
+			{
+				FVector TargetLocation = TargetSpot->GetComponentLocation();
+				FRotator TargetRotation = TargetSpot->GetComponentRotation();
+
+				// 캐릭터 위치 및 회전 강제 이동
+				Character->TeleportTo(TargetLocation, TargetRotation);
+
+				// 컨트롤러 시선 각도도 정면 스폿 회전값으로 맞춤
+				if (PC)
+				{
+					PC->SetControlRotation(TargetRotation);
+				}
+			}
+		}
+		// 2. 저울판 위 덤벨 슬롯 정렬 (들려있지 않은 덤벨만)
+		else if (ADumbbell* Dumbbell = Cast<ADumbbell>(Actor))
+		{
+			if (!Dumbbell->IsHeld() && DumbbellSpots.IsValidIndex(DumbbellIndex))
+			{
+				USceneComponent* SlotSpot = DumbbellSpots[DumbbellIndex];
+				if (SlotSpot)
+				{
+					Dumbbell->AttachToComponent(
+						BeamPivot,
+						FAttachmentTransformRules::SnapToTargetNotIncludingScale
+					);
+
+					// 슬롯 위치 및 회전에 딱 맞춰 정렬
+					Dumbbell->SetActorRelativeLocation(SlotSpot->GetRelativeLocation());
+					Dumbbell->SetActorRelativeRotation(SlotSpot->GetRelativeRotation());
+				}
+				DumbbellIndex++;
+			}
+		}
+	}
+}
+
 float AJeoul::CalculateWeightOnPlate(UBoxComponent* InPlateTrigger)
 {
 	if (!InPlateTrigger) return 0.0f;
@@ -216,6 +304,16 @@ void AJeoul::Multicast_OnJeoulCheckFinished_Implementation(bool bIsSuccess)
 
 void AJeoul::Server_CheckBalance_Implementation()
 {
+	if (CurrentState != EJeoulState::Idle) return;
+	
+	CutsceneParticipants.RemoveAll(
+		[](const TWeakObjectPtr<APS3PlayerController>& Participant)
+		{
+			return !Participant.IsValid();
+		});
+
+	if (!CutsceneParticipants.IsEmpty()) return;
+	
 	if (!HasBothPlayersOnPlate())
 	{
 		UE_LOG(LogTemp, Warning, TEXT("[Jeoul] 체크 실패: 플레이어 2명이 모두 저울판 위에 올라와 있지 않습니다."));
@@ -229,8 +327,33 @@ void AJeoul::Server_CheckBalance_Implementation()
 	}
 	
 	CurrentState = EJeoulState::Checking;
+	
+	// ★ 컷씬 및 균형 확인 시작 전 플레이어와 덤벨을 지정 스폿 위치로 즉시 정렬!
+	AlignPlayersAndDumbbells();
+	
+	// ★ 2. 서버에서 저울판 위 플레이어의 소유 클라이언트에 카메라 전환 요청
+	TArray<AActor*> PlayersOnPlate;
+	PlateTrigger->GetOverlappingActors(
+		PlayersOnPlate,
+		APS3PlayerCharacter::StaticClass());
+	
+	for (AActor* PlayerActor : PlayersOnPlate)
+	{
+		APS3PlayerCharacter* PlayerCharacter =
+			Cast<APS3PlayerCharacter>(PlayerActor);
 
-	// 서버에서만 Broadcast하지 않고, 모든 클라이언트로 Multicast 호출
+		if (!IsValid(PlayerCharacter)) continue;
+
+		if (APS3PlayerController* PlayerController =
+			Cast<APS3PlayerController>(PlayerCharacter->GetController()))
+		{
+			CutsceneParticipants.AddUnique(
+				TWeakObjectPtr<APS3PlayerController>(PlayerController));
+
+			PlayerController->Client_BeginJeoulCutscene(this);
+		}
+	}
+	
 	Multicast_OnJeoulCheckStarted();
 
 	// 스위치를 누른 순간의 무게 스냅샷 측정
@@ -278,6 +401,7 @@ void AJeoul::Server_CheckBalance_Implementation()
 			if (InteractionSwitchComp)
 			{
 				InteractionSwitchComp->ResetSwitch(); // 컷씬 종료 시점에 리셋
+				InteractionSwitchComp->SetLocked(true);
 			}
 		}
 		else

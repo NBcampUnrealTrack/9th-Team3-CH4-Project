@@ -1,14 +1,20 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
-
+﻿
 #pragma once
 
 #include "CoreMinimal.h"
 #include "PS3GameModeBase.h"
 #include "Data/Enum/VoiceChatState.h"
+#include "Data/DataAsset/S3_GameRuleDataAsset.h"
+
 #include "PS3GameModeS3.generated.h"
 
+class APS3PlayerController;
+class APlayerController;
+class URandomCollisionTrapComponent;
 class UFakeDeathTrapComponent;
 class APS3PlayerState;
+
+DECLARE_MULTICAST_DELEGATE_ThreeParams(FOnRandomVisibleResultsChanged, APS3PlayerController*, const TArray<int32>&, const TArray<bool>&);
 
 UCLASS()
 class PUZZLESTAY3_API APS3GameModeS3 : public APS3GameModeBase
@@ -29,6 +35,7 @@ private:
 	void SetAllPlayersVoiceChatState(EVoiceChatState NewState);
 
 	void ApplyVoiceChatStateToPlayer(APS3PlayerState* PlayerState);
+	void TryMakeRandomVisibleResults();
 
 protected:
 	virtual bool StageRestartIfPlayerDead() const override { return true; }
@@ -37,8 +44,30 @@ protected:
 	
 	// true  = P1이 Visible, P2는 Invisible
 	// false = P1이 Invisible, P2는 Visible
-	bool RandomVisibleResults = true;
-
+	TArray<bool> RandomVisibleResult;
+	TArray<TArray<bool>> RandomVisibleResults;
+	
+	TArray<TObjectPtr<UFakeDeathTrapComponent>> FakeDeathTrapComponents;
+	TArray<TObjectPtr<APlayerController>> PlayerControllers;
+	
 public:
-	bool GetRandomVisibleResults();
+	
+	FOnRandomVisibleResultsChanged OnRandomVisibleResultsChanged;
+	
+	void RegisterFakeDeathTrapComponent(UFakeDeathTrapComponent* FakeDeathTrapComponent);
+	void UnregisterFakeDeathTrapComponent(UFakeDeathTrapComponent* FakeDeathTrapComponent);
+	
+	void RegisterPlayerController(APlayerController* PlayerController);
+	void UnregisterPlayerController(APlayerController* PlayerController);
+	
+	void BroadcastRandomVisibleResults();
+	
+private:
+	UPROPERTY(EditAnywhere)
+	TObjectPtr<class US3_GameRuleDataAsset> S3_GameRuleDataAsset;
+	
+	int32 MaxPlayer;
+	int32 MaxFakeDeathTrap;
+
 };
+

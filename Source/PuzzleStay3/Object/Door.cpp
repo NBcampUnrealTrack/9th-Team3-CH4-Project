@@ -1,9 +1,10 @@
 #include "Object/Door.h"
 
+#include "Component/InteractionSwitchComponent.h"
 #include "Component/OverlapSwitchComponent.h"
 #include "Core/GameMode/PS3GameModeBase.h"
 #include "Core/GameState/PS3GameStateBase.h"
-#include "Core/GameState/PS3GameStateS1.h"
+#include "EngineUtils.h"
 #include "Core/GameState/PS3GameStateS4.h"
 #include "Net/UnrealNetwork.h"
 
@@ -27,93 +28,142 @@ void ADoor::BeginPlay()
 
 	if (HasAuthority())
 	{
-		if (UWorld* World = GetWorld())
+		UWorld* World = GetWorld();
+		if (!World) return;
+		switch (DoorType)
 		{
-			// ★ [직통 테스트 연동] TargetPressurePlateActor가 에디터에서 지정되어 있다면 직접 바인딩
-			if (IsValid(TargetPressurePlateActor))
+			// 전 스테이지 공통 최종 탈출문 (GameStateBase 연동)
+		case EDoorType::StageAllFinalDoor:
+			if (APS3GameStateBase* GS = World->GetGameState<APS3GameStateBase>())
 			{
-				UOverlapSwitchComponent* OverlapComp = TargetPressurePlateActor->FindComponentByClass<UOverlapSwitchComponent>();
-				if (IsValid(OverlapComp))
+				GS->OnEscapeDoorOpened.AddDynamic(this, &ADoor::OnOpenDoor);
+				UE_LOG(LogTemp, Warning, TEXT("[Door] StageAllFinalDoor -> GameStateBase 바인딩 완료!"));
+
+				if (GS->IsEscapeDoorOpened())
 				{
-					OverlapComp->OnOverlapStateChanged.AddUObject(this, &ADoor::OnDirectOverlapStateChanged);
-					UE_LOG(LogTemp, Warning, TEXT("[Door] %s 문과 %s 발판의 OverlapSwitchComponent 직통 바인딩 성공!"), *GetName(), *TargetPressurePlateActor->GetName());
+					OnOpenDoor(true);
 				}
 			}
-			
-			switch (DoorType)
+			break;
+			// Stage 4 첫 번째 문 (저울 기믹 정답 완료 시 GameStateS4 연동)
+		case EDoorType::Stage4FirstDoor:
+			if (APS3GameStateS4* GS = World->GetGameState<APS3GameStateS4>())
 			{
-			// 1. 전 스테이지 공통 최종 탈출문
-			case EDoorType::StageAllFinalDoor:
-				if (APS3GameStateBase* GS = World->GetGameState<APS3GameStateBase>())
+				GS->OnStage4FirstDoorOpenedChanged.AddDynamic(this, &ADoor::OnOpenDoor);
+				UE_LOG(LogTemp, Warning, TEXT("[Door] Stage4FirstDoor -> GameStateS4 바인딩 완료!"));
+
+				if (GS->IsStage4FirstDoorOpened())
 				{
-					GS->OnEscapeDoorOpened.AddDynamic(this, &ADoor::OnOpenDoor);
-					UE_LOG(LogTemp, Warning, TEXT("[Door] StageAllFinalDoor 델리게이트 바인딩 완료!"));
-
-					if (GS->IsEscapeDoorOpened())
-					{
-						OnOpenDoor(true);
-					}
+					OnOpenDoor(true);
 				}
-				break;
+			}
+			break;
 
-			// 2. Stage 1 일반문
-			case EDoorType::Stage1NormalDoor:
-				if (APS3GameStateS1* GS = World->GetGameState<APS3GameStateS1>())
-				{
-					//GS->OnStage1DoorStateChanged.AddDynamic(this, &ADoor::OnStage1DoorStateChanged);
-					UE_LOG(LogTemp, Warning, TEXT("[Door] Stage1NormalDoor (ID: %d) 델리게이트 바인딩 완료!"), DoorID);
-				}
-				UE_LOG(LogTemp, Warning, TEXT("[Door] Stage1NormalDoor 세팅됨 (GameStateS1 연동 준비 완료)"));
-				break;
+			//  일반 스위치/발판 연동문 (GameState 없이 DoorID <-> SwitchID 직통 연동)
+		case EDoorType::Stage1NormalDoor:
+		case EDoorType::Stage5NormalDoor:
+		default:
+			BindSwitchesByID();
+			break;
+		}
+	}
+}
 
-			// 3. Stage 4 첫 번째 문 (저울 기믹 완료 문)
-			case EDoorType::Stage4FirstDoor:
-				if (APS3GameStateS4* GS = World->GetGameState<APS3GameStateS4>())
-				{
-					GS->OnStage4FirstDoorOpenedChanged.AddDynamic(this, &ADoor::OnOpenDoor);
-					UE_LOG(LogTemp, Warning, TEXT("[Door] Stage4FirstDoor 델리게이트 바인딩 완료!"));
+void ADoor::BindSwitchesByID()
+{
+	UWorld* World = GetWorld();
+	if (!World) return;
 
-					if (GS->IsStage4FirstDoorOpened())
-					{
-						OnOpenDoor(true);
-					}
-				}
-				break;
+	LinkedOverlapSwitches.Empty();
+	LinkedInteractionSwitches.Empty();
 
-			// 4. Stage 5 일반문
-			case EDoorType::Stage5NormalDoor:
-				// TODO: Stage 5 전용 GameState(예: APS3GameStateS5)의 문 열림 델리게이트 연동
-				/*
-				if (APS3GameStateS5* GS = World->GetGameState<APS3GameStateS5>())
-				{
-					GS->OnStage5DoorOpenedChanged.AddDynamic(this, &ADoor::OnOpenDoor);
-					if (GS->IsStage5DoorOpened()) OnOpenDoor(true);
-				}
-				*/
-				UE_LOG(LogTemp, Warning, TEXT("[Door] Stage5NormalDoor 세팅됨 (GameStateS5 연동 준비 완료)"));
-				break;
+	// 월드 내의 모든 액터를 순회하며 컴포넌트 ID 매칭
+	for (TActorIterator<AActor> It(World); It; ++It)
+	{
+		AActor* Actor = *It;
+		if (!Actor) continue;
 
-			default:
-				break;
+		// 1. OverlapSwitchComponent 검사
+		if (UOverlapSwitchComponent* OverlapComp = Actor->FindComponentByClass<UOverlapSwitchComponent>())
+		{
+			if (OverlapComp->SwitchID == DoorID)
+			{
+				OverlapComp->OnOverlapStateChanged.AddUObject(this, &ADoor::OnLinkedSwitchStateChanged);
+				LinkedOverlapSwitches.Add(OverlapComp);
+			}
+		}
+
+		// 2. InteractionSwitchComponent 검사
+		if (UInteractionSwitchComponent* InteractComp = Actor->FindComponentByClass<UInteractionSwitchComponent>())
+		{
+			if (InteractComp->SwitchID == DoorID)
+			{
+				InteractComp->OnSwitchActivatedChanged.AddUObject(this, &ADoor::OnLinkedSwitchStateChanged);
+				LinkedInteractionSwitches.Add(InteractComp);
 			}
 		}
 	}
+
+	// 바인딩 직후 초기 상태 평가
+	EvaluateDoorState();
+}
+
+void ADoor::EvaluateDoorState()
+{
+	int32 TotalLinkedSwitches = LinkedOverlapSwitches.Num() + LinkedInteractionSwitches.Num();
+	if (TotalLinkedSwitches == 0) return;
+
+	int32 ActiveCount = 0;
+
+	// 매칭된 오버랩 스위치 활성화 상태 카운트
+	for (const auto& OverlapComp : LinkedOverlapSwitches)
+	{
+		if (IsValid(OverlapComp) && OverlapComp->IsOverlapped())
+		{
+			ActiveCount++;
+		}
+	}
+
+	// 매칭된 인터렉션 스위치 활성화 상태 카운트
+	for (const auto& InteractComp : LinkedInteractionSwitches)
+	{
+		if (IsValid(InteractComp) && InteractComp->IsActivated())
+		{
+			ActiveCount++;
+		}
+	}
+
+	// 매칭된 모든 스위치가 활성화되어야 문이 열림 (1개인 경우 1개만 켜지면 됨)
+	bool bShouldBeOpen = (ActiveCount == TotalLinkedSwitches);
+
+	if (bIsOpen != bShouldBeOpen)
+	{
+		bIsOpen = bShouldBeOpen;
+		UE_LOG(LogTemp, Warning, TEXT("[Door] DoorID %d 문 상태 변경: bIsOpen = %s (활성화: %d / 전체: %d)"),
+			DoorID, bIsOpen ? TEXT("True") : TEXT("False"), ActiveCount, TotalLinkedSwitches);
+	}
+}
+
+void ADoor::OnLinkedSwitchStateChanged(bool bIsActivated)
+{
+	if (!HasAuthority()) return;
+
+	EvaluateDoorState();
 }
 
 void ADoor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (bIsOpen)
-	{
-		FVector TargetPos = InitialRelativeLocation + TargetRelativeLocation;
-		FVector CurrentPos = DoorMesh->GetRelativeLocation();
+	// 열림/닫힘 목표 위치 계산
+	FVector TargetPos = bIsOpen ? (InitialRelativeLocation + TargetRelativeLocation) : InitialRelativeLocation;
+	FVector CurrentPos = DoorMesh->GetRelativeLocation();
 
-		if (!CurrentPos.Equals(TargetPos, 1.0f))
-		{
-			FVector NewPos = FMath::VInterpTo(CurrentPos, TargetPos, DeltaTime, OpenSpeed);
-			DoorMesh->SetRelativeLocation(NewPos);
-		}
+	// Smooth Interp 문 이동 (열림 & 닫힘 모두 작동)
+	if (!CurrentPos.Equals(TargetPos, 1.0f))
+	{
+		FVector NewPos = FMath::VInterpTo(CurrentPos, TargetPos, DeltaTime, OpenSpeed);
+		DoorMesh->SetRelativeLocation(NewPos);
 	}
 }
 
@@ -122,25 +172,6 @@ void ADoor::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimePro
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(ADoor, bIsOpen);
-}
-
-// ★ 직접 바인딩 수신 콜백
-void ADoor::OnDirectOverlapStateChanged(bool bIsOverlapped)
-{
-	if (!HasAuthority()) return;
-
-	bIsOpen = bIsOverlapped;
-	UE_LOG(LogTemp, Warning, TEXT("[Door] 테스트 직통 반응: bIsOpen = %s"), bIsOpen ? TEXT("True") : TEXT("False"));
-}
-
-void ADoor::OnStage1DoorStateChanged(int32 InDoorID, bool bOpened)
-{
-	// 내 DoorID와 일치할 때만 문 동작
-	if (DoorID == InDoorID)
-	{
-		bIsOpen = bOpened;
-		UE_LOG(LogTemp, Warning, TEXT("[Door] Stage 1 DoorID %d번 문 상태 변경: %s"), DoorID, bIsOpen ? TEXT("Open") : TEXT("Close"));
-	}
 }
 
 void ADoor::OnOpenDoor(bool bOpened)
@@ -155,11 +186,5 @@ void ADoor::OnOpenDoor(bool bOpened)
 void ADoor::OnRep_bIsOpen()
 {
 	//test dnjsqls
-
-	// 클라이언트로 bIsOpen 값이 복제되어 올 때 1회만 정방향 실행됨
 	UE_LOG(LogTemp, Log, TEXT("[Door] 클라이언트: OnRep_bIsOpen 호출됨 (클라이언트 동기화 완료)"));
-	if (GEngine && bIsOpen)
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Cyan, TEXT("Door: Opening!"));
-	}
 }

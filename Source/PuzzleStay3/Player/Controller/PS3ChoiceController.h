@@ -1,12 +1,12 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
-
-#pragma once
+﻿#pragma once
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
 #include "PS3ChoiceController.generated.h"
 
 enum class EPS3PlayerRole : uint8;
+
+
 /**
  * 
  */
@@ -40,11 +40,10 @@ public:
 	UPROPERTY()
 	TObjectPtr<class UCameraComponent> FixedCameraComponent;
 	
-	UPROPERTY()
-	TObjectPtr<class UPS3ViewModel> PS3ViewModel;
-	
 protected:
 	FTimerHandle InitTimerHandle;
+	
+	
 	
 
 	
