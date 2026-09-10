@@ -3,7 +3,22 @@
 
 #include "PS3GameStateS3.h"
 
+#include "Data/DataAsset/S3_GameRuleDataAsset.h"
+#include "Data/Delegates/UIDelegatesSubsystem.h"
 #include "Net/UnrealNetwork.h"
+
+void APS3GameStateS3::BeginPlay()
+{
+	Super::BeginPlay();
+
+	SetUIMacroTimerHandle(
+		0.01,
+		[this]() { PS3_BROADCAST_TO_MVVM_OneParams(OnStageType_UI, S3_GameRuleDataAsset->StageType_S3); });
+
+	SetUIMacroTimerHandle(
+		0.5,
+		[this]() { PS3_BROADCAST_TO_MVVM_OneParams(OnTextNotify_UI, EPS3TextNotifyType::Stage3); });
+}
 
 void APS3GameStateS3::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
@@ -40,4 +55,3 @@ void APS3GameStateS3::OnRep_Stage3VoiceChatActivated()
 {
 	OnStage3VoiceChatActivated.Broadcast(bStage3VoiceChatActivated);
 }
-
