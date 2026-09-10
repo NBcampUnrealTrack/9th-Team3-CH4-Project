@@ -9,6 +9,8 @@ class UInputAction;
 class UInputMappingContext;
 class UCustomVoiceComponent;
 class UVoicePluginControlComponent;
+class APS3PlayerState;
+class UPS3ViewModel;
 
 UCLASS()
 class PUZZLESTAY3_API APS3PlayerController : public APlayerController
@@ -19,8 +21,14 @@ public:
 	APS3PlayerController();
 	virtual void ReceivedPlayer() override;
 
+	// 리스폰 직전에 소유 클라이언트의 입력과 PTT를 정리합니다.
+	UFUNCTION(Client, Reliable)
+	void Client_PrepareForRespawn();
+
 protected:
 	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+	virtual void OnPossess(APawn* InPawn) override;
 	virtual void SetupInputComponent() override;
 	virtual void OnRep_PlayerState() override;
 
@@ -53,9 +61,31 @@ protected:
 	UPROPERTY(VisibleAnywhere,BlueprintReadOnly,Category = "Voice",meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UVoicePluginControlComponent> VoicePluginControlComponent;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PS3|Player Controller|UI", meta = (ClampMin = "1"))
+	int32 MaxLifeCountForUI = 4;
+	
+	UFUNCTION(BlueprintCallable, Category = "PS3|Player Controller|Voice")
+	bool InitializeVoiceSystem(int32 LocalUserNum = 0);
+
+	UFUNCTION(BlueprintCallable, Category = "PS3|Player Controller|Voice")
+	void ShutdownVoiceSystem();
+
 private:
+	UFUNCTION(Client, Reliable)
+	void Client_RestoreAfterRespawn();
+
 	void ConfigureLocalInput();
 	void RefreshVoiceStateBinding();
+	void RefreshLifeStateBinding();
+	UPS3ViewModel* GetPS3ViewModel() const;
+
+	UFUNCTION()
+	void HandleLifeCountChanged(int32 NewLifeCount);
+
+	UPROPERTY()
+	TObjectPtr<APS3PlayerState> BoundLifePlayerState;
+
+	FTimerHandle LifeUIInitializationTimerHandle;
 
 	bool bLocalInputConfigured = false;
 

@@ -18,6 +18,7 @@ APS3ChoiceController::APS3ChoiceController()
 	SetRootComponent(FixedCameraComponent);
 }
 
+
 void APS3ChoiceController::BeginPlay()
 {
 	Super::BeginPlay();
@@ -27,6 +28,7 @@ void APS3ChoiceController::BeginPlay()
 	SetViewTarget(this);
 }
 
+
 void APS3ChoiceController::ReceivedPlayer()
 {
 	Super::ReceivedPlayer();
@@ -34,10 +36,12 @@ void APS3ChoiceController::ReceivedPlayer()
 	ConfigureInputMapping();
 }
 
+
 void APS3ChoiceController::UpdateRotation(float DeltaTime)
 {
 	//아무것도 없지만 지우면 안되는 함수
 }
+
 
 void APS3ChoiceController::ConfigureInputMapping()
 {
@@ -88,6 +92,7 @@ void APS3ChoiceController::ServerRPC_SelectedControllerType_Implementation(EPS3P
 	}
 }
 
+
 void APS3ChoiceController::OnClickedFieldTypeButton(EPS3PlayerRole SelectType)
 {
 	if (SelectType == EPS3PlayerRole::Field)
@@ -103,6 +108,7 @@ void APS3ChoiceController::OnClickedFieldTypeButton(EPS3PlayerRole SelectType)
 		PS3ViewModel->RequestHideStage5RoleSelect();
 	}
 }
+
 
 void APS3ChoiceController::OnClickedScreenTypeButton(EPS3PlayerRole SelectType)
 {

@@ -1,31 +1,26 @@
 ﻿#include "OverlapVolumeTimeDeductionComponent.h"
 
 #include "Core/GameMode/PS3GameModeS5.h"
+#include "Core/GameState/PS3GameStateS5.h"
 #include "Player/Character/PS3PlayerCharacter.h"
+#include "Player/Controller/PS3PlayerController.h"
 
 
 UOverlapVolumeTimeDeductionComponent::UOverlapVolumeTimeDeductionComponent()
 {
 }
 
+
 void UOverlapVolumeTimeDeductionComponent::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	OnGameStartedBind();
-}
-
-
-
-void UOverlapVolumeTimeDeductionComponent::OnGameStartedBind()
-{
 	if (GetCastPS3GameModeS5() == nullptr) return;
-	GetCastPS3GameModeS5()->OnIsGameStart.AddUObject(this, &ThisClass::OnBindFunctionToComponent);
-	
-	//OnBindFunctionToComponent(true);
+	PS3GameModeS5->OnIsGameStart.AddUObject(this, &ThisClass::OnBindWhenGameStarted);
 }
 
-void UOverlapVolumeTimeDeductionComponent::OnBindFunctionToComponent(bool bIsGameStart)
+
+void UOverlapVolumeTimeDeductionComponent::OnBindWhenGameStarted(bool bIsGameStart)
 {
 	if (bIsGameStart == true)
 	{
@@ -50,13 +45,15 @@ APS3GameModeS5* UOverlapVolumeTimeDeductionComponent::GetCastPS3GameModeS5()
 		PS3GameModeS5 = Cast<APS3GameModeS5>(World->GetAuthGameMode());
 		return PS3GameModeS5;
 	}
-	
 	return nullptr;
 }
+
 
 void UOverlapVolumeTimeDeductionComponent::OnCharacterOverLapped(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
+	if (bIsEscapeDoor ==  true) return;
+	
 	if (GetOwner() == nullptr) return;
 	
 	if (GetOwner()->HasAuthority() == true)
@@ -64,13 +61,19 @@ void UOverlapVolumeTimeDeductionComponent::OnCharacterOverLapped(UPrimitiveCompo
 		auto* PS3PlayerCharacter = Cast<APS3PlayerCharacter>(OtherActor);
 		if (IsValid(PS3PlayerCharacter) == false) return;
 		
+		auto* PS3PlayerController = Cast<APS3PlayerController>(PS3PlayerCharacter->GetController());
+		if (IsValid(PS3PlayerController) == false) return;
+		
 		if (OverlappedCharacters.Contains(PS3PlayerCharacter) == true) return;
 		OverlappedCharacters.Add(PS3PlayerCharacter);
 		
 		if (GetCastPS3GameModeS5() == nullptr) return;
-		GetCastPS3GameModeS5()->OnTimeDeduction(DeductedTimeRange);
+		PS3GameModeS5->OnTimeDeduction(DeductedTimeRange);
+	
+		ReSpawnPlayer(PS3PlayerController);
 	}
 }
+
 
 void UOverlapVolumeTimeDeductionComponent::OnCharacterEndOverlap(UPrimitiveComponent* OverlappedComp,
 	AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
@@ -85,5 +88,17 @@ void UOverlapVolumeTimeDeductionComponent::OnCharacterEndOverlap(UPrimitiveCompo
 		OverlappedCharacters.Remove(OtherActor);
 	}
 }
+
+
+void UOverlapVolumeTimeDeductionComponent::ReSpawnPlayer(APlayerController* TargetPlayerController)
+{
+	if (IsValid(TargetPlayerController) == false) return;
+	
+	auto* PS3GameStateS5 = Cast<APS3GameStateS5>(GetWorld()->GetGameState());
+	if (IsValid(PS3GameStateS5) == false) return;
+	
+	PS3GameStateS5->ReSpawnPlayer(TargetPlayerController);
+}
+
 
 

@@ -13,10 +13,17 @@ void UTimerNotifyWidget::HideTimerNotifyWidget()
 	SetVisibility(ESlateVisibility::Collapsed);
 }
 
-void UTimerNotifyWidget::UpdateTimerNotify(float InDuration)
+void UTimerNotifyWidget::UpdateTimerNotify(FName InTimerId, float InDuration)
 {
 	if (!TimerContainer || !EntryWidgetClass)
 	{
+		return;
+	}
+
+	if (UTimerNotifyEntryWidget* ExistingTimerEntryWidget = FindActiveTimerEntry(InTimerId))
+	{
+		ShowTimerNotify();
+		ExistingTimerEntryWidget->StartTimer(InTimerId, InDuration);
 		return;
 	}
 
@@ -30,7 +37,25 @@ void UTimerNotifyWidget::UpdateTimerNotify(float InDuration)
 	ActiveTimerEntries.Add(TimerEntryWidget);
 	TimerContainer->AddChild(TimerEntryWidget);
 	ShowTimerNotify();
-	TimerEntryWidget->StartTimer(InDuration);
+	TimerEntryWidget->StartTimer(InTimerId, InDuration);
+}
+
+void UTimerNotifyWidget::ReduceTimerNotify(FName InTimerId, float InReduceTime)
+{
+	if (InTimerId.IsNone() || InReduceTime <= 0.0f)
+	{
+		return;
+	}
+
+	const TArray<TObjectPtr<UTimerNotifyEntryWidget>> TimerEntries = ActiveTimerEntries;
+	for (UTimerNotifyEntryWidget* TimerEntryWidget : TimerEntries)
+	{
+		if (TimerEntryWidget && TimerEntryWidget->GetTimerId() == InTimerId)
+		{
+			TimerEntryWidget->ReduceRemainingTime(InReduceTime);
+			return;
+		}
+	}
 }
 
 void UTimerNotifyWidget::HideTimerNotify()
@@ -58,6 +83,19 @@ void UTimerNotifyWidget::NativeDestruct()
 {
 	HideTimerNotify();
 	Super::NativeDestruct();
+}
+
+UTimerNotifyEntryWidget* UTimerNotifyWidget::FindActiveTimerEntry(FName InTimerId) const
+{
+	for (UTimerNotifyEntryWidget* TimerEntryWidget : ActiveTimerEntries)
+	{
+		if (TimerEntryWidget && TimerEntryWidget->GetTimerId() == InTimerId)
+		{
+			return TimerEntryWidget;
+		}
+	}
+
+	return nullptr;
 }
 
 void UTimerNotifyWidget::HandleTimerEntryFinished(UTimerNotifyEntryWidget* FinishedEntry)

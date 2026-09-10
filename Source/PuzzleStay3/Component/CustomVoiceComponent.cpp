@@ -21,6 +21,14 @@ void UCustomVoiceComponent::BeginPlay()
 			UVoicePluginControlComponent
 		>();
 
+	if (IsValid(PluginControlComponent))
+	{
+		PluginControlComponent->OnVoiceReadyChanged.AddUniqueDynamic(
+			this,
+			&ThisClass::SetVoiceReady);
+		SetVoiceReady(PluginControlComponent->IsVoiceReady());
+	}
+
 	if (APlayerController* PC =
 		Cast<APlayerController>(GetOwner()))
 	{
@@ -45,17 +53,17 @@ void UCustomVoiceComponent::BindPlayerState(
 
 	if (!IsValid(BoundPlayerState))
 	{
-		HandleVoiceChatStateChanged(EVoiceChatState::Inactive);
+		SetVoiceChatState(EVoiceChatState::Inactive);
 		return;
 	}
 
 	BoundPlayerState->OnVoiceChatStateChanged.AddUniqueDynamic(
 		this,
-		&ThisClass::HandleVoiceChatStateChanged
+		&ThisClass::SetVoiceChatState
 	);
 
 	// 바인딩 전에 이미 복제된 상태도 즉시 반영
-	HandleVoiceChatStateChanged(
+	SetVoiceChatState(
 		BoundPlayerState->GetVoiceChatState()
 	);
 }
@@ -66,7 +74,7 @@ void UCustomVoiceComponent::UnbindPlayerState()
 	{
 		BoundPlayerState->OnVoiceChatStateChanged.RemoveDynamic(
 			this,
-			&ThisClass::HandleVoiceChatStateChanged
+			&ThisClass::SetVoiceChatState
 		);
 	}
 
@@ -113,7 +121,7 @@ bool UCustomVoiceComponent::SetVoiceObjectHeld(
 	return true;
 }
 
-void UCustomVoiceComponent::HandleVoiceChatStateChanged(
+void UCustomVoiceComponent::SetVoiceChatState(
 	const EVoiceChatState NewState
 )
 {
@@ -156,9 +164,15 @@ void UCustomVoiceComponent::StopPushToTalk()
 	UpdateTransmission();
 }
 
-void UCustomVoiceComponent::SetMicrophoneMuted(bool bMuted)
+void UCustomVoiceComponent::SetMicrophoneMuted(const bool bMuted)
 {
 	bMicrophoneMuted = bMuted;
+
+	if (IsValid(PluginControlComponent))
+	{
+		PluginControlComponent->SetMicrophoneMuted(bMuted);
+	}
+
 	UpdateTransmission();
 }
 
@@ -195,10 +209,15 @@ void UCustomVoiceComponent::UpdateTransmission()
 		return;
 	}
 
-	PC->ToggleSpeaking(bShouldTransmit);
+	if (IsValid(PluginControlComponent))
+	{
+		PluginControlComponent->SetTransmitEnabled(bShouldTransmit);
+	}
 
 	bTransmissionRequested = bShouldTransmit;
-	OnTransmissionRequestedChanged.Broadcast(bTransmissionRequested);
+
+	OnTransmissionRequestedChanged.Broadcast(
+		bTransmissionRequested);
 }
 
 void UCustomVoiceComponent::EndPlay(
@@ -206,6 +225,13 @@ void UCustomVoiceComponent::EndPlay(
 {
 	UnbindPlayerState();
 	SetVoiceReady(false);
+
+	if (IsValid(PluginControlComponent))
+	{
+		PluginControlComponent->OnVoiceReadyChanged.RemoveDynamic(
+			this,
+			&ThisClass::SetVoiceReady);
+	}
 
 	Super::EndPlay(EndPlayReason);
 }

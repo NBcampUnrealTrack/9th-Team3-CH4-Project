@@ -20,7 +20,10 @@ public:
 	void HideTimerNotifyWidget();
 
 	UFUNCTION(BlueprintCallable, Category = "UI|TimerNotify")
-	void UpdateTimerNotify(float InDuration);
+	void UpdateTimerNotify(FName InTimerId, float InDuration);
+
+	UFUNCTION(BlueprintCallable, Category = "UI|TimerNotify")
+	void ReduceTimerNotify(FName InTimerId, float InReduceTime);
 
 	UFUNCTION(BlueprintCallable, Category = "UI|TimerNotify")
 	void HideTimerNotify();
@@ -35,6 +38,7 @@ protected:
 	TSubclassOf<UTimerNotifyEntryWidget> EntryWidgetClass;
 
 private:
+	UTimerNotifyEntryWidget* FindActiveTimerEntry(FName InTimerId) const;
 	void HandleTimerEntryFinished(UTimerNotifyEntryWidget* FinishedEntry);
 
 	UPROPERTY()

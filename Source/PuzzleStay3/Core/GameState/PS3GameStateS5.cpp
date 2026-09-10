@@ -15,6 +15,7 @@ APS3GameStateS5::APS3GameStateS5()
 	
 }
 
+
 void APS3GameStateS5::BeginPlay()
 {
 	Super::BeginPlay();
@@ -32,6 +33,20 @@ void APS3GameStateS5::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutL
 	DOREPLIFETIME(ThisClass, bIsSelectedFieldType);
 	DOREPLIFETIME(ThisClass, bIsSelectedScreenType);
 }
+
+
+void APS3GameStateS5::ReSpawnPlayer(APlayerController* TargetPlayerController)
+{
+	if (HasAuthority() == true)
+	{
+		if (IsValid(TargetPlayerController) == false) return;
+		auto* PS3GameModeS5 = Cast<APS3GameModeS5>(GetWorld()->GetAuthGameMode());
+		if (IsValid(PS3GameModeS5) == false) return;
+		
+		PS3GameModeS5->ReSpawnPlayer(TargetPlayerController);
+	}
+}
+
 
 void APS3GameStateS5::OnRep_IsGameOver()
 {
@@ -51,12 +66,14 @@ void APS3GameStateS5::OnRep_IsGameOver()
 	UE_LOG(LogTemp, Warning, TEXT("게임 종료 UI 띄어야함. MVVM현준님과 상의하기"));
 }
 
+
 void APS3GameStateS5::OnRep_GameLimitTime()
 {
 	//TODO 남은 제한시간 UI 업데이트 함수 구현하기 / 쓰러지고 일어나는 몽타주나 폭발 특수효과?
 	UE_LOG(LogTemp, Error, TEXT("(UI표시 업데이트 예정) 남은 제한시간: %f"), GameLimitTime);
 	
 }
+
 
 void APS3GameStateS5::SetDeductGameLimitTime_AuthorityOnRep(float TimeToDeducted)
 {
@@ -68,6 +85,7 @@ void APS3GameStateS5::SetDeductGameLimitTime_AuthorityOnRep(float TimeToDeducted
 	
 }
 
+
 void APS3GameStateS5::SetIsGameOver_AuthorityOnRep(bool SetIsGameOver)
 {
 	if (HasAuthority() == true)
@@ -77,20 +95,24 @@ void APS3GameStateS5::SetIsGameOver_AuthorityOnRep(bool SetIsGameOver)
 	}
 }
 
+
 void APS3GameStateS5::OnGameOver()
 {
 	SetIsGameOver_AuthorityOnRep(true);
 }
+
 
 void APS3GameStateS5::OnReduceGameTime(float ReducedTimeRange)
 {
 	SetDeductGameLimitTime_AuthorityOnRep(ReducedTimeRange);
 }
 
+
 void APS3GameStateS5::OnTimeDeduction(float TimeToDeducted)
 {
 	SetDeductGameLimitTime_AuthorityOnRep(TimeToDeducted);
 }
+
 
 void APS3GameStateS5::StageRestart()
 {
@@ -99,6 +121,7 @@ void APS3GameStateS5::StageRestart()
 	
 	PS3GameModeS5->StageRestart();
 }
+
 
 void APS3GameStateS5::OnQuitGame()
 {

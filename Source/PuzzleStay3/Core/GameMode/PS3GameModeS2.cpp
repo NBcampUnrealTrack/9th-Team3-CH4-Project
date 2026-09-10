@@ -4,27 +4,61 @@
 #include "PS3GameModeS2.h"
 
 #include "Component/RandomCollisionTrapComponent.h"
+#include "GameFramework/GameStateBase.h"
+#include "Player/PlayerState/PS3PlayerState.h"
 
 void APS3GameModeS2::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
 	MakeRandomCollisionResults();
 	
+	for (APlayerState* PlayerState : GameState->PlayerArray)
+	{
+		RegisterPlayerLifeCountState(Cast<APS3PlayerState>(PlayerState));
+	}
+}
+
+void APS3GameModeS2::RegisterPlayerLifeCountState(APS3PlayerState* PS3PlayerState)
+{
+	if (!IsValid(PS3PlayerState)) return;
+	
+	PS3PlayerState->OnRespawnRequested.AddUniqueDynamic(this,&APS3GameModeS2::ReSpawnPlayer);
+}
+
+void APS3GameModeS2::ReSpawnPlayer(APlayerController* TargetPlayerController)
+{
+	if (IsValid(TargetPlayerController) == false) return;
+	UnPossessedAndDestroyOldPawn(TargetPlayerController);
+	RestartPlayer(TargetPlayerController);
+	
+	APS3PlayerState* PS = TargetPlayerController->GetPlayerState<APS3PlayerState>();
+	if (!IsValid(PS)) return;
+	PS->FinishRespawn();
+}
+
+void APS3GameModeS2::UnPossessedAndDestroyOldPawn(APlayerController* TargetPlayerController)
+{
+	APawn* OldPawn = TargetPlayerController->GetPawn();
+	if (IsValid(OldPawn) == true)
+	{
+		TargetPlayerController->UnPossess();
+		OldPawn->Destroy();
+	}
 }
 
 void APS3GameModeS2::MakeRandomCollisionResults()
 {
 	RandomCollisionResults.Empty();
 	RandomCollisionLayoutResults.Empty();
-	
+
 	int32 RandomCollisionTrapCount = RandomCollisionTrapComponent.Num();
-	
-	for (int32 i = 0; i < RandomCollisionTrapCount/2; i++)
+
+	for (int32 i = 0; i < RandomCollisionTrapCount / 2; i++)
 	{
 		RandomCollisionResults.Add(FMath::RandBool());
 	}
-	
+
 	for (int32 i = 0; i < RandomCollisionResults.Num(); i++)
 	{
 		if (RandomCollisionResults[i] == true)
@@ -60,5 +94,3 @@ TArray<bool> APS3GameModeS2::GetRandomCollisionLayoutResults()
 {
 	return RandomCollisionLayoutResults;
 }
-
-

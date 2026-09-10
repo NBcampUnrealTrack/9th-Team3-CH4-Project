@@ -24,15 +24,15 @@ public:
 
 	
 public:
+	void ReSpawnPlayer(APlayerController* TargetPlayerController);
+	
+	void StageRestart();
+	void OnQuitGame();
+	
 	void OnGameOver();
 	void OnReduceGameTime(float ReducedTimeRange);
 	void OnTimeDeduction(float TimeToDeducted);
 	
-	//TODO 테스트용 BlueprintCallable 임. 나중에 삭제 할 것
-	UFUNCTION(BlueprintCallable)
-	void StageRestart();
-	UFUNCTION(BlueprintCallable)
-	void OnQuitGame();
 	
 public:
 	UPROPERTY(EditAnywhere, Category = "GameRule")

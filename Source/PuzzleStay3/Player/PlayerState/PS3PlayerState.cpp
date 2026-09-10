@@ -1,5 +1,7 @@
 #include "PS3PlayerState.h"
+#include "GameFramework/PlayerController.h"
 #include "Net/UnrealNetwork.h"
+#include "Player/Character/PS3PlayerCharacter.h"
 
 
 APS3PlayerState::APS3PlayerState()
@@ -14,8 +16,10 @@ void APS3PlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutL
 	DOREPLIFETIME(ThisClass, CurrentLifeCount);
 	DOREPLIFETIME(ThisClass, bIsDead);
 	DOREPLIFETIME(ThisClass, PlayerRole);
+	DOREPLIFETIME(ThisClass, PlayerIdentity);
 	DOREPLIFETIME(ThisClass, VoiceChatState);
 	DOREPLIFETIME(ThisClass, bIsVoiceObjectHeld);
+	DOREPLIFETIME(ThisClass, InteractionState);
 }
 
 void APS3PlayerState::SetCurrentLifeCount(const int32 NewLifeCount)
@@ -57,6 +61,28 @@ void APS3PlayerState::SetPlayerRole(const EPS3PlayerRole NewRole)
 	OnPlayerRoleChanged.Broadcast(PlayerRole);
 }
 
+void APS3PlayerState::SetPlayerIdentity(const EPS3PlayerIdentity NewIdentity)
+{
+	if (!HasAuthority() || PlayerIdentity == NewIdentity)
+	{
+		return;
+	}
+
+	PlayerIdentity = NewIdentity;
+	OnRep_PlayerIdentity();
+}
+
+void APS3PlayerState::SetInteractionState(const EInteractionState NewState)
+{
+	if (!HasAuthority() || InteractionState == NewState)
+	{
+		return;
+	}
+
+	InteractionState = NewState;
+	OnInteractionStateChanged.Broadcast(InteractionState);
+}
+
 void APS3PlayerState::InitializeLifeCount(const int32 NewLifeCount)
 {
 	if (!HasAuthority())
@@ -83,8 +109,18 @@ bool APS3PlayerState::TryConsumeLife()
 		SetIsDead(true);
 		return true;
 	}
-
+	
 	bIsRespawning = true;
+	APlayerController* TargetController = Cast<APlayerController>(GetOwner());
+	
+	if (!IsValid(TargetController))
+	{
+		bIsRespawning = false;
+		return false;
+	}
+
+	OnRespawnRequested.Broadcast(TargetController);
+
 	return true;
 }
 
@@ -141,6 +177,14 @@ void APS3PlayerState::OnRep_PlayerRole()
 	OnPlayerRoleChanged.Broadcast(PlayerRole);
 }
 
+void APS3PlayerState::OnRep_PlayerIdentity()
+{
+	if (APS3PlayerCharacter* PlayerCharacter = Cast<APS3PlayerCharacter>(GetPawn()))
+	{
+		PlayerCharacter->RefreshPlayerIdentityVisual();
+	}
+}
+
 void APS3PlayerState::OnRep_VoiceChatState()
 {
 	OnVoiceChatStateChanged.Broadcast(VoiceChatState);
@@ -149,4 +193,9 @@ void APS3PlayerState::OnRep_VoiceChatState()
 void APS3PlayerState::OnRep_VoiceObjectHeld()
 {
 	OnVoiceObjectHeldChanged.Broadcast(bIsVoiceObjectHeld);
+}
+
+void APS3PlayerState::OnRep_InteractionState()
+{
+	OnInteractionStateChanged.Broadcast(InteractionState);
 }

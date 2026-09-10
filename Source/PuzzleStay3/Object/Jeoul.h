@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "Player/Interaction/PS3InteractableInterface.h"
 #include "Jeoul.generated.h"
 
 class UCameraComponent;
@@ -21,13 +22,16 @@ enum class EJeoulState : uint8
 };
 
 UCLASS()
-class PUZZLESTAY3_API AJeoul : public AActor
+class PUZZLESTAY3_API AJeoul : public AActor, public IPS3InteractableInterface
 {
 	GENERATED_BODY()
 	
 public:	
 	AJeoul();
 
+	virtual bool CanInteract_Implementation(AActor* Requestor) const override;
+	virtual bool Interact_Implementation(AActor* Requestor) override;
+	
 	// 외부(GameMode 등)에서 구독할 이벤트 델리게이트
 	FOnJeoulCheckStarted OnJeoulCheckStarted;
 	FOnJeoulCheckFinished OnJeoulCheckFinished;
@@ -98,6 +102,9 @@ private:
 	UFUNCTION()
 	void OnRep_TargetBeamRotation();
 	
+	// 플레이어 2명이 저울판 위에 있는지 확인
+	bool HasBothPlayersOnPlate() const;
+	
 	// 최대 기울기 각도 (예: 25도)
 	UPROPERTY(EditAnywhere, Category = "Jeoul Settings")
 	float MaxTiltAngle = 25.0f;
@@ -113,6 +120,8 @@ private:
 	UPROPERTY(ReplicatedUsing = OnRep_TargetBeamRotation)
 	FRotator TargetBeamRotation;
 
+	static void SetupBlockingMesh(UStaticMeshComponent* Mesh, ECollisionResponse VisibilityResponse);
+	
 	// 저울 상태
 	UPROPERTY(Replicated)
 	EJeoulState CurrentState = EJeoulState::Idle;
@@ -124,13 +133,4 @@ private:
 	// 실패 시 저울대가 수평으로 복구되는 연출 대기 시간 (기본값: 1.5초)
 	UPROPERTY(EditAnywhere, Category = "Jeoul Settings")
 	float ResetBeamTime = 1.5f;
-	
-	// 플레이어 무게 설정값 (Player A = 100.f, Player B = 70.f)
-	UPROPERTY(EditAnywhere, Category = "Jeoul Settings")
-	float PlayerAWeight = 100.f;
-	
-	UPROPERTY(EditAnywhere, Category = "Jeoul Settings")
-	float PlayerBWeight = 70.f;
-	
-	
 };

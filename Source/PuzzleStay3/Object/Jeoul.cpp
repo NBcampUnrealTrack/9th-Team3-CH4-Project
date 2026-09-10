@@ -1,16 +1,14 @@
 #include "Object/Jeoul.h"
-
 #include "Dumbbell.h"
 #include "Camera/CameraComponent.h"
 #include "Component/InteractionSwitchComponent.h"
 #include "Components/BoxComponent.h"
-#include "Core/GameMode/PS3GameModeBase.h"
 #include "Core/GameMode/PS3GameModeS4.h"
 #include "Core/GameState/PS3GameStateBase.h"
 #include "Core/GameState/PS3GameStateS4.h"
 #include "GameFramework/Character.h"
-#include "GameFramework/PlayerState.h"
 #include "Net/UnrealNetwork.h"
+#include "Player/Character/PS3PlayerCharacter.h"
 
 AJeoul::AJeoul()
 {
@@ -35,7 +33,10 @@ AJeoul::AJeoul()
 	
 	PlateTrigger = CreateDefaultSubobject<UBoxComponent>(TEXT("PlateTrigger"));
 	PlateTrigger->SetupAttachment(BeamPivot);
-
+	PlateTrigger->SetCollisionObjectType(ECC_GameTraceChannel2); // "Trigger"로 이름 붙인 채널
+	PlateTrigger->SetCollisionResponseToAllChannels(ECR_Overlap);
+	PlateTrigger->SetGenerateOverlapEvents(true);
+	
 	// 컷씬 전경 카메라 배치
 	CutsceneCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("CutsceneCamera"));
 	CutsceneCamera->SetupAttachment(RootComponent);
@@ -49,6 +50,33 @@ AJeoul::AJeoul()
 	// 2. 스위치 컴포넌트 생성 및 저울 전용 설정
 	InteractionSwitchComp = CreateDefaultSubobject<UInteractionSwitchComponent>(TEXT("InteractionSwitchComp"));
 	InteractionSwitchComp->SetRegisterToGameMode(false); // GM 집계 제외
+	
+	SetupBlockingMesh(JeoulBaseMesh, ECR_Ignore);
+	SetupBlockingMesh(JeoulBeamMesh, ECR_Ignore);
+	SetupBlockingMesh(CheckButtonMesh, ECR_Block);
+}
+
+bool AJeoul::CanInteract_Implementation(AActor* Requestor) const
+{
+	// 저울이 대기(Idle) 상태일 때만 버튼 조작 가능
+	return CurrentState == EJeoulState::Idle;
+}
+
+bool AJeoul::Interact_Implementation(AActor* Requestor)
+{
+	if (!HasAuthority())
+	{
+		return false;
+	}
+
+	if (!CanInteract_Implementation(Requestor))
+	{
+		return false;
+	}
+
+	// 검증 통과 시 저울 무게 체크 서버 로직 작동
+	Server_CheckBalance();
+	return true;
 }
 
 void AJeoul::BeginPlay()
@@ -91,6 +119,32 @@ void AJeoul::OnRep_TargetBeamRotation()
 	// 클라이언트 측에서 TargetBeamRotation 업데이트 시 보간 애니메이션이 Tick에서 즉시 동작함
 }
 
+bool AJeoul::HasBothPlayersOnPlate() const
+{
+	if (!PlateTrigger) return false;
+
+	TArray<AActor*> OverlappingActors;
+	PlateTrigger->GetOverlappingActors(OverlappingActors);
+
+	int32 PlayerCount = 0;
+	for (AActor* Actor : OverlappingActors)
+	{
+		if (Cast<ACharacter>(Actor))
+		{
+			PlayerCount++;
+		}
+	}
+
+	// 플레이어 2명이 모두 오버랩 중인지 반환
+	return PlayerCount >= 2;
+}
+
+void AJeoul::SetupBlockingMesh(UStaticMeshComponent* Mesh, ECollisionResponse VisibilityResponse)
+{
+	Mesh->SetCollisionProfileName(TEXT("BlockAllDynamic"));
+	Mesh->SetCollisionResponseToChannel(ECC_Visibility, VisibilityResponse);
+}
+
 void AJeoul::OnCheckButtonPressed(bool bActivated)
 {
 	if (bActivated && HasAuthority() && CurrentState == EJeoulState::Idle)
@@ -108,31 +162,41 @@ float AJeoul::CalculateWeightOnPlate(UBoxComponent* InPlateTrigger)
 
 	float TotalWeight = 0.0f;
 
+	// 중복 집계 방지용 (바닥에 놓인 덤벨과 들고 있는 덤벨이 이중 계산되지 않도록)
+	TSet<ADumbbell*> CountedDumbbells;
+	
 	for (AActor* Actor : OverlappingActors)
 	{
 		if (!Actor) continue;
 
-		// 1. Dumbbell 무게 합산 (안고 있는 상태여도 포함)
+		/// 바닥에 직접 올려진 Dumbbell인 경우
 		if (ADumbbell* Dumbbell = Cast<ADumbbell>(Actor))
 		{
-			TotalWeight += Dumbbell->GetWeight();
-
-			// 서버 권한에서 덤벨을 BeamPivot에 부착하여 저울대가 기울어질 때 함께 이동
-			if (HasAuthority())
+			if (!CountedDumbbells.Contains(Dumbbell))
 			{
-				Dumbbell->AttachToComponent(
-					BeamPivot,
-					FAttachmentTransformRules::KeepWorldTransform
-				);
+				TotalWeight += Dumbbell->GetWeight();
+				CountedDumbbells.Add(Dumbbell);
+
+				// 서버 권한에서 덤벨을 BeamPivot에 부착하여 저울대가 기울어질 때 함께 이동
+				if (HasAuthority())
+				{
+					Dumbbell->AttachToComponent(
+						BeamPivot,
+						FAttachmentTransformRules::KeepWorldTransform
+					);
+				}
 			}
 		}
-		// 2. 플레이어 무게 합산
-		else if (ACharacter* Character = Cast<ACharacter>(Actor))
+		//플레이어가 저울판 위에 올라와 있고, 덤벨을 들고 있는 경우
+		else if (APS3PlayerCharacter* PlayerChar = Cast<APS3PlayerCharacter>(Actor))
 		{
-			if (APlayerState* PS = Character->GetPlayerState())
+			if (ADumbbell* HeldDumbbell = PlayerChar->GetHeldDumbbell()) // 또는 HeldDumbbell 멤버변수 접근
 			{
-				int32 PlayerIndex = PS->GetPlayerId();
-				TotalWeight += (PlayerIndex == 0) ? PlayerAWeight : PlayerBWeight;
+				if (!CountedDumbbells.Contains(HeldDumbbell))
+				{
+					TotalWeight += HeldDumbbell->GetWeight();
+					CountedDumbbells.Add(HeldDumbbell);
+				}
 			}
 		}
 	}
@@ -152,6 +216,18 @@ void AJeoul::Multicast_OnJeoulCheckFinished_Implementation(bool bIsSuccess)
 
 void AJeoul::Server_CheckBalance_Implementation()
 {
+	if (!HasBothPlayersOnPlate())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[Jeoul] 체크 실패: 플레이어 2명이 모두 저울판 위에 올라와 있지 않습니다."));
+		
+		// 스위치가 눌린 상태로 굳지 않도록 스위치 상태 리셋
+		if (InteractionSwitchComp)
+		{
+			InteractionSwitchComp->ResetSwitch();
+		}
+		return;
+	}
+	
 	CurrentState = EJeoulState::Checking;
 
 	// 서버에서만 Broadcast하지 않고, 모든 클라이언트로 Multicast 호출

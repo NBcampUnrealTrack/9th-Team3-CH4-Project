@@ -1,3 +1,4 @@
+
 #include "InteractionSwitchComponent.h"
 #include "Net/UnrealNetwork.h"
 #include "PuzzleStay3/Core/GameMode/PS3GameModeBase.h"
@@ -12,16 +13,24 @@ void UInteractionSwitchComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// bRegisterToGameMode가 true일 때만 서버 권한을 가진 GameMode에 자신을 자동 등록
-	if (bRegisterToGameMode && GetOwner() && GetOwner()->HasAuthority())
+	if (GetOwner() && GetOwner()->HasAuthority())
 	{
-		if (UWorld* World = GetWorld())
+		if (bRegisterToGameMode)
 		{
-			// GetGameMode() 대신 GetAuthGameMode()를 사용합니다.
-			if (APS3GameModeBase* GM = Cast<APS3GameModeBase>(World->GetAuthGameMode()))
+			if (UWorld* World = GetWorld())
 			{
-				GM->RegisterInteractionSwitch(this);
+				if (APS3GameModeBase* GM = Cast<APS3GameModeBase>(World->GetAuthGameMode()))
+				{
+					GM->RegisterInteractionSwitch(this);
+				}
 			}
+		}
+		// BeginPlay 시점 자동 작동 체크
+		if (bStartTimerOnBeginPlay)
+		{
+			bIsActivated = true;
+			OnRep_IsActivated(); // 켜짐 상태 알림 (델리게이트 쏘기)
+			StartDisableTimer(); // 시간이 지나면 꺼지는 타이머 가동
 		}
 	}
 }
@@ -29,14 +38,18 @@ void UInteractionSwitchComponent::BeginPlay()
 void UInteractionSwitchComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	// 액터/컴포넌트 파괴 시 GameMode에서 해제
-	if (bRegisterToGameMode && GetOwner() && GetOwner()->HasAuthority())
+	if (GetOwner() && GetOwner()->HasAuthority())
 	{
-		if (UWorld* World = GetWorld())
+		GetWorld()->GetTimerManager().ClearTimer(AutoDisableTimerHandle);
+
+		if (bRegisterToGameMode)
 		{
-			// GetGameMode() 대신 GetAuthGameMode()를 사용합니다.
-			if (APS3GameModeBase* GM = Cast<APS3GameModeBase>(World->GetAuthGameMode()))
+			if (UWorld* World = GetWorld())
 			{
-				GM->UnregisterInteractionSwitch(this);
+				if (APS3GameModeBase* GM = Cast<APS3GameModeBase>(World->GetAuthGameMode()))
+				{
+					GM->UnregisterInteractionSwitch(this);
+				}
 			}
 		}
 	}
@@ -51,28 +64,58 @@ void UInteractionSwitchComponent::GetLifetimeReplicatedProps(TArray<FLifetimePro
 	DOREPLIFETIME(UInteractionSwitchComponent, bIsActivated);
 }
 
+bool UInteractionSwitchComponent::CanInteract_Implementation(AActor* Requestor) const
+{
+	// 스위치가 비활성화 상태일 때만 상호작용 가능
+	return !bIsActivated;
+}
+
+bool UInteractionSwitchComponent::Interact_Implementation(AActor* Requestor)
+{
+	return TryInteract(Requestor);
+}
+
 bool UInteractionSwitchComponent::TryInteract(AActor* Requestor)
 {
 	if(bIsEscapeDoor == false) return false;
 	
-	// 서버 권한 검증
 	if (!GetOwner() || !GetOwner()->HasAuthority())
 	{
 		return false;
 	}
-	// 단순 토글 처리
 	bIsActivated = !bIsActivated;
 
-	// 서버에서 GameMode 및 알림 전달
+	// 플레이어가 상호작용했을 때 스위치가 켜졌고, 타이머 사용 옵션이 켜져 있다면
+	if (bIsActivated && bUseAutoDisableTimer)
+	{
+		StartDisableTimer();
+	}
+
 	OnRep_IsActivated();
+	OnInteractionSuccessed.Broadcast();
 
 	return true;
+}
+
+void UInteractionSwitchComponent::StartDisableTimer()
+{
+	if (UWorld* World = GetWorld())
+	{
+		World->GetTimerManager().SetTimer(
+			AutoDisableTimerHandle,
+			this,
+			&UInteractionSwitchComponent::ResetSwitch, // 시간 만료 시 꺼짐 함수 호출
+			AutoDisableTime,
+			false
+		);
+	}
 }
 
 void UInteractionSwitchComponent::ResetSwitch()
 {
 	if (GetOwner() && GetOwner()->HasAuthority())
 	{
+		GetWorld()->GetTimerManager().ClearTimer(AutoDisableTimerHandle);
 		bIsActivated = false;
 		OnRep_IsActivated();
 	}
@@ -80,6 +123,6 @@ void UInteractionSwitchComponent::ResetSwitch()
 
 void UInteractionSwitchComponent::OnRep_IsActivated()
 {
-	// GameMode 또는 문(Door) 액터로 상태 변경 이벤트 방송
+	// 스위치 상태 변경(True/False) 시 델리게이트 쏘기
 	OnSwitchActivatedChanged.Broadcast(bIsActivated);
 }
