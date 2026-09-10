@@ -71,3 +71,16 @@ void AGimmickBase::GetLifetimeReplicatedProps(
 	DOREPLIFETIME(AGimmickBase, bIsActive);
 	DOREPLIFETIME(AGimmickBase, bIsCompleted);
 }
+
+void AGimmickBase::SetGimmickMeshVisible(const bool bVisible)
+{
+	if (!IsValid(GimmickMesh)) {	return;	}
+
+	GimmickMesh->SetVisibility(bVisible, false);
+	GimmickMesh->SetHiddenInGame(!bVisible, false);
+}
+
+void AGimmickBase::HideGimmickMesh()
+{
+	SetGimmickMeshVisible(false);
+}
