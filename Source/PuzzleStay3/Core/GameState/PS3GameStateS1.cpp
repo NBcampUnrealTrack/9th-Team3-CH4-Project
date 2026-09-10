@@ -17,9 +17,13 @@ void APS3GameStateS1::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutL
 void APS3GameStateS1::BeginPlay()
 {
 	Super::BeginPlay();
-
+	
 	SetUIMacroTimerHandle(
 		[this]() { PS3_BROADCAST_TO_MVVM_OneParams(OnStageType_UI, S1_GameRuleDataAsset->StageType_S1); });
+	
+	SetUIMacroTimerHandle(
+		[this]() {PS3_BROADCAST_TO_MVVM_OneParams(OnTextNotify_UI, EPS3TextNotifyType::Stage1);});
+	
 }
 
 void APS3GameStateS1::SetStage1BlockingVolumeDisabled(bool bDisabled)

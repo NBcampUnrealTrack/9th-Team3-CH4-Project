@@ -12,4 +12,8 @@ void APS3GameStateS2::BeginPlay()
 	
 	SetUIMacroTimerHandle(
 		[this]() { PS3_BROADCAST_TO_MVVM_OneParams(OnStageType_UI, S2_GameRuleDataAsset->StageType_S2); });
+	
+	SetUIMacroTimerHandle(
+		[this]() {PS3_BROADCAST_TO_MVVM_OneParams(OnTextNotify_UI, EPS3TextNotifyType::Stage2);});
+	
 }

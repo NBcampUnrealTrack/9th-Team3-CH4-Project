@@ -13,6 +13,9 @@ void APS3GameStateS3::BeginPlay()
 	
 	SetUIMacroTimerHandle(
 		[this]() { PS3_BROADCAST_TO_MVVM_OneParams(OnStageType_UI, S3_GameRuleDataAsset->StageType_S3); });
+	
+	SetUIMacroTimerHandle(
+	[this]() {PS3_BROADCAST_TO_MVVM_OneParams(OnTextNotify_UI, EPS3TextNotifyType::Stage3);});
 }
 
 void APS3GameStateS3::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
