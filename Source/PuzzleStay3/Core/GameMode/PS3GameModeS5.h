@@ -69,7 +69,7 @@ public:
 	void OnTimeDeduction(float TimeToDeducted);
 
 	
-	void OnInteractedGimmick(bool bIsInteracted);
+
 	void OnCollectLoginUser();
 	int32 OnCollectGimmickBase();
 	
@@ -95,13 +95,13 @@ protected:
 
 	int32 MaxEscapeDoorCount = 2;
 	int32 MaxInteractionGimmickCount = 2;
-	int32 GoalInteractionGimmickCount = 0;
+	int32 TargetCountForSpawnScreenPlayer = 0;
 	int32 ActivatedInteractionGimmickCount = 0;
 	
 	float ReducedTimeRange = 1.0f;
 	
 	bool bIsScreenPlayerSpawnReady = false;
-	bool bIsScreenPlayerSpawnedField = false;
+	bool bIsScreenPlayerAlreadySpawned = false;
 	
 	
 private:
@@ -111,12 +111,15 @@ private:
 	TArray<TObjectPtr<class AGimmickBase>> GimmickBaseArray;
 	
 	FTimerHandle InitTimerHandle;
+	int32 InteractionGimmickCount = 0;
+	bool bIsInteracted = false;
 	
+	void OnInteractedGimmick(bool bIsInteractedGimmick);
 	void InitializeToDataAssets();
 	void InitializeGimmick();
 	void FindAndRandomShuffleFakeGimmick();
-	void FindAndBindInteractionGimmick();
-	void FindAndResistEscapeGimmick();
+	void ResistAndBindInteractionGimmick();
+	void AssignTimeTrapGimmickIDForUI(class UOverlapVolumeTimeDeductionComponent* TimeDeductionComp, int32 IndexNumber);
 	
 };
 
