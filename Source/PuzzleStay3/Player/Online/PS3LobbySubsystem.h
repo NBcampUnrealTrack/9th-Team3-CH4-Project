@@ -17,7 +17,7 @@ struct FPS3LobbyInfo
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FPS3LobbyOperationCompleted, FName, Operation, bool, bSuccess, const FString&, Message);
 
-// EOS 로비/음성 연결 테스트용. 게임 맵 이동은 수행하지 않습니다.
+// EOS 로비/음성 연결 및 생성 성공 후 호스트 대기방 이동을 처리합니다.
 UCLASS()
 class PUZZLESTAY3_API UPS3LobbySubsystem : public UGameInstanceSubsystem
 {
