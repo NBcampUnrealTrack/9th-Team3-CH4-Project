@@ -117,9 +117,12 @@ private:
 	void OnInteractedGimmick(bool bIsInteractedGimmick);
 	void InitializeToDataAssets();
 	void InitializeGimmick();
-	void FindAndRandomShuffleFakeGimmick();
-	void ResistAndBindInteractionGimmick();
-	void AssignTimeTrapGimmickIDForUI(class UOverlapVolumeTimeDeductionComponent* TimeDeductionComp, int32 IndexNumber);
+	void RandomShuffleFakeGimmick();
+	void BindInteractionGimmick();
+	void ResistEscapeGimmick();
+	void UnResistEscapeGimmick();
+	
+	void AssignFakeGimmickIDForUI(class UOverlapVolumeTimeDeductionComponent* TimeDeductionComp, int32 IndexNumber);
 	
 };
 
