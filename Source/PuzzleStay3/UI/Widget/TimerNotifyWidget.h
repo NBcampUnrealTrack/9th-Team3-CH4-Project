@@ -20,7 +20,7 @@ public:
 	void HideTimerNotifyWidget();
 
 	UFUNCTION(BlueprintCallable, Category = "UI|TimerNotify")
-	void UpdateTimerNotify(FName InTimerId, float InDuration);
+	void UpdateTimerNotify(FName InTimerId, float InMaxTime, float InCurrentTime);
 
 	UFUNCTION(BlueprintCallable, Category = "UI|TimerNotify")
 	void ReduceTimerNotify(FName InTimerId, float InReduceTime);
