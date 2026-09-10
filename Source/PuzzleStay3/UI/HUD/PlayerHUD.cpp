@@ -238,14 +238,14 @@ void APlayerHUD::SetTimerNotifyVisible(bool bVisible)
 	}
 }
 
-void APlayerHUD::UpdateTimerNotify(FName InTimerId, float InDuration)
+void APlayerHUD::UpdateTimerNotify(FName InTimerId, float InMaxTime, float InCurrentTime)
 {
 	if (!Widgets.TimerNotifyWidget)
 	{
 		return;
 	}
 
-	Widgets.TimerNotifyWidget->UpdateTimerNotify(InTimerId, InDuration);
+	Widgets.TimerNotifyWidget->UpdateTimerNotify(InTimerId, InMaxTime, InCurrentTime);
 }
 
 void APlayerHUD::ReduceTimerNotify(FName InTimerId, float InReduceTime)

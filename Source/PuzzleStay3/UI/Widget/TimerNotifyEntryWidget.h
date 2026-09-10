@@ -2,7 +2,6 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
-#include "TimerManager.h"
 #include "TimerNotifyEntryWidget.generated.h"
 
 class UImage;
@@ -20,7 +19,7 @@ public:
 	FOnTimerNotifyEntryFinished OnTimerFinished;
 
 	UFUNCTION(BlueprintCallable, Category = "UI|TimerNotify")
-	void StartTimer(FName InTimerId, float InDuration);
+	void UpdateTimerState(FName InTimerId, float InMaxTime, float InCurrentTime);
 
 	UFUNCTION(BlueprintCallable, Category = "UI|TimerNotify")
 	void ReduceRemainingTime(float InReduceTime);
@@ -37,17 +36,13 @@ protected:
 	TObjectPtr<UImage> TimerProgressImage;
 
 private:
-	void UpdateTimerProgress();
 	void FinishTimer();
 	void SetTimerProgress(float InProgress);
-	void ClearTimerUpdateTimer();
 
 	UPROPERTY()
 	TObjectPtr<UMaterialInstanceDynamic> TimerProgressMaterial;
 
-	FTimerHandle TimerUpdateTimerHandle;
 	FName TimerId;
-	float TotalTime = 0.0f;
-	float RemainingTime = 0.0f;
-	float LastUpdateTime = 0.0f;
+	float MaxTime = 0.0f;
+	float CurrentTime = 0.0f;
 };

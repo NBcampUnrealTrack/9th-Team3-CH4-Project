@@ -1,7 +1,14 @@
 #include "PS3ViewModel.h"
 
+#include "Core/GameState/PS3GameStateS5.h"
+#include "Data/DataAsset/S5_GameRuleDataAsset.h"
 #include "Data/Delegates/UIDelegatesSubsystem.h"
 #include "../HUD/PlayerHUD.h"
+
+namespace
+{
+	constexpr float DefaultTimerMaxTime = 7.0f;
+}
 
 void UPS3ViewModel::SetPlayerHUD(APlayerHUD* InPlayerHUD)
 {
@@ -275,7 +282,7 @@ void UPS3ViewModel::HandleButtonEnabled_UI(EControlDoorType DoorType, bool bEnab
 	}
 }
 
-void UPS3ViewModel::HandleGameTimer_UI(EPS3TimerUIType TimerUIType, float Duration)
+void UPS3ViewModel::HandleGameTimer_UI(EPS3TimerUIType TimerUIType, float CurrentTime)
 {
 	if (TimerUIType == EPS3TimerUIType::None)
 	{
@@ -283,7 +290,7 @@ void UPS3ViewModel::HandleGameTimer_UI(EPS3TimerUIType TimerUIType, float Durati
 	}
 
 	const FName TimerId(*StaticEnum<EPS3TimerUIType>()->GetNameStringByValue(static_cast<int64>(TimerUIType)));
-	RequestTimerNotify(TimerId, Duration);
+	RequestTimerNotify(TimerId, ResolveTimerMaxTime(TimerUIType), CurrentTime);
 }
 
 void UPS3ViewModel::HandleTimeDeduct_UI(EPS3TimerUIType TimerUIType, float ReduceTime)
@@ -335,6 +342,28 @@ void UPS3ViewModel::HandleTextNotify_UI(EPS3TextNotifyType NotifyType)
 	}
 
 	RequestTextNotify(NotifyType);
+}
+
+float UPS3ViewModel::ResolveTimerMaxTime(EPS3TimerUIType TimerUIType) const
+{
+	const UWorld* World = GetWorld();
+	if (!World)
+	{
+		return DefaultTimerMaxTime;
+	}
+
+	const APS3GameStateS5* GameState = World->GetGameState<APS3GameStateS5>();
+	if (!IsValid(GameState) || !IsValid(GameState->S5_GameRuleDataAsset))
+	{
+		return DefaultTimerMaxTime;
+	}
+
+	if (TimerUIType == EPS3TimerUIType::GameStartTimer)
+	{
+		return GameState->S5_GameRuleDataAsset->MaxGameLimitTime;
+	}
+
+	return DefaultTimerMaxTime;
 }
 
 void UPS3ViewModel::ApplyStageUI()
@@ -458,11 +487,11 @@ void UPS3ViewModel::RequestSetTimerNotifyVisible(bool bVisible)
 	}
 }
 
-void UPS3ViewModel::RequestTimerNotify(FName InTimerId, float InDuration)
+void UPS3ViewModel::RequestTimerNotify(FName InTimerId, float InMaxTime, float InCurrentTime)
 {
 	if (PlayerHUD)
 	{
-		PlayerHUD->UpdateTimerNotify(InTimerId, InDuration);
+		PlayerHUD->UpdateTimerNotify(InTimerId, InMaxTime, InCurrentTime);
 	}
 }
 

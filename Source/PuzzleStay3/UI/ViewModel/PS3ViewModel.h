@@ -62,7 +62,7 @@ public:
 	void RequestSetTimerNotifyVisible(bool bVisible);
 
 	UFUNCTION(BlueprintCallable, Category = "UI|TimerNotify")
-	void RequestTimerNotify(FName InTimerId, float InDuration);
+	void RequestTimerNotify(FName InTimerId, float InMaxTime, float InCurrentTime);
 
 	UFUNCTION(BlueprintCallable, Category = "UI|TimerNotify")
 	void RequestReduceTimerNotify(FName InTimerId, float InReduceTime);
@@ -230,7 +230,7 @@ private:
 	void HandleTimerNotifyVisible_UI(bool bVisible);
 	void HandleLifeCount_UI(int32 InCurrentLifeCount, int32 InMaxLifeCount);
 	void HandleButtonEnabled_UI(EControlDoorType DoorType, bool bEnabled);
-	void HandleGameTimer_UI(EPS3TimerUIType TimerUIType, float Duration);
+	void HandleGameTimer_UI(EPS3TimerUIType TimerUIType, float CurrentTime);
 	void HandleTimeDeduct_UI(EPS3TimerUIType TimerUIType, float ReduceTime);
 	void HandleTimerReset_UI();
 	void HandleInteractionNotifyAddRequested_UI(EPS3InteractionNotifyType NotifyType);
@@ -238,6 +238,7 @@ private:
 	void HandleInteractionNotifyResetRequested_UI();
 	void HandleTextNotifyVisible_UI(bool bVisible);
 	void HandleTextNotify_UI(EPS3TextNotifyType NotifyType);
+	float ResolveTimerMaxTime(EPS3TimerUIType TimerUIType) const;
 	void ApplyStageUI();
 
 	UPROPERTY(BlueprintReadOnly, Category = "UI|HUD", meta = (AllowPrivateAccess = "true"))
