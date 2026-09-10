@@ -30,6 +30,14 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Gimmick")
 	bool IsGimmickCompleted() const { return bIsCompleted; }
 
+	UFUNCTION(BlueprintCallable, BlueprintCosmetic,
+	Category = "Gimmick|Visual")
+	void SetGimmickMeshVisible(bool bVisible);
+
+	UFUNCTION(BlueprintCallable, BlueprintCosmetic,
+		Category = "Gimmick|Visual")
+	void HideGimmickMesh();
+	
 protected:
 	virtual void BeginPlay() override;
 	

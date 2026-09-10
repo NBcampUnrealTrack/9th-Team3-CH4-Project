@@ -5,6 +5,8 @@
 #include "CoreMinimal.h"
 #include "PS3GameStateBase.h"
 #include "PS3GameStateS1.generated.h"
+
+enum class EPS3StageType : uint8;
 //DECLARE_MULTICAST_DELEGATE_OneParam(FOnBlockingVolumeDisabled, EPS3StageNumber);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnStage1BlockingVolumeDisabled, bool, bDisabled);
 
@@ -16,6 +18,9 @@ class PUZZLESTAY3_API APS3GameStateS1 : public APS3GameStateBase
 public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
+	virtual void BeginPlay() override;
+	void InitializeToDataAssets();
+
 	UFUNCTION(BlueprintPure)
 	bool IsStage1BlockingVolumeDisabled() const { return bStage1BlockingVolumeDisabled; }
 
@@ -24,6 +29,9 @@ public:
 
 	UPROPERTY(BlueprintAssignable)
 	FOnStage1BlockingVolumeDisabled OnStage1BlockingVolumeDisabled;
+
+	UPROPERTY(EditAnywhere, Category = "GameRule")
+	TObjectPtr<class US1_GameRuleDataAsset> S1_GameRuleDataAsset;
 
 protected:
 	UPROPERTY(ReplicatedUsing = OnRep_Stage1BlockingVolumeDisabled)
