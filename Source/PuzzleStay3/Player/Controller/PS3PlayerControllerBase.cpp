@@ -69,14 +69,15 @@ void APS3PlayerControllerBase::ConfigureInputMapping()
 	auto* PS3GameState = Cast<APS3GameStateS5>(GetWorld()->GetGameState());	
 	if (IsValid(PS3GameState) == false) return;
 	
-	PS3GameState->OnScreenPlayerSpawned_GS5.AddUObject(this, &ThisClass::OnScreenPlayerSpawned);
+	PS3GameState->OnSpawnedScreenPlayerUIReAssign.AddUObject(this, &ThisClass::OnScreenPlayerSpawned);
 }
 
 
 void APS3PlayerControllerBase::OnScreenPlayerSpawned()
 {
-	if (IsLocalController() == false) return;
-	
-	PS3_BROADCAST_TO_MVVM_OneParams(OnScreenPlayer_UI, false);
-	PS3_BROADCAST_TO_MVVM_OneParams(OnFieldPlayer_UI, true);
+	if (IsLocalController() == true)
+	{
+		PS3_BROADCAST_TO_MVVM_OneParams(OnScreenPlayer_UI, false);
+		PS3_BROADCAST_TO_MVVM_OneParams(OnFieldPlayer_UI, true);
+	}
 }

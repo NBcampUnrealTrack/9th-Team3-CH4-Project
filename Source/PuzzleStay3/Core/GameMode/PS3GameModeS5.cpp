@@ -4,6 +4,7 @@
 #include "Algo/RandomShuffle.h"
 #include "Component/InteractionSwitchComponent.h"
 #include "Component/OverlapVolumeTimeDeductionComponent.h"
+#include "Component/S5_InteractionGimmickComponent.h"
 #include "Core/GameState/PS3GameStateS5.h"
 #include "Data/DataAsset/S5_GameRuleDataAsset.h"
 #include "Data/Enum/PlayerStartType.h"
@@ -75,6 +76,7 @@ void APS3GameModeS5::InitializeGimmick()
 	
 	UE_LOG(LogTemp, Warning, TEXT("활성화 해야 할 스크린플레이어 스폰 조건 %d개"), TargetCountForSpawnScreenPlayer);
 }
+
 
 
 int32 APS3GameModeS5::OnCollectGimmickBase()
@@ -188,6 +190,7 @@ void APS3GameModeS5::BindInteractionGimmick()
 }
 
 
+
 void APS3GameModeS5::ResistEscapeGimmick()
 {
 	for (TActorIterator<AGimmickBase> It(GetWorld()); It; ++It)
@@ -198,8 +201,7 @@ void APS3GameModeS5::ResistEscapeGimmick()
 		auto* InteractionSwitchComp = TargetGimmick->FindComponentByClass<UInteractionSwitchComponent>();
 		if (IsValid(InteractionSwitchComp) == false) continue;
 		
-		auto* TimeDeductionComp = TargetGimmick->FindComponentByClass<UOverlapVolumeTimeDeductionComponent>();
-		if (IsValid(TimeDeductionComp) == false && InteractionSwitchComp->bIsEscapeDoor == true)
+		if (InteractionSwitchComp->bIsEscapeDoor == true)
 		{
 			InteractionSwitchComp->bMultiInteractionState = false;
 			InteractionSwitchComp->bIsOtherInteractionGimmick = false;
@@ -253,7 +255,17 @@ void APS3GameModeS5::OnInteractedGimmick(bool bIsInteractedGimmick)
 			ConfigureControllerAndSpawn(ScreenPlayerController, S5_GameRuleDataAsset->SpawnScreenControllerClass);
 			bIsScreenPlayerAlreadySpawned = true;
 			
+			break;
+		}
+		
+		if (bIsScreenPlayerAlreadySpawned == true)
+		{
 			OnScreenPlayerSpawned.Broadcast();
+			
+			auto* PS3GameStateS5 = Cast<APS3GameStateS5>(GetWorld()->GetGameState());
+			if (IsValid(PS3GameStateS5) == false) return;
+		
+			PS3GameStateS5->OnSpawnScreenPlayerUIReAssign();
 		}
 		
 		bIsScreenPlayerSpawnReady = false;

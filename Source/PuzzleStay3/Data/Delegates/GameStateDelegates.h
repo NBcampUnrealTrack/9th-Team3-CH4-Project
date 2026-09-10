@@ -2,4 +2,4 @@
 
 #include "CoreMinimal.h"
 
-DECLARE_MULTICAST_DELEGATE(FOnScreenPlayerSpawned_GS5)
+DECLARE_MULTICAST_DELEGATE(FOnSpawnedScreenPlayerUIReAssign)
