@@ -1,9 +1,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Data/Enum/ControlDoorType.h"
 #include "Data/Enum/PS3InteractionNotifyType.h"
 #include "Data/Enum/PS3PlayerRole.h"
+#include "Data/Enum/PS3StageType.h"
 #include "Data/Enum/PS3TextNotifyType.h"
+#include "Data/Enum/TimerUIType.h"
 #include "MVVMViewModelBase.h"
 #include "PS3ViewModel.generated.h"
 
@@ -212,9 +215,25 @@ private:
 	void BindRoleSelectionUIDelegate();
 	void UnbindRoleSelectionUIDelegate();
 	void HandleRoleSelection_UI(bool bVisible);
+	void BindGameplayUIDelegates();
+	void UnbindGameplayUIDelegates();
+	void HandleStageType_UI(EPS3StageType StageType);
+	void HandleScreenPlayer_UI(bool bVisible);
+	void HandleFieldPlayer_UI(bool bVisible);
+	void HandleVoiceChatIcon_UI(bool bVisible);
+	void HandleIsGameOver_UI(bool bVisible);
+	void HandleButtonEnabled_UI(EControlDoorType DoorType, bool bEnabled);
+	void HandleGameTimer_UI(EPS3TimerUIType TimerUIType, float Duration);
+	void HandleTimeDeduct_UI(EPS3TimerUIType TimerUIType, float ReduceTime);
+	void ApplyStageUI();
+	void ApplyStage5RoleUI();
 
 	UPROPERTY(BlueprintReadOnly, Category = "UI|HUD", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<APlayerHUD> PlayerHUD;
+
+	EPS3StageType CurrentStageType = EPS3StageType::None;
+	bool bIsScreenPlayerUI = false;
+	bool bIsFieldPlayerUI = false;
 
 	UPROPERTY(BlueprintReadWrite, FieldNotify, Getter, Setter, Category = "UI|ViewModel", meta = (AllowPrivateAccess = "true"))
 	int32 CurrentLifeCount = 0;
