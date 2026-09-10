@@ -15,17 +15,17 @@ void UInteractionSwitchComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (GetOwner() && GetOwner()->HasAuthority())
+	// 서버 권한 및 등록 옵션 사전 검사 (Early Return)
+	if (!bRegisterToGameMode || !GetOwner() || !GetOwner()->HasAuthority())
 	{
-		if (bRegisterToGameMode)
+		return;
+	}
+	
+	if (UWorld* World = GetWorld())
+	{
+		if (APS3GameModeBase* GM = World->GetAuthGameMode<APS3GameModeBase>())
 		{
-			if (UWorld* World = GetWorld())
-			{
-				if (APS3GameModeBase* GM = Cast<APS3GameModeBase>(World->GetAuthGameMode()))
-				{
-					GM->RegisterInteractionSwitch(this);
-				}
-			}
+			GM->RegisterInteractionSwitch(this);
 		}
 	}
 }
@@ -59,6 +59,7 @@ void UInteractionSwitchComponent::GetLifetimeReplicatedProps(TArray<FLifetimePro
 	DOREPLIFETIME(UInteractionSwitchComponent, bIsActivated);
 	DOREPLIFETIME(UInteractionSwitchComponent, bIsInteractedGimmick);
 	DOREPLIFETIME(UInteractionSwitchComponent, bIsEscapeDoor);
+	DOREPLIFETIME(UInteractionSwitchComponent, InteractingActor);
 }
 
 bool UInteractionSwitchComponent::CanInteract_Implementation(AActor* Requestor) const
@@ -70,8 +71,8 @@ bool UInteractionSwitchComponent::CanInteract_Implementation(AActor* Requestor) 
 		return false;
 	}
 
-	// bToggleInteractionState가 true일 때만 플레이어의 상호작용 중복 여부를 검사
-	if (bToggleInteractionState)
+	// bMultiInteractionState가 false일 때만(단일 점유 모드) 플레이어의 상호작용 중복 여부를 검사
+	if (!bMultiInteractionState)
 	{
 		if (const APS3PlayerCharacter* Character = Cast<APS3PlayerCharacter>(Requestor))
 		{
@@ -87,7 +88,6 @@ bool UInteractionSwitchComponent::CanInteract_Implementation(AActor* Requestor) 
 		}
 		
 		// 켜진 스위치를 건드리려 할 때: 오직 이 스위치를 킨 본인만 끄거나 재조작 가능 (타인 간섭 불가)
-		// 누군가 점유 중인 기믹은 오직 점유한 본인만 해제/종료 가능
 		if (bIsActivated && InteractingActor != Requestor)
 		{
 			FString OwnerName = InteractingActor ? InteractingActor->GetName() : TEXT("다른 플레이어");
@@ -129,7 +129,7 @@ bool UInteractionSwitchComponent::TryInteract(AActor* Requestor)
 	{
 		// 스위치 점유 처리
 		InteractingActor = Requestor;
-		if (PS)
+		if (!bMultiInteractionState && PS)
 		{
 			PS->SetInteractionState(EInteractionState::IsInteracting);
 		}
@@ -145,7 +145,7 @@ bool UInteractionSwitchComponent::TryInteract(AActor* Requestor)
 	else
 	{
 		// 스위치 해제 처리
-		if (PS)
+		if (!bMultiInteractionState && PS)
 		{
 			PS->SetInteractionState(EInteractionState::IsNotInteracting);
 		}
@@ -185,7 +185,7 @@ void UInteractionSwitchComponent::ResetSwitch()
 	{
 		GetWorld()->GetTimerManager().ClearTimer(AutoDisableTimerHandle);
 		
-		if (bToggleInteractionState)
+		if (!bMultiInteractionState)
 		{
 			// 점유 중이던 플레이어의 InteractionState 해제
 			if (APS3PlayerCharacter* Character = Cast<APS3PlayerCharacter>(InteractingActor))

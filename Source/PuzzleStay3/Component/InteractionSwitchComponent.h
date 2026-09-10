@@ -49,7 +49,7 @@ public:
 	// 현재 스위치를 켠 주체 Getter
 	AActor* GetInteractingActor() const { return InteractingActor; }
 
-	UPROPERTY(EditAnywhere, Replicated, BlueprintReadOnly, Category = "Gimmick")
+	UPROPERTY(Replicated)
 	bool bIsEscapeDoor = true;
 	
 	UPROPERTY(Replicated)
@@ -59,17 +59,17 @@ public:
 	int32 SwitchID = 1;
 
 protected:
-	// true: 스위치를 켜면 플레이어가 상호작용 중(IsInteracting) 상태가 됨 (다른 상호작용 불가)
-	// false: 스위치를 켜도 플레이어 상태를 바꾸지 않음 (혼자서 4개 스위치 연속 조작 가능)
+	// true: 스위치를 켜도 플레이어 상태를 바꾸지 않음 (혼자서 4개 스위치 연속 조작 가능)
+	// false: 스위치를 켜면 플레이어가 상호작용 중(IsInteracting) 상태가 됨 (다른 상호작용 불가)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gimmick")
-	bool bToggleInteractionState = true; 
+	bool bMultiInteractionState = false; 
 	
 	// 램프/버튼의 활성화 상태
-	UPROPERTY(ReplicatedUsing = OnRep_IsActivated, VisibleAnywhere, BlueprintReadOnly, Category = "Gimmick")
+	UPROPERTY(ReplicatedUsing = OnRep_IsActivated)
 	bool bIsActivated = false;
 
 	// true일 경우 CanInteract가 항상 false를 반환
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Gimmick")
+	UPROPERTY()
 	bool bIsLocked = false;
 	
 	// 현재 이 스위치를 선점/조작한 플레이어 (서버 동기화)

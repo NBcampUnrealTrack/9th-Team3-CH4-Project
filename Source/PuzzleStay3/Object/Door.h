@@ -15,7 +15,12 @@ class PUZZLESTAY3_API ADoor : public AActor
 	
 public:	
 	ADoor();
-
+	
+protected:
+	virtual void BeginPlay() override;
+	virtual void Tick(float DeltaTime) override;
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	
 #pragma region Mesh Component & Settings
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
@@ -32,7 +37,7 @@ protected:
 	int32 DoorID = 1;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Door|Movement")
-	FVector TargetRelativeLocation = FVector(0.f, 0.f, 250.f);
+	FVector TargetRelativeLocation = FVector(0.f, 0.f, -250.f);
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Door|Movement")
 	float OpenSpeed = 2.0f;
@@ -74,11 +79,6 @@ protected:
 	void OnOpenDoor(bool bOpened);
 	
 #pragma endregion
-	
-protected:
-	virtual void BeginPlay() override;
-	virtual void Tick(float DeltaTime) override;
-	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 private:
 	FVector InitialRelativeLocation;
