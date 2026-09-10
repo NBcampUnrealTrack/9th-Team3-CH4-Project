@@ -120,6 +120,7 @@ private:
 	bool bSavedUseControllerRotationYaw = false;
 
 	void ApplyStage3Visibility();
+	FDelegateHandle Stage3VisibilityDelegateHandle;
 	TMap<int32, bool> Stage3VisibilityByTrapId;
 	FTimerHandle Stage3VisibilityTimerHandle;
 
@@ -130,6 +131,11 @@ private:
 	void RefreshVoiceStateBinding();
 	void RefreshLifeStateBinding();
 	UPS3ViewModel* GetPS3ViewModel() const;
+	
+	void HandleRandomVisibleResultsChanged(
+		APS3PlayerController* TargetController,
+		const TArray<int32>& TrapIds,
+		const TArray<bool>& Results);
 
 	UFUNCTION()
 	void HandleLifeCountChanged(int32 NewLifeCount);

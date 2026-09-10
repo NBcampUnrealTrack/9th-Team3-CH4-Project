@@ -4,7 +4,8 @@
 #include "Core/GameState/PS3GameStateS3.h"
 #include "GameFramework/GameStateBase.h"
 #include "Player/PlayerState/PS3PlayerState.h"
-
+#include "Component/FakeDeathTrapComponent.h"
+#include "Player/Controller/PS3PlayerController.h"
 
 void APS3GameModeS3::BeginPlay()
 {
@@ -146,12 +147,23 @@ void APS3GameModeS3::MakeRandomVisibleResults()
 
 void APS3GameModeS3::BroadcastRandomVisibleResults()
 {
+	TArray<int32> TrapIds;
+	TrapIds.Reserve(FakeDeathTrapComponents.Num());
+
+	for (const UFakeDeathTrapComponent* Trap : FakeDeathTrapComponents)
+	{
+		if (!IsValid(Trap)) return;
+		TrapIds.Add(Trap->GetTrapId());
+	}
+	
 	for (int32 i = 0; i < PlayerControllers.Num(); ++i)
 	{
-		APlayerController* PC = PlayerControllers[i];
-		if (!IsValid(PC) || !RandomVisibleResults.IsValidIndex(i)) continue;
+		APS3PlayerController* PC = Cast<APS3PlayerController>(PlayerControllers[i]);
+		if (!IsValid(PC)) continue;
+		if (!RandomVisibleResults.IsValidIndex(i)) continue;
+		if (RandomVisibleResults[i].Num() != TrapIds.Num()) continue;
 		
-		OnRandomVisibleResultsChanged.Broadcast(RandomVisibleResults[i], FakeDeathTrapComponents);
+		OnRandomVisibleResultsChanged.Broadcast(PC, TrapIds, RandomVisibleResults[i]);
 	}
 }
 
