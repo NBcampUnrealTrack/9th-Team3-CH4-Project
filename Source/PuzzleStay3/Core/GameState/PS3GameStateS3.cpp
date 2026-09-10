@@ -14,11 +14,11 @@ void APS3GameStateS3::BeginPlay()
 	InitializeToDataAssets();
 	
 	SetUIMacroTimerHandle(
-		0.01,
+		StageType_UI_DelayTime,
 		[this]() { PS3_BROADCAST_TO_MVVM_OneParams(OnStageType_UI, S3_GameRuleDataAsset->StageType_S3); });
 
 	SetUIMacroTimerHandle(
-		0.5,
+		TextNotify_UI_DelayTime,
 		[this]() { PS3_BROADCAST_TO_MVVM_OneParams(OnTextNotify_UI, EPS3TextNotifyType::Stage3); });
 }
 

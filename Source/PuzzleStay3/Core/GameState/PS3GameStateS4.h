@@ -17,10 +17,15 @@ class PUZZLESTAY3_API APS3GameStateS4 : public APS3GameStateBase
 
 public:
 	virtual void BeginPlay() override;
-	void InitializeToDataAssets();
-
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
+protected:
+	virtual void InitializeToDataAssets() override;
+
+	UPROPERTY(EditAnywhere, Category = "GameRule")
+	TObjectPtr<class US4_GameRuleDataAsset> S4_GameRuleDataAsset;
+
+public:
 	UFUNCTION(BlueprintPure)
 	float GetFixedObjectWeight() const { return FixedObjectWeight; }
 
@@ -32,9 +37,6 @@ public:
 
 	UPROPERTY(BlueprintAssignable)
 	FOnStage4WeightChanged OnStage4WeightChanged;
-	
-	UPROPERTY(EditAnywhere, Category = "GameRule")
-	TObjectPtr<class US4_GameRuleDataAsset> S4_GameRuleDataAsset;
 
 protected:
 	UPROPERTY(ReplicatedUsing = OnRep_Stage4Weights)
