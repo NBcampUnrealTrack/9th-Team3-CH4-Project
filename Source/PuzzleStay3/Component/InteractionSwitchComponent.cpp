@@ -15,7 +15,6 @@ void UInteractionSwitchComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// 서버 권한 및 등록 옵션 사전 검사 (Early Return)
 	if (!bRegisterToGameMode || !GetOwner() || !GetOwner()->HasAuthority())
 	{
 		return;
@@ -32,7 +31,6 @@ void UInteractionSwitchComponent::BeginPlay()
 
 void UInteractionSwitchComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-	// 액터/컴포넌트 파괴 시 GameMode에서 해제
 	if (GetOwner() && GetOwner()->HasAuthority())
 	{
 		GetWorld()->GetTimerManager().ClearTimer(AutoDisableTimerHandle);
@@ -60,18 +58,18 @@ void UInteractionSwitchComponent::GetLifetimeReplicatedProps(TArray<FLifetimePro
 	DOREPLIFETIME(UInteractionSwitchComponent, bIsInteractedGimmick);
 	DOREPLIFETIME(UInteractionSwitchComponent, bIsEscapeDoor);
 	DOREPLIFETIME(UInteractionSwitchComponent, InteractingActor);
+	DOREPLIFETIME(UInteractionSwitchComponent, bMultiInteractionState);
+	DOREPLIFETIME(UInteractionSwitchComponent, bIsOtherInteractionGimmick);
 }
 
 bool UInteractionSwitchComponent::CanInteract_Implementation(AActor* Requestor) const
 {
-	// 잠긴 스위치는 사용 불가
 	if (bIsLocked)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("[InteractionSwitch] 상호작용 실패: 완료되었거나 잠긴 스위치입니다."));
 		return false;
 	}
 
-	// bMultiInteractionState가 false일 때만(단일 점유 모드) 플레이어의 상호작용 중복 여부를 검사
 	if (!bMultiInteractionState)
 	{
 		if (const APS3PlayerCharacter* Character = Cast<APS3PlayerCharacter>(Requestor))
@@ -87,7 +85,6 @@ bool UInteractionSwitchComponent::CanInteract_Implementation(AActor* Requestor) 
 			}
 		}
 		
-		// 켜진 스위치를 건드리려 할 때: 오직 이 스위치를 킨 본인만 끄거나 재조작 가능 (타인 간섭 불가)
 		if (bIsActivated && InteractingActor != Requestor)
 		{
 			FString OwnerName = InteractingActor ? InteractingActor->GetName() : TEXT("다른 플레이어");
@@ -106,19 +103,18 @@ bool UInteractionSwitchComponent::Interact_Implementation(AActor* Requestor)
 bool UInteractionSwitchComponent::TryInteract(AActor* Requestor)
 {
 	if (bIsEscapeDoor == false) return false;
-
-	OnInteractionSuccessed.Broadcast(bIsInteractedGimmick);
-	bIsInteractedGimmick = true;
+	if (!CanInteract_Implementation(Requestor))	return false;
 	
-	if (!GetOwner() || !GetOwner()->HasAuthority())
+	OnInteractionSuccessed.Broadcast(bIsInteractedGimmick);
+	
+	if (bIsOtherInteractionGimmick)
 	{
-		return false;
+		OnCosmeticInteractionSuccessed.Broadcast();
+		return true;
 	}
-
-	if (!CanInteract_Implementation(Requestor))
-	{
-		return false;
-	}
+	
+	if (!GetOwner() || !GetOwner()->HasAuthority())	return false;
+	bIsInteractedGimmick = true;
 
 	APS3PlayerCharacter* Character = Cast<APS3PlayerCharacter>(Requestor);
 	APS3PlayerState* PS = Character ? Character->GetPlayerState<APS3PlayerState>() : nullptr;
@@ -127,7 +123,6 @@ bool UInteractionSwitchComponent::TryInteract(AActor* Requestor)
 
 	if (bIsActivated)
 	{
-		// 스위치 점유 처리
 		InteractingActor = Requestor;
 		if (!bMultiInteractionState && PS)
 		{
@@ -144,7 +139,6 @@ bool UInteractionSwitchComponent::TryInteract(AActor* Requestor)
 	}
 	else
 	{
-		// 스위치 해제 처리
 		if (!bMultiInteractionState && PS)
 		{
 			PS->SetInteractionState(EInteractionState::IsNotInteracting);
@@ -208,6 +202,5 @@ void UInteractionSwitchComponent::ResetSwitch()
 
 void UInteractionSwitchComponent::OnRep_IsActivated()
 {
-	// 스위치 상태 변경(True/False) 시 델리게이트 쏘기
 	OnSwitchActivatedChanged.Broadcast(bIsActivated);
 }
