@@ -5,6 +5,7 @@
 #include "Engine/GameInstance.h"
 #include "GameFramework/PlayerController.h"
 #include "Component/VoicePluginControlComponent.h"
+#include "Kismet/GameplayStatics.h"
 
 bool UPS3LobbySubsystem::Prepare(FName Operation, bool bRequireLogin)
 {
@@ -99,7 +100,22 @@ void UPS3LobbySubsystem::CreateLobby()
 void UPS3LobbySubsystem::HandleCreate(FName SessionName, bool bSuccess)
 {
 	Sessions->ClearOnCreateSessionCompleteDelegate_Handle(CreateHandle);
-	Complete(TEXT("CreateLobby"), bSuccess, bSuccess ? TEXT("Lobby created. Voice is controlled by PTT when ready.") : TEXT("Lobby creation failed."));
+	if (!bSuccess)
+	{
+		Complete(TEXT("CreateLobby"), false, TEXT("Lobby creation failed."));
+		return;
+	}
+
+	// 생성한 EOS 로비를 유지한 채 호스트의 대기방을 리슨 서버로 엽니다.
+	// UI에서는 생성 성공 이벤트를 받아 OpenLevel을 중복 호출하지 않습니다.
+	UGameplayStatics::OpenLevel(
+		this,
+		FName(TEXT("/Game/PuzzleStay3/Dev/Maps/EOS_WaitingRoom")),
+		true,
+		TEXT("listen"));
+
+	// 맵 로딩 및 서버 준비 완료가 아닌, 로비 생성과 이동 요청 완료입니다.
+	Complete(TEXT("CreateLobby"), true, TEXT("Lobby created. Opening waiting room as listen server..."));
 }
 
 void UPS3LobbySubsystem::FindLobbies()
@@ -159,16 +175,78 @@ void UPS3LobbySubsystem::JoinLobby(int32 ResultIndex)
 void UPS3LobbySubsystem::HandleJoin(FName SessionName, EOnJoinSessionCompleteResult::Type Result)
 {
 	Sessions->ClearOnJoinSessionCompleteDelegate_Handle(JoinHandle);
-	const bool bSuccess = Result == EOnJoinSessionCompleteResult::Success;
-	Complete(TEXT("JoinLobby"), bSuccess, bSuccess ? TEXT("Joined lobby. Voice is controlled by PTT when ready.") : TEXT("Lobby join failed."));
+
+	if (Result != EOnJoinSessionCompleteResult::Success)
+	{
+		Complete(
+			TEXT("JoinLobby"),
+			false,
+			TEXT("Lobby join failed."));
+		return;
+	}
+
+	FString ConnectString;
+	if (!Sessions->GetResolvedConnectString(SessionName, ConnectString)
+		|| ConnectString.IsEmpty())
+	{
+		Complete(
+			TEXT("JoinLobby"),
+			false,
+			TEXT("Server address unavailable. Leave the lobby and retry."));
+		return;
+	}
+
+	APlayerController* LocalController =
+		GetGameInstance()->GetFirstLocalPlayerController();
+
+	if (!IsValid(LocalController))
+	{
+		Complete(
+			TEXT("JoinLobby"),
+			false,
+			TEXT("Local controller unavailable. Leave the lobby and retry."));
+		return;
+	}
+
+	LocalController->ClientTravel(ConnectString, TRAVEL_Absolute);
+
+	Complete(
+		TEXT("JoinLobby"),
+		true,
+		TEXT("Joined lobby. Connecting to host..."));
 }
 
 bool UPS3LobbySubsystem::InitializeLocalVoice()
 {
-	// 채널 참가 전에 연결해야 EOS의 기본 상시 송신을 막을 수 있습니다.
-	if (!Identity.IsValid() || Identity->GetLoginStatus(0) != ELoginStatus::LoggedIn) return false;
-	APlayerController* PC = GetGameInstance()->GetFirstLocalPlayerController();
-	UVoicePluginControlComponent* Voice = IsValid(PC) ? PC->FindComponentByClass<UVoicePluginControlComponent>() : nullptr;
+	IOnlineSubsystem* EOS =
+		Online::GetSubsystem(GetWorld(), FName(TEXT("EOS")));
+
+	if (!EOS)
+	{
+		return false;
+	}
+
+	const IOnlineIdentityPtr CurrentIdentity =
+		EOS->GetIdentityInterface();
+
+	if (!CurrentIdentity.IsValid()
+		|| CurrentIdentity->GetLoginStatus(0) != ELoginStatus::LoggedIn)
+	{
+		return false;
+	}
+
+	APlayerController* LocalController =
+		GetGameInstance()->GetFirstLocalPlayerController();
+
+	if (!IsValid(LocalController))
+	{
+		return false;
+	}
+
+	UVoicePluginControlComponent* Voice =
+		LocalController->FindComponentByClass<
+			UVoicePluginControlComponent>();
+
 	return IsValid(Voice) && Voice->InitializeEOSVoice(0);
 }
 
