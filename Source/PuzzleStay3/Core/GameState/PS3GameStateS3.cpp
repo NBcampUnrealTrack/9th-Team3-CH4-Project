@@ -3,7 +3,17 @@
 
 #include "PS3GameStateS3.h"
 
+#include "Data/DataAsset/S3_GameRuleDataAsset.h"
+#include "Data/Delegates/UIDelegatesSubsystem.h"
 #include "Net/UnrealNetwork.h"
+
+void APS3GameStateS3::BeginPlay()
+{
+	Super::BeginPlay();
+	
+	SetUIMacroTimerHandle(
+		[this]() { PS3_BROADCAST_TO_MVVM_OneParams(OnStageType_UI, S3_GameRuleDataAsset->StageType_S3); });
+}
 
 void APS3GameStateS3::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
