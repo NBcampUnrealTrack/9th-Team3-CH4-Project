@@ -63,7 +63,7 @@ protected:
 
 	
 public:
-	bool bIsEscapeDoor = true;
+	bool bIsInteractionGimmick = true;
 	
 private:
 	void ErrorCheck_S5();
