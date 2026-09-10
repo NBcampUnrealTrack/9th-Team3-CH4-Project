@@ -35,7 +35,7 @@ protected:
 	void OnRep_EscapeDoorOpened();
 	
 	
-	void SetUIMacroTimerHandle(TFunction<void()> Callback);
+	void SetUIMacroTimerHandle(float Timer, TFunction<void()> Callback);
 	
 	
 };

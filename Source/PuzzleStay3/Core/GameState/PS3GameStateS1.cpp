@@ -19,11 +19,16 @@ void APS3GameStateS1::BeginPlay()
 	Super::BeginPlay();
 	
 	SetUIMacroTimerHandle(
-		[this]() { PS3_BROADCAST_TO_MVVM_OneParams(OnStageType_UI, S1_GameRuleDataAsset->StageType_S1); });
+		0.7,
+		[this]() { PS3_BROADCAST_TO_MVVM_OneParams(OnTutorial_UI,true); });
 	
 	SetUIMacroTimerHandle(
-		[this]() {PS3_BROADCAST_TO_MVVM_OneParams(OnTextNotify_UI, EPS3TextNotifyType::Stage1);});
-	
+		0.01,
+		[this]() { PS3_BROADCAST_TO_MVVM_OneParams(OnStageType_UI, S1_GameRuleDataAsset->StageType_S1); });
+
+	SetUIMacroTimerHandle(
+		0.5,
+		[this]() { PS3_BROADCAST_TO_MVVM_OneParams(OnTextNotify_UI, EPS3TextNotifyType::Stage1); });
 }
 
 void APS3GameStateS1::SetStage1BlockingVolumeDisabled(bool bDisabled)

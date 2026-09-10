@@ -33,14 +33,14 @@ void APS3GameStateBase::OnRep_EscapeDoorOpened()
 	OnEscapeDoorOpened.Broadcast(bEscapeDoorOpened);
 }
 
-void APS3GameStateBase::SetUIMacroTimerHandle(TFunction<void()> Callback)
+void APS3GameStateBase::SetUIMacroTimerHandle(float Timer, TFunction<void()> Callback)
 {
 	FTimerHandle TimerHandle;
 	
 	GetWorldTimerManager().SetTimer(
 		TimerHandle,
 		FTimerDelegate::CreateLambda([Callback](){ Callback(); }),
-		0.5f,
+		Timer,
 		false
 	);
 }
