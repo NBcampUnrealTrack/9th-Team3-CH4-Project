@@ -14,6 +14,20 @@ void APS3GameModeS2::BeginPlay()
 
 	MakeRandomCollisionResults();
 	
+	//로그용 시작
+	FString ResultString;
+	for (int32 i = 0; i < RandomCollisionLayoutResults.Num(); ++i)
+	{
+		if (i > 0)
+		{
+			ResultString += TEXT(", ");
+		}
+
+		ResultString += RandomCollisionLayoutResults[i] ? TEXT("True") : TEXT("False");
+	}
+
+	UE_LOG(LogTemp, Warning, TEXT("GetRandomCollisionLayoutResults: [%s]"), *ResultString);
+	//로그 끝
 }
 
 void APS3GameModeS2::PostLogin(APlayerController* NewPlayer)
@@ -97,19 +111,5 @@ void APS3GameModeS2::UnregisterRandomCollisionTrapCompo(URandomCollisionTrapComp
 
 TArray<bool> APS3GameModeS2::GetRandomCollisionLayoutResults()
 {
-//로그용 시작
-	FString ResultString;
-	for (int32 i = 0; i < RandomCollisionLayoutResults.Num(); ++i)
-	{
-		if (i > 0)
-		{
-			ResultString += TEXT(", ");
-		}
-
-		ResultString += RandomCollisionLayoutResults[i] ? TEXT("True") : TEXT("False");
-	}
-
-	UE_LOG(LogTemp, Warning, TEXT("GetRandomCollisionLayoutResults: [%s]"), *ResultString);
-	//로그 끝
 	return RandomCollisionLayoutResults;
 }
