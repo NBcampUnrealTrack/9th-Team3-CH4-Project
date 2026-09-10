@@ -16,6 +16,8 @@ class PUZZLESTAY3_API APS3GameStateS3 : public APS3GameStateBase
 
 	//BlockingVolume
 public:
+	virtual void BeginPlay() override;
+	
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	UFUNCTION(BlueprintPure)
@@ -27,6 +29,9 @@ public:
 	UPROPERTY(BlueprintAssignable)
 	FOnStage3BlockingVolumeDisabled OnStage3BlockingVolumeDisabled;
 
+	UPROPERTY(EditAnywhere, Category = "GameRule")
+	TObjectPtr<class US3_GameRuleDataAsset> S3_GameRuleDataAsset;
+	
 protected:
 	UPROPERTY(ReplicatedUsing = OnRep_Stage3BlockingVolumeDisabled)
 	bool bStage3BlockingVolumeDisabled = false;

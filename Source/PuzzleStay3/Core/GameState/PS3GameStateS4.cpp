@@ -3,8 +3,23 @@
 
 #include "PS3GameStateS4.h"
 
+#include "Data/DataAsset/S4_GameRuleDataAsset.h"
+#include "Data/Delegates/UIDelegatesSubsystem.h"
 #include "Net/UnrealNetwork.h"
 
+
+void APS3GameStateS4::BeginPlay()
+{
+	Super::BeginPlay();
+	
+	SetUIMacroTimerHandle(
+	0.01,
+	[this]() { PS3_BROADCAST_TO_MVVM_OneParams(OnStageType_UI, S4_GameRuleDataAsset->StageType_S4); });
+	
+	SetUIMacroTimerHandle(
+	0.5,
+	[this]() {PS3_BROADCAST_TO_MVVM_OneParams(OnTextNotify_UI, EPS3TextNotifyType::Stage4);});
+}
 
 void APS3GameStateS4::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
