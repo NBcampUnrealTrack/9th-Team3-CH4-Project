@@ -9,8 +9,6 @@
 APS3GameStateS5::APS3GameStateS5()
 {
 	bReplicates = true;
-	
-	
 }
 
 
@@ -21,6 +19,7 @@ void APS3GameStateS5::BeginPlay()
 	InitializeToDataAssets();
 	
 	PS3_BROADCAST_TO_MVVM_OneParams(OnStageType_UI, S5_GameRuleDataAsset->StageType_S5);
+	
 	PS3_BROADCAST_TO_MVVM_OneParams(OnVoiceChatIcon_UI, true);
 }
 
@@ -105,7 +104,8 @@ void APS3GameStateS5::OnRep_IsGameOver()
 
 void APS3GameStateS5::OnRep_GameLimitTime()
 {
-	PS3_BROADCAST_TO_MVVM_TwoParams(OnGameTimer_UI, S5_GameRuleDataAsset->GameStartTimerUIType, S5_GameRuleDataAsset->MaxGameLimitTime);
+	
+	PS3_BROADCAST_TO_MVVM_TwoParams(OnGameTimer_UI, S5_GameRuleDataAsset->GameStartTimerUIType, GameLimitTime);
 	UE_LOG(LogTemp, Error, TEXT("(UI표시 업데이트 예정) 남은 제한시간: %f"), GameLimitTime);
 }
 
