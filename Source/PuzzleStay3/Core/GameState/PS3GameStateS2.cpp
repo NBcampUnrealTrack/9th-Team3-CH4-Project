@@ -18,10 +18,11 @@ void APS3GameStateS2::BeginPlay()
 
 	SetUIMacroTimerHandle(
 		TextNotify_UI_DelayTime,
-		[this]() { PS3_BROADCAST_TO_MVVM_OneParams(OnTextNotify_UI, EPS3TextNotifyType::Stage2); });
+		[this]() { PS3_BROADCAST_TO_MVVM_OneParams(OnTextNotify_UI, S2_GameRuleDataAsset->TextNotifyTypeForUI_S2); });
 }
 
 void APS3GameStateS2::InitializeToDataAssets()
 {
 	checkf(IsValid(S2_GameRuleDataAsset) == true, TEXT("[APS3GameModeS2]의 데이터에셋이 비어있습니다."));
+	
 }

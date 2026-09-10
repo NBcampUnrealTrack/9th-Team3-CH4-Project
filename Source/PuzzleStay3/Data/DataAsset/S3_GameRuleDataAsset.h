@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Data/Enum/PS3StageType.h"
+#include "Data/Enum/PS3TextNotifyType.h"
 #include "Engine/DataAsset.h"
 #include "S3_GameRuleDataAsset.generated.h"
 
@@ -18,6 +19,9 @@ class PUZZLESTAY3_API US3_GameRuleDataAsset : public UDataAsset
 public:	
 	UPROPERTY(EditAnywhere, Category = "GameRule")
 	EPS3StageType StageType_S3 = EPS3StageType::Stage3;
+	
+	UPROPERTY(EditAnywhere, Category = "GameRule")
+	EPS3TextNotifyType TextNotifyTypeForUI_S3 = EPS3TextNotifyType::Stage3;
 	
 	UPROPERTY(EditAnywhere, Category = "GameRule")
 	TSoftObjectPtr<UWorld> NextStageLevel;
