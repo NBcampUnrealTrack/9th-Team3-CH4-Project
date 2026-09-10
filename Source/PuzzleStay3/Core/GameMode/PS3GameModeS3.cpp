@@ -16,8 +16,7 @@ void APS3GameModeS3::BeginPlay()
 	
 	CheckVoiceObjectHeldPlayerCount();
 	
-	MaxPlayer = S3_GameRuleDataAsset->MaxPlayer;
-	MaxFakeDeathTrap = S3_GameRuleDataAsset->MaxFakeDeathTrap;
+	InitializeToDataAssets();
 }
 
 void APS3GameModeS3::PostLogin(APlayerController* NewPlayer)
@@ -44,6 +43,18 @@ void APS3GameModeS3::NotifyVoiceObjectHeldStateChanged()
 	if (!HasAuthority()) return;
 	
 	CheckVoiceObjectHeldPlayerCount();
+}
+
+void APS3GameModeS3::InitializeToDataAssets()
+{
+	Super::InitializeToDataAssets();
+	
+	if(IsValid(S3_GameRuleDataAsset) == false) return;
+	if (S3_GameRuleDataAsset->NextStageLevel.IsNull()) return;
+	
+	NextStageLevelPath = S3_GameRuleDataAsset->NextStageLevel.ToSoftObjectPath().GetLongPackageName();
+	MaxPlayer = S3_GameRuleDataAsset->MaxPlayer;
+	MaxFakeDeathTrap = S3_GameRuleDataAsset->MaxFakeDeathTrap;
 }
 
 //플레이어스테이트에 bool IsVoiceObjectHeld = false; 변수 선언 후 setter로 변수 값 제어

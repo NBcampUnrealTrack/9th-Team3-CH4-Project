@@ -21,21 +21,23 @@ void APS3GameStateS1::BeginPlay()
 	InitializeToDataAssets();
 		
 	SetUIMacroTimerHandle(
-		0.1,
+		StageType_UI_DelayTime,
 		[this]() { PS3_BROADCAST_TO_MVVM_OneParams(OnStageType_UI, S1_GameRuleDataAsset->StageType_S1); });
 	
 	SetUIMacroTimerHandle(
-		0.5,
+		TextNotify_UI_DelayTime,
 		[this]() { PS3_BROADCAST_TO_MVVM_OneParams(OnTextNotify_UI, EPS3TextNotifyType::Stage1); });
 	
 	SetUIMacroTimerHandle(
-		0.7,
+		Tutorial_UI_DelayTime,
 		[this]() { PS3_BROADCAST_TO_MVVM_OneParams(OnTutorial_UI,true); });
 }
 
 void APS3GameStateS1::InitializeToDataAssets()
 {
 	checkf(IsValid(S1_GameRuleDataAsset) == true, TEXT("[APS3GameModeS1]의 데이터에셋이 비어있습니다."));
+	
+	Tutorial_UI_DelayTime = S1_GameRuleDataAsset->Tutorial_UI_DelayTime;
 }
 
 void APS3GameStateS1::SetStage1BlockingVolumeDisabled(bool bDisabled)

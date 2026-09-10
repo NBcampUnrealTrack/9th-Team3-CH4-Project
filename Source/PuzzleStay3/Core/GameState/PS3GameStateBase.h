@@ -18,6 +18,13 @@ public:
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
+protected:
+	virtual void InitializeToDataAssets();
+	
+	UPROPERTY(EditAnywhere, Category = "GameRule")
+	TObjectPtr<class UBase_GameRuleDataAsset> Base_GameRuleDataAsset;
+	
+public:
 	UFUNCTION(BlueprintPure)
 	bool IsEscapeDoorOpened() const { return bEscapeDoorOpened; }
 
@@ -36,6 +43,8 @@ protected:
 	
 	
 	void SetUIMacroTimerHandle(float Timer, TFunction<void()> Callback);
-	
-	
+
+protected:
+	float StageType_UI_DelayTime;
+	float TextNotify_UI_DelayTime;
 };

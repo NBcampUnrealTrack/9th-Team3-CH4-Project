@@ -20,6 +20,9 @@ public:
 	EPS3StageType StageType_S3 = EPS3StageType::Stage3;
 	
 	UPROPERTY(EditAnywhere, Category = "GameRule")
+	TSoftObjectPtr<UWorld> NextStageLevel;
+	
+	UPROPERTY(EditAnywhere, Category = "GameRule")
 	int32 MaxPlayer = 2;
 	
 	UPROPERTY(EditAnywhere, Category = "GameRule")

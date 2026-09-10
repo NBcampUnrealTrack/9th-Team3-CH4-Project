@@ -36,7 +36,6 @@ void ULifeCountWidget::UpdateLifeCount(int32 InCurrentLifeCount, int32 InMaxLife
 	}
 
 	RefreshHearts(InCurrentLifeCount);
-	ShowLifeCount();
 }
 
 void ULifeCountWidget::RebuildHearts(int32 MaxLife)

@@ -18,8 +18,15 @@ class PUZZLESTAY3_API APS3GameModeS1 : public APS3GameModeBase
 	GENERATED_BODY()
 
 public:
+	APS3GameModeS1();
+	
+	virtual void BeginPlay() override;
+	
 	virtual void DisableBlockingVolume(EPS3StageNumber StageNumber) override;
 
-private:
-	bool bInteractionSwitchTimerUsed = true;
+protected:
+	virtual void InitializeToDataAssets() override;
+	
+	UPROPERTY(EditAnywhere, Category = "GameRule")
+	TObjectPtr<class US1_GameRuleDataAsset> S1_GameRuleDataAsset;
 };
