@@ -6,10 +6,16 @@ US5_InteractionGimmickComponent::US5_InteractionGimmickComponent()
 
 }
 
-
-void US5_InteractionGimmickComponent::BeginPlay()
+bool US5_InteractionGimmickComponent::CanInteract_Implementation(AActor* Requestor) const
 {
-	Super::BeginPlay();
+	return IPS3InteractableInterface::CanInteract_Implementation(Requestor);
 }
+
+bool US5_InteractionGimmickComponent::Interact_Implementation(AActor* Requestor)
+{
+	return IPS3InteractableInterface::Interact_Implementation(Requestor);
+	
+}
+
 
 
