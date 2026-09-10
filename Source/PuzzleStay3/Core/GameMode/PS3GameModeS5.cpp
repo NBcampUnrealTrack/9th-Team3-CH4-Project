@@ -73,6 +73,7 @@ void APS3GameModeS5::InitializeGimmick()
 	UnResistEscapeGimmick();
 	RandomShuffleFakeGimmick();
 	BindInteractionGimmick();
+	ResistEscapeGimmick();
 	
 	UE_LOG(LogTemp, Warning, TEXT("활성화 해야 할 스크린플레이어 스폰 조건 %d개"), TargetCountForSpawnScreenPlayer);
 }
@@ -145,7 +146,7 @@ void APS3GameModeS5::RandomShuffleFakeGimmick()
 			
 			
 			FString TagName = TargetGimmick->Tags.Num() > 0 ? TargetGimmick->Tags[0].ToString() : TEXT("NoTag");
-			UE_LOG(LogTemp, Warning, TEXT("[InteractionGimmick] %d개 중 FakeGimmick은 %s"),InteractionGimmickCount, *TagName);
+			UE_LOG(LogTemp, Warning, TEXT("\n[페이크 기믹] -> %s"), *TagName);
 		}
 		
 		if (CurrentFakeGimmickCount >= TargetFakeGimmickCount) return;
@@ -172,19 +173,16 @@ void APS3GameModeS5::BindInteractionGimmick()
 		
 		auto* TimeDeductionComp = TargetGimmick->FindComponentByClass<UOverlapVolumeTimeDeductionComponent>();
 		
-		if (IsValid(TimeDeductionComp) == true)
-		{
-			if (InteractionSwitchComp->bIsEscapeDoor == true && TimeDeductionComp->bIsInteractionGimmick == true)
-			{
-				InteractionSwitchComp->bMultiInteractionState = true;
-				InteractionSwitchComp->bIsOtherInteractionGimmick = true;
-				InteractionSwitchComp->OnInteractionSuccessed.AddUObject(this, &ThisClass::OnInteractedGimmick);
-			}
-		}
+		if (IsValid(TimeDeductionComp) == false) continue;
 		
-		else if (IsValid(TimeDeductionComp) == false && InteractionSwitchComp->bIsEscapeDoor == true)
+		if (InteractionSwitchComp->bIsEscapeDoor == true && TimeDeductionComp->bIsInteractionGimmick == true)
 		{
-			--TargetCountForSpawnScreenPlayer;
+			InteractionSwitchComp->bMultiInteractionState = true;
+			InteractionSwitchComp->bIsOtherInteractionGimmick = true;
+			InteractionSwitchComp->OnInteractionSuccessed.AddUObject(this, &ThisClass::OnInteractedGimmick);
+			
+			FString TagName = TargetGimmick->Tags.Num() > 0 ? TargetGimmick->Tags[0].ToString() : TEXT("NoTag");
+			UE_LOG(LogTemp, Warning, TEXT("\n[인터렉션 기믹] -> %s "), *TagName);
 		}
 	}
 }
@@ -201,14 +199,19 @@ void APS3GameModeS5::ResistEscapeGimmick()
 		auto* InteractionSwitchComp = TargetGimmick->FindComponentByClass<UInteractionSwitchComponent>();
 		if (IsValid(InteractionSwitchComp) == false) continue;
 		
-		if (InteractionSwitchComp->bIsEscapeDoor == true)
+		auto* TimeDeductComp = TargetGimmick->FindComponentByClass<UOverlapVolumeTimeDeductionComponent>();
+		
+		if (IsValid(TimeDeductComp) ==false && InteractionSwitchComp->bIsEscapeDoor == true)
 		{
 			InteractionSwitchComp->bMultiInteractionState = false;
 			InteractionSwitchComp->bIsOtherInteractionGimmick = false;
+			
 			RegisterInteractionSwitch(InteractionSwitchComp);
 			
+			--TargetCountForSpawnScreenPlayer;
+			
 			FString TagName = TargetGimmick->Tags.Num() > 0 ? TargetGimmick->Tags[0].ToString() : TEXT("NoTag");
-			UE_LOG(LogTemp, Warning, TEXT("탈출문 기믹 %s "), *TagName);
+			UE_LOG(LogTemp, Warning, TEXT("\n[탈출문 기믹] -> %s "), *TagName);
 		}
 	}
 }
@@ -231,7 +234,7 @@ void APS3GameModeS5::OnInteractedGimmick(bool bIsInteractedGimmick)
 	
 	if (ActivatedInteractionGimmickCount >= TargetCountForSpawnScreenPlayer && bIsScreenPlayerAlreadySpawned == false)
 	{
-		ResistEscapeGimmick();
+		
 		
 		TArray<APS3ScreenPlayerController*> TargetController;
 		
