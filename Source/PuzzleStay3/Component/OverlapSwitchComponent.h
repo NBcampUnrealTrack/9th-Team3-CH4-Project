@@ -18,20 +18,19 @@ protected:
 	virtual void BeginPlay() override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
-	//서버/클라이언트 동기화 변수
 	UPROPERTY(ReplicatedUsing=OnRep_IsOverlapped, VisibleAnywhere, BlueprintReadOnly, Category = "Gimmick|State")
 	bool bIsOverlapped = false;
 	
 public:		
-	//외부(GimmickBase 등)에서 바인딩할 델리게이트
 	FOnOverlapStateChanged OnOverlapStateChanged;
 	
-	// GameMode의 AllOverlapSwitchActivated() 등에서 사용할 Getter
 	UFUNCTION(BlueprintCallable, Category = "Gimmick")
 	bool IsOverlapped() const { return bIsOverlapped; }
 	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gimmick|Settings")
+	int32 SwitchID = 1;
+	
 protected:
-	// C++ 전용 Overlap 콜백 함수 (언리얼 델리게이트 시그니처에 맞춤)
 	UFUNCTION()
 	void OnOwnerBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 

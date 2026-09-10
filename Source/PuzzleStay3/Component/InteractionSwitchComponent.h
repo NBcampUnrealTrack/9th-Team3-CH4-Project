@@ -55,7 +55,6 @@ public:
 	UPROPERTY(Replicated)
 	bool bIsInteractedGimmick = false;
 	
-	// DoorID와 일치하는 문과 자동으로 직통 연동되는 스위치 ID
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gimmick|Settings")
 	int32 SwitchID = 1;
 
