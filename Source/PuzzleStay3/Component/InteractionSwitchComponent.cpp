@@ -57,6 +57,8 @@ void UInteractionSwitchComponent::GetLifetimeReplicatedProps(TArray<FLifetimePro
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(UInteractionSwitchComponent, bIsActivated);
+	DOREPLIFETIME(UInteractionSwitchComponent, bIsInteractedGimmick);
+	DOREPLIFETIME(UInteractionSwitchComponent, bIsEscapeDoor);
 }
 
 bool UInteractionSwitchComponent::CanInteract_Implementation(AActor* Requestor) const
@@ -105,6 +107,9 @@ bool UInteractionSwitchComponent::TryInteract(AActor* Requestor)
 {
 	if (bIsEscapeDoor == false) return false;
 
+	OnInteractionSuccessed.Broadcast(bIsInteractedGimmick);
+	bIsInteractedGimmick = true;
+	
 	if (!GetOwner() || !GetOwner()->HasAuthority())
 	{
 		return false;
@@ -152,7 +157,7 @@ bool UInteractionSwitchComponent::TryInteract(AActor* Requestor)
 		       *Requestor->GetName(), *GetOwner()->GetName());
 	}
 	OnRep_IsActivated();
-	OnInteractionSuccessed.Broadcast();
+	OnCosmeticInteractionSuccessed.Broadcast();
 
 	return true;
 }

@@ -6,7 +6,8 @@
 #include "InteractionSwitchComponent.generated.h"
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnSwitchActivatedChanged, bool);
-DECLARE_MULTICAST_DELEGATE(FOnInteractionSuccessed);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnInteractionSuccessed, bool);
+DECLARE_MULTICAST_DELEGATE(FOnCosmeticInteractionSuccessed);
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class PUZZLESTAY3_API UInteractionSwitchComponent : public UActorComponent, public IPS3InteractableInterface
@@ -27,6 +28,7 @@ protected:
 public:
 	FOnSwitchActivatedChanged OnSwitchActivatedChanged;
 	FOnInteractionSuccessed OnInteractionSuccessed;
+	FOnCosmeticInteractionSuccessed OnCosmeticInteractionSuccessed;
 
 	// GameMode의 AllInteractionSwitchActivated()에서 사용되는 Getter
 	UFUNCTION(BlueprintCallable, Category = "Gimmick")
@@ -47,8 +49,15 @@ public:
 	// 현재 스위치를 켠 주체 Getter
 	AActor* GetInteractingActor() const { return InteractingActor; }
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Gimmick")
+	UPROPERTY(EditAnywhere, Replicated, BlueprintReadOnly, Category = "Gimmick")
 	bool bIsEscapeDoor = true;
+	
+	UPROPERTY(Replicated)
+	bool bIsInteractedGimmick = false;
+	
+	// DoorID와 일치하는 문과 자동으로 직통 연동되는 스위치 ID
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gimmick|Settings")
+	int32 SwitchID = 1;
 
 protected:
 	// true: 스위치를 켜면 플레이어가 상호작용 중(IsInteracting) 상태가 됨 (다른 상호작용 불가)
