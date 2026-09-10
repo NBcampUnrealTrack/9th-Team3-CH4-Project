@@ -13,6 +13,7 @@
 #include "Component/CustomVoiceComponent.h"
 #include "Component/VoicePluginControlComponent.h"
 #include "Player/PlayerState/PS3PlayerState.h"
+#include "Player/Online/PS3LobbySubsystem.h"
 #include "TimerManager.h"
 #include "Core/GameMode/PS3GameModeS3.h"
 #include "UI/HUD/PlayerHUD.h"
@@ -60,6 +61,8 @@ void APS3PlayerController::BeginPlay()
 
 	if (IsLocalController())
 	{
+		StartVoiceRestore();
+
 		GetWorldTimerManager().SetTimer(
 			LifeUIInitializationTimerHandle,
 			this,
@@ -75,6 +78,7 @@ void APS3PlayerController::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	EndJeoulCutscene();
 	GetWorldTimerManager().ClearTimer(Stage3VisibilityTimerHandle);
 	GetWorldTimerManager().ClearTimer(LifeUIInitializationTimerHandle);
+	GetWorldTimerManager().ClearTimer(VoiceRestoreTimerHandle);
 
 	if (IsValid(BoundLifePlayerState))
 	{
@@ -155,7 +159,57 @@ void APS3PlayerController::ReceivedPlayer()
 	ConfigureLocalInput();
 	RefreshVoiceStateBinding();
 	RefreshLifeStateBinding();
+	StartVoiceRestore();
+}
 
+void APS3PlayerController::StartVoiceRestore()
+{
+	if (!IsLocalController() || !IsValid(GetWorld())) return;
+
+	VoiceRestoreAttemptCount = 0;
+	GetWorldTimerManager().ClearTimer(VoiceRestoreTimerHandle);
+	TryRestoreLobbyVoice();
+
+	if (!IsValid(VoicePluginControlComponent) || !VoicePluginControlComponent->IsVoiceReady())
+	{
+		GetWorldTimerManager().SetTimer(
+			VoiceRestoreTimerHandle,
+			this,
+			&ThisClass::TryRestoreLobbyVoice,
+			VoiceRestoreRetryInterval,
+			true);
+	}
+}
+
+void APS3PlayerController::TryRestoreLobbyVoice()
+{
+	if (!IsLocalController() || !IsValid(VoicePluginControlComponent))
+	{
+		GetWorldTimerManager().ClearTimer(VoiceRestoreTimerHandle);
+		return;
+	}
+
+	++VoiceRestoreAttemptCount;
+	if (UGameInstance* GameInstance = GetGameInstance())
+	{
+		if (UPS3LobbySubsystem* LobbySubsystem = GameInstance->GetSubsystem<UPS3LobbySubsystem>())
+		{
+			LobbySubsystem->InitializeLocalVoice();
+		}
+	}
+
+	if (VoicePluginControlComponent->IsVoiceReady())
+	{
+		GetWorldTimerManager().ClearTimer(VoiceRestoreTimerHandle);
+		UE_LOG(LogTemp, Log, TEXT("EOS lobby voice restored after map travel."));
+		return;
+	}
+
+	if (VoiceRestoreAttemptCount >= MaxVoiceRestoreAttempts)
+	{
+		GetWorldTimerManager().ClearTimer(VoiceRestoreTimerHandle);
+		UE_LOG(LogTemp, Warning, TEXT("EOS lobby voice restore timed out after %d attempts."), VoiceRestoreAttemptCount);
+	}
 }
 
 void APS3PlayerController::OnRep_PlayerState()

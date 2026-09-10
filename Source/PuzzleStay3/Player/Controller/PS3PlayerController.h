@@ -94,6 +94,13 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PS3|Player Controller|UI", meta = (ClampMin = "1"))
 	int32 MaxLifeCountForUI = 4;
+
+	// 맵 이동으로 Controller가 다시 생성됐을 때 EOS 로비 음성을 다시 연결합니다.
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PS3|Player Controller|Voice", meta = (ClampMin = "0.1"))
+	float VoiceRestoreRetryInterval = 0.5f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PS3|Player Controller|Voice", meta = (ClampMin = "1"))
+	int32 MaxVoiceRestoreAttempts = 20;
 	
 	UFUNCTION(BlueprintCallable, Category = "PS3|Player Controller|Voice")
 	bool InitializeVoiceSystem(int32 LocalUserNum = 0);
@@ -144,8 +151,13 @@ private:
 	TObjectPtr<APS3PlayerState> BoundLifePlayerState;
 
 	FTimerHandle LifeUIInitializationTimerHandle;
+	FTimerHandle VoiceRestoreTimerHandle;
+	int32 VoiceRestoreAttemptCount = 0;
 
 	bool bLocalInputConfigured = false;
+
+	void StartVoiceRestore();
+	void TryRestoreLobbyVoice();
 
 	void HandleMoveInput(const FInputActionValue& InValue);
 	void HandleLookInput(const FInputActionValue& InValue);

@@ -110,7 +110,7 @@ void UPS3LobbySubsystem::HandleCreate(FName SessionName, bool bSuccess)
 	// UI에서는 생성 성공 이벤트를 받아 OpenLevel을 중복 호출하지 않습니다.
 	UGameplayStatics::OpenLevel(
 		this,
-		FName(TEXT("/Game/PuzzleStay3/Junhyun/WaitingRoom")),
+		FName(TEXT("/Game/PuzzleStay3/Dev/Maps/EOS_WaitingRoom")),
 		true,
 		TEXT("listen"));
 
