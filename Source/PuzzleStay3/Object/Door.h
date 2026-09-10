@@ -5,6 +5,9 @@
 #include "Data/Enum/DoorType.h"
 #include "Door.generated.h"
 
+class UOverlapSwitchComponent;
+class UInteractionSwitchComponent;
+
 UCLASS()
 class PUZZLESTAY3_API ADoor : public AActor
 {
@@ -12,7 +15,12 @@ class PUZZLESTAY3_API ADoor : public AActor
 	
 public:	
 	ADoor();
-
+	
+protected:
+	virtual void BeginPlay() override;
+	virtual void Tick(float DeltaTime) override;
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	
 #pragma region Mesh Component & Settings
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
@@ -21,33 +29,40 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<UStaticMeshComponent> DoorMesh;
 	
-	// 문 타입 선택 (에디터 디테일 창에서 설정)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Door|Settings")
 	EDoorType DoorType = EDoorType::StageAllFinalDoor;
 	
-	// Stage 1 등 ID 식별이 필요한 문 번호 (에디터 디테일 창에서 설정)
+	// 문 식별 ID (스위치의 SwitchID와 동일한 것만 연동)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Door|Settings")
 	int32 DoorID = 1;
 	
-	// 문이 열릴 때 이동할 상대 위치 (에디터에서 설정)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Door|Movement")
-	FVector TargetRelativeLocation = FVector(0.f, 0.f, 250.f);
+	FVector TargetRelativeLocation = FVector(0.f, 0.f, -250.f);
 	
-	// 문 열림 속도
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Door|Movement")
-	float OpenSpeed = 1.0f;
+	float OpenSpeed = 2.0f;
 	
 #pragma endregion 
 	
-#pragma region Direct Test Binding (테스트 전용)
+#pragma region ID-Based Direct Binding
 protected:
-	// TODO: [테스트용] GameState/GameMode 없이 직접 발판 액터와 연결할 때 사용 (나중에 미사용 시 주석 처리)
-	UPROPERTY(EditInstanceOnly, BlueprintReadWrite, Category = "Door|TestBinding")
-	TObjectPtr<AActor> TargetPressurePlateActor;
+	// 월드 내 SwitchID가 내 DoorID와 일치하는 모든 스위치 탐색 및 자동 바인딩
+	void BindSwitchesByID();
 
-	// TODO: [테스트용] 직통 발판 오버랩 수신 콜백 (나중에 미사용 시 주석 처리)
+	// 연결된 스위치들의 활성화 상태를 검사하여 문 열림/닫힘 판단
+	void EvaluateDoorState();
+
 	UFUNCTION()
-	void OnDirectOverlapStateChanged(bool bIsOverlapped);
+	void OnLinkedSwitchStateChanged(bool bIsActivated);
+
+private:
+	// 내 DoorID와 매칭된 오버랩 스위치 컴포넌트 목록
+	UPROPERTY()
+	TArray<TObjectPtr<UOverlapSwitchComponent>> LinkedOverlapSwitches;
+
+	// 내 DoorID와 매칭된 인터렉션 스위치 컴포넌트 목록
+	UPROPERTY()
+	TArray<TObjectPtr<UInteractionSwitchComponent>> LinkedInteractionSwitches;
 	
 #pragma endregion
 	
@@ -62,17 +77,8 @@ protected:
 	// 단일 bool 전달형 문 열림 콜백 (최종 탈출문, Stage4 등)
 	UFUNCTION()
 	void OnOpenDoor(bool bOpened);
-
-	// ID 식별형 문 열림 콜백 (Stage 1 등)
-	UFUNCTION()
-	void OnStage1DoorStateChanged(int32 InDoorID, bool bOpened);
 	
 #pragma endregion
-	
-protected:
-	virtual void BeginPlay() override;
-	virtual void Tick(float DeltaTime) override;
-	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 private:
 	FVector InitialRelativeLocation;

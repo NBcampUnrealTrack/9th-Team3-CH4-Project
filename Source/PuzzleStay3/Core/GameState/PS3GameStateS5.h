@@ -63,6 +63,7 @@ protected:
 	void OnRep_GameLimitTime();
 	void SetDeductGameLimitTime_AuthorityOnRep(float TimeToDeducted);
 	
+	
 	UFUNCTION(NetMulticast, Reliable)
 	void NetMultiRPC_OnScreenPlayerUI_Hide();
 	
