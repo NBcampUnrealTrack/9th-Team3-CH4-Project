@@ -23,9 +23,11 @@ public:
 	virtual bool Interact_Implementation(AActor* Requestor) override;
 	
 	UPROPERTY(Replicated)
-	bool bIsEscapeDoor = false;
+	bool bIsInteractionGimmick = false;
+	
 	UPROPERTY(Replicated)
 	bool bIsInteractedGimmick = false;
+	
 	
 	FOnInteractedGimmick OnInteractedGimmick;
 };

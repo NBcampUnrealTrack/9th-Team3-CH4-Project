@@ -14,8 +14,8 @@ void US5_InteractionGimmickComponent::GetLifetimeReplicatedProps(
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	
+	DOREPLIFETIME(ThisClass, bIsInteractionGimmick);
 	DOREPLIFETIME(ThisClass, bIsInteractedGimmick);
-	DOREPLIFETIME(ThisClass, bIsEscapeDoor);
 }
 
 
@@ -27,7 +27,7 @@ bool US5_InteractionGimmickComponent::CanInteract_Implementation(AActor* Request
 
 bool US5_InteractionGimmickComponent::Interact_Implementation(AActor* Requestor)
 {
-	if (bIsEscapeDoor == false) return false;
+	if (bIsInteractionGimmick == false) return false;
 	if (!CanInteract_Implementation(Requestor))	return false;
 	
 	OnInteractedGimmick.Broadcast(bIsInteractedGimmick);
