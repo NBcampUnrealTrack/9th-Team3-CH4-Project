@@ -12,6 +12,8 @@ void APS3GameStateS4::BeginPlay()
 {
 	Super::BeginPlay();
 	
+	InitializeToDataAssets();
+	
 	SetUIMacroTimerHandle(
 	0.01,
 	[this]() { PS3_BROADCAST_TO_MVVM_OneParams(OnStageType_UI, S4_GameRuleDataAsset->StageType_S4); });
@@ -19,6 +21,11 @@ void APS3GameStateS4::BeginPlay()
 	SetUIMacroTimerHandle(
 	0.5,
 	[this]() {PS3_BROADCAST_TO_MVVM_OneParams(OnTextNotify_UI, EPS3TextNotifyType::Stage4);});
+}
+
+void APS3GameStateS4::InitializeToDataAssets()
+{
+	checkf(IsValid(S4_GameRuleDataAsset) == true, TEXT("[APS3GameModeS4]의 데이터에셋이 비어있습니다."));
 }
 
 void APS3GameStateS4::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
