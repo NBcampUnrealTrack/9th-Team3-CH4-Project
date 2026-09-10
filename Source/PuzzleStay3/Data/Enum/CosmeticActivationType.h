@@ -7,9 +7,10 @@
 UENUM(BlueprintType)
 enum class ECosmeticActivationType : uint8
 {
-	Toggle UMETA(DisplayName = "Toggle"),
-	Timed UMETA(DisplayName = "Timed"),
-	JudgementToggle UMETA(DisplayName = "Judgement Toggle"),
+	SwitchToggle UMETA(DisplayName = "Switch Toggle"),
+	SwitchTimed UMETA(DisplayName = "Switch Timed"),
+	JudgementPersistent UMETA(DisplayName = "Judgement Persistent"),
 	JudgementTimed UMETA(DisplayName = "Judgement Timed"),
-	Door UMETA(DisplayName = "Door")
+	DoorProgress UMETA(DisplayName = "Door Progress"),
+	TrapTimed UMETA(DisplayName = "Trap Timed")
 };

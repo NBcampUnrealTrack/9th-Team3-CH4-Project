@@ -8,11 +8,14 @@
 
 class AJeoul;
 class AControlDoor;
+class APawn;
+class UFakeDeathTrapComponent;
 class UInteractionSwitchComponent;
 class UOverlapSwitchComponent;
 class UParticleSystem;
 class UParticleSystemComponent;
 class UPointLightComponent;
+class URandomCollisionTrapComponent;
 class UTimelineComponent;
 class UMaterialInstanceDynamic;
 
@@ -42,18 +45,18 @@ protected:
 	ECosmeticEffectType EffectType = ECosmeticEffectType::None;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Cosmetic")
-	ECosmeticActivationType ActivationType = ECosmeticActivationType::Toggle;
+	ECosmeticActivationType ActivationType = ECosmeticActivationType::SwitchToggle;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Cosmetic",
-		meta = (EditCondition = "ActivationType == ECosmeticActivationType::Timed || ActivationType == ECosmeticActivationType::JudgementTimed", ClampMin = "0.0"))
+		meta = (EditCondition = "ActivationType == ECosmeticActivationType::SwitchTimed || ActivationType == ECosmeticActivationType::TrapTimed || ActivationType == ECosmeticActivationType::JudgementTimed", ClampMin = "0.0"))
 	float ActiveDuration = 3.0f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Cosmetic|Door",
-		meta = (EditCondition = "ActivationType == ECosmeticActivationType::Door", ClampMin = "0.0"))
+		meta = (EditCondition = "ActivationType == ECosmeticActivationType::DoorProgress", ClampMin = "0.0"))
 	float DoorTravelDuration = 2.0f;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Cosmetic|Door",
-		meta = (EditCondition = "ActivationType == ECosmeticActivationType::Door"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Cosmetic|Smoke",
+		meta = (EditCondition = "EffectType == ECosmeticEffectType::Smoke"))
 	FName SmokeOpacityParameterName = TEXT("OpacityScale");
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Cosmetic|Light",
@@ -79,17 +82,23 @@ private:
 	void DestroyManagedComponents();
 	void InitializeDoorState();
 	void InitializeDoorOpacityTimeline();
-	void CreateDoorSmokeDynamicMaterial();
+	void CreateSmokeDynamicMaterial();
 	void BindActivationDelegates();
 	void BindOwnerSwitchDelegates();
+	void BindOwnerTrapDelegates();
 	void BindOwnerJudgementDelegates();
 	void BindOwnerDoorDelegate();
 	void UnbindOwnerSwitchDelegates();
+	void UnbindOwnerTrapDelegates();
 	void UnbindOwnerJudgementDelegates();
 	void UnbindOwnerDoorDelegate();
 	void HandleToggleActivationChanged(bool bActive);
 	void HandleTimedInteractionSucceeded();
 	void HandleTimedOverlapStateChanged(bool bOverlapped);
+	UFUNCTION()
+	void HandleFakeDeathTrapOverlapped(APawn* PlayerPawn);
+	UFUNCTION()
+	void HandleFakePlatformOverlapped(APawn* PlayerPawn);
 	void HandleJudgementFinished(bool bIsSuccess);
 	void HandleDoorOpenStateChanged(bool bIsOpen);
 	void UpdateDoorProgressToNow();
@@ -97,11 +106,15 @@ private:
 	void HandleDoorOpacityTimelineUpdate();
 	void StartDoorOpacityTimeline();
 	void StopDoorOpacityTimeline();
-	void ApplyDoorSmokeOpacity();
+	void ApplyDoorProgressOpacity();
+	void SetSmokeOpacity(float Opacity);
 	void FinishDoorTravel();
 	void FinishDoorTravelImmediately(bool bOpening);
 	void StartTimedActivation();
 	void FinishTimedActivation();
+	void StartTrapTimedActivation();
+	void UpdateTrapTimedOpacity();
+	void FinishTrapTimedActivation();
 
 	UPROPERTY(Transient)
 	TObjectPtr<UPointLightComponent> ManagedLightComponent;
@@ -116,6 +129,12 @@ private:
 	TArray<TWeakObjectPtr<UOverlapSwitchComponent>> BoundOverlapSwitchComponents;
 
 	UPROPERTY(Transient)
+	TWeakObjectPtr<UFakeDeathTrapComponent> BoundFakeDeathTrapComponent;
+
+	UPROPERTY(Transient)
+	TWeakObjectPtr<URandomCollisionTrapComponent> BoundRandomCollisionTrapComponent;
+
+	UPROPERTY(Transient)
 	TWeakObjectPtr<AJeoul> BoundJeoulOwner;
 
 	UPROPERTY(Transient)
@@ -125,11 +144,16 @@ private:
 	TObjectPtr<UTimelineComponent> DoorOpacityTimelineComponent;
 
 	UPROPERTY(Transient)
-	TObjectPtr<UMaterialInstanceDynamic> DoorSmokeDynamicMaterial;
+	TObjectPtr<UMaterialInstanceDynamic> SmokeDynamicMaterial;
 
 	FTimerHandle ActiveDurationTimerHandle;
 	FTimerHandle DoorTravelTimerHandle;
+	FTimerHandle TrapTimedDurationTimerHandle;
+	FTimerHandle TrapTimedOpacityTimerHandle;
 	float DoorProgressTime = 0.0f;
+	double TrapTimedStartTime = 0.0;
 	double LastDoorStateChangeTime = 0.0;
+	bool bIsTrapTimedActive = false;
+	bool bHasCompletedTrapTimed = false;
 	ECosmeticDoorTravelDirection DoorTravelDirection = ECosmeticDoorTravelDirection::None;
 };

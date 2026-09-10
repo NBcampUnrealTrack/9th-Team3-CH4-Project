@@ -217,7 +217,6 @@ void UPS3ViewModel::ApplyStageUI()
 		RequestSetDoorOpenButtonVisible(false);
 		break;
 	case EPS3StageType::Stage3:
-		RequestSetLifeCountVisible(true);
 		RequestSetVoiceChatIconVisible(false);
 		RequestSetInteractionNotifyVisible(true);
 		RequestSetTextNotifyVisible(true);
