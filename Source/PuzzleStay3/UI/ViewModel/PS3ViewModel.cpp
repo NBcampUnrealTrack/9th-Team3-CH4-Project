@@ -79,10 +79,35 @@ void UPS3ViewModel::BindGameplayUIDelegates()
 		this,
 		&ThisClass::HandleVoiceChatIcon_UI);
 
+	UIDelegatesSubsystem->OnOptionPopup_UI.RemoveAll(this);
+	UIDelegatesSubsystem->OnOptionPopup_UI.AddUObject(
+		this,
+		&ThisClass::HandleOptionPopup_UI);
+
 	UIDelegatesSubsystem->OnIsGameOver_UI.RemoveAll(this);
 	UIDelegatesSubsystem->OnIsGameOver_UI.AddUObject(
 		this,
 		&ThisClass::HandleIsGameOver_UI);
+
+	UIDelegatesSubsystem->OnTutorial_UI.RemoveAll(this);
+	UIDelegatesSubsystem->OnTutorial_UI.AddUObject(
+		this,
+		&ThisClass::HandleTutorial_UI);
+
+	UIDelegatesSubsystem->OnTitle_UI.RemoveAll(this);
+	UIDelegatesSubsystem->OnTitle_UI.AddUObject(
+		this,
+		&ThisClass::HandleTitle_UI);
+
+	UIDelegatesSubsystem->OnTimerNotifyVisible_UI.RemoveAll(this);
+	UIDelegatesSubsystem->OnTimerNotifyVisible_UI.AddUObject(
+		this,
+		&ThisClass::HandleTimerNotifyVisible_UI);
+
+	UIDelegatesSubsystem->OnLifeCount_UI.RemoveAll(this);
+	UIDelegatesSubsystem->OnLifeCount_UI.AddUObject(
+		this,
+		&ThisClass::HandleLifeCount_UI);
 
 	UIDelegatesSubsystem->OnButtonEnabled_UI.RemoveAll(this);
 	UIDelegatesSubsystem->OnButtonEnabled_UI.AddUObject(
@@ -98,6 +123,36 @@ void UPS3ViewModel::BindGameplayUIDelegates()
 	UIDelegatesSubsystem->OnTimeDeduct_UI.AddUObject(
 		this,
 		&ThisClass::HandleTimeDeduct_UI);
+
+	UIDelegatesSubsystem->OnTimerReset_UI.RemoveAll(this);
+	UIDelegatesSubsystem->OnTimerReset_UI.AddUObject(
+		this,
+		&ThisClass::HandleTimerReset_UI);
+
+	UIDelegatesSubsystem->OnInteractionNotifyAddRequested_UI.RemoveAll(this);
+	UIDelegatesSubsystem->OnInteractionNotifyAddRequested_UI.AddUObject(
+		this,
+		&ThisClass::HandleInteractionNotifyAddRequested_UI);
+
+	UIDelegatesSubsystem->OnInteractionNotifyRemoveRequested_UI.RemoveAll(this);
+	UIDelegatesSubsystem->OnInteractionNotifyRemoveRequested_UI.AddUObject(
+		this,
+		&ThisClass::HandleInteractionNotifyRemoveRequested_UI);
+
+	UIDelegatesSubsystem->OnInteractionNotifyResetRequested_UI.RemoveAll(this);
+	UIDelegatesSubsystem->OnInteractionNotifyResetRequested_UI.AddUObject(
+		this,
+		&ThisClass::HandleInteractionNotifyResetRequested_UI);
+
+	UIDelegatesSubsystem->OnTextNotifyVisible_UI.RemoveAll(this);
+	UIDelegatesSubsystem->OnTextNotifyVisible_UI.AddUObject(
+		this,
+		&ThisClass::HandleTextNotifyVisible_UI);
+
+	UIDelegatesSubsystem->OnTextNotify_UI.RemoveAll(this);
+	UIDelegatesSubsystem->OnTextNotify_UI.AddUObject(
+		this,
+		&ThisClass::HandleTextNotify_UI);
 }
 
 void UPS3ViewModel::UnbindGameplayUIDelegates()
@@ -113,15 +168,31 @@ void UPS3ViewModel::UnbindGameplayUIDelegates()
 	UIDelegatesSubsystem->OnScreenPlayer_UI.RemoveAll(this);
 	UIDelegatesSubsystem->OnFieldPlayer_UI.RemoveAll(this);
 	UIDelegatesSubsystem->OnVoiceChatIcon_UI.RemoveAll(this);
+	UIDelegatesSubsystem->OnOptionPopup_UI.RemoveAll(this);
 	UIDelegatesSubsystem->OnIsGameOver_UI.RemoveAll(this);
+	UIDelegatesSubsystem->OnTutorial_UI.RemoveAll(this);
+	UIDelegatesSubsystem->OnTitle_UI.RemoveAll(this);
+	UIDelegatesSubsystem->OnTimerNotifyVisible_UI.RemoveAll(this);
+	UIDelegatesSubsystem->OnLifeCount_UI.RemoveAll(this);
 	UIDelegatesSubsystem->OnButtonEnabled_UI.RemoveAll(this);
 	UIDelegatesSubsystem->OnGameTimer_UI.RemoveAll(this);
 	UIDelegatesSubsystem->OnTimeDeduct_UI.RemoveAll(this);
+	UIDelegatesSubsystem->OnTimerReset_UI.RemoveAll(this);
+	UIDelegatesSubsystem->OnInteractionNotifyAddRequested_UI.RemoveAll(this);
+	UIDelegatesSubsystem->OnInteractionNotifyRemoveRequested_UI.RemoveAll(this);
+	UIDelegatesSubsystem->OnInteractionNotifyResetRequested_UI.RemoveAll(this);
+	UIDelegatesSubsystem->OnTextNotifyVisible_UI.RemoveAll(this);
+	UIDelegatesSubsystem->OnTextNotify_UI.RemoveAll(this);
 }
 
 void UPS3ViewModel::HandleStageType_UI(EPS3StageType StageType)
 {
 	CurrentStageType = StageType;
+	ApplyStageUI();
+}
+
+void UPS3ViewModel::RefreshStageUI()
+{
 	ApplyStageUI();
 }
 
@@ -145,12 +216,42 @@ void UPS3ViewModel::HandleFieldPlayer_UI(bool bVisible)
 
 void UPS3ViewModel::HandleVoiceChatIcon_UI(bool bVisible)
 {
-	RequestSetVoiceChatIconVisible(bVisible);
+	bVoiceChatIconEnabled = bVisible;
+
+	if (!bVoiceChatIconEnabled)
+	{
+		RequestSetVoiceChatIconVisible(false);
+	}
+}
+
+void UPS3ViewModel::HandleOptionPopup_UI(bool bVisible)
+{
+	RequestSetOptionPopupVisible(bVisible);
 }
 
 void UPS3ViewModel::HandleIsGameOver_UI(bool bVisible)
 {
 	RequestSetGameOverVisible(bVisible);
+}
+
+void UPS3ViewModel::HandleTutorial_UI(bool bVisible)
+{
+	RequestSetTutorialNotifyVisible(bVisible);
+}
+
+void UPS3ViewModel::HandleTitle_UI(bool bVisible)
+{
+	RequestSetTitleVisible(bVisible);
+}
+
+void UPS3ViewModel::HandleTimerNotifyVisible_UI(bool bVisible)
+{
+	RequestSetTimerNotifyVisible(bVisible);
+}
+
+void UPS3ViewModel::HandleLifeCount_UI(int32 InCurrentLifeCount, int32 InMaxLifeCount)
+{
+	RequestUpdateLifeCount(InCurrentLifeCount, InMaxLifeCount);
 }
 
 void UPS3ViewModel::HandleButtonEnabled_UI(EControlDoorType DoorType, bool bEnabled)
@@ -196,46 +297,87 @@ void UPS3ViewModel::HandleTimeDeduct_UI(EPS3TimerUIType TimerUIType, float Reduc
 	RequestReduceTimerNotify(TimerId, ReduceTime);
 }
 
+void UPS3ViewModel::HandleTimerReset_UI()
+{
+	RequestResetTimerNotify();
+}
+
+void UPS3ViewModel::HandleInteractionNotifyAddRequested_UI(EPS3InteractionNotifyType NotifyType)
+{
+	RequestShowInteractionNotify(NotifyType);
+}
+
+void UPS3ViewModel::HandleInteractionNotifyRemoveRequested_UI(EPS3InteractionNotifyType NotifyType)
+{
+	RequestHideInteractionNotify(NotifyType);
+}
+
+void UPS3ViewModel::HandleInteractionNotifyResetRequested_UI()
+{
+	RequestHideAllInteractionNotifies();
+}
+
+void UPS3ViewModel::HandleTextNotifyVisible_UI(bool bVisible)
+{
+	bTextNotifyEnabled = bVisible;
+
+	if (!bTextNotifyEnabled)
+	{
+		RequestSetTextNotifyVisible(false);
+	}
+}
+
+void UPS3ViewModel::HandleTextNotify_UI(EPS3TextNotifyType NotifyType)
+{
+	if (!bTextNotifyEnabled)
+	{
+		return;
+	}
+
+	RequestTextNotify(NotifyType);
+}
+
 void UPS3ViewModel::ApplyStageUI()
 {
 	switch (CurrentStageType)
 	{
 	case EPS3StageType::Stage1:
 		RequestSetLifeCountVisible(false);
-		RequestSetVoiceChatIconVisible(true);
+		bVoiceChatIconEnabled = true;
 		RequestSetInteractionNotifyVisible(true);
-		RequestSetTextNotifyVisible(true);
+		bTextNotifyEnabled = true;
 		RequestSetTimerNotifyVisible(true);
 		RequestSetDoorOpenButtonVisible(false);
 		break;
 	case EPS3StageType::Stage2:
 		RequestSetLifeCountVisible(true);
-		RequestSetVoiceChatIconVisible(true);
+		bVoiceChatIconEnabled = true;
 		RequestSetInteractionNotifyVisible(true);
-		RequestSetTextNotifyVisible(true);
+		bTextNotifyEnabled = true;
 		RequestSetTimerNotifyVisible(false);
 		RequestSetDoorOpenButtonVisible(false);
 		break;
 	case EPS3StageType::Stage3:
+		bVoiceChatIconEnabled = false;
 		RequestSetVoiceChatIconVisible(false);
 		RequestSetInteractionNotifyVisible(true);
-		RequestSetTextNotifyVisible(true);
+		bTextNotifyEnabled = true;
 		RequestSetTimerNotifyVisible(false);
 		RequestSetDoorOpenButtonVisible(false);
 		break;
 	case EPS3StageType::Stage4:
 		RequestSetLifeCountVisible(false);
-		RequestSetVoiceChatIconVisible(true);
+		bVoiceChatIconEnabled = true;
 		RequestSetInteractionNotifyVisible(true);
-		RequestSetTextNotifyVisible(true);
+		bTextNotifyEnabled = true;
 		RequestSetTimerNotifyVisible(false);
 		RequestSetDoorOpenButtonVisible(false);
 		break;
 	case EPS3StageType::Stage5:
 		RequestSetLifeCountVisible(false);
-		RequestSetVoiceChatIconVisible(true);
+		bVoiceChatIconEnabled = true;
 		RequestSetInteractionNotifyVisible(true);
-		RequestSetTextNotifyVisible(true);
+		bTextNotifyEnabled = true;
 		RequestSetTimerNotifyVisible(true);
 		RequestSetDoorOpenButtonVisible(false);
 		break;
@@ -448,6 +590,12 @@ void UPS3ViewModel::RequestDoorActivation(int32 InDoorIndex, bool bIsActive)
 
 void UPS3ViewModel::RequestVoiceChatSpeaking(bool bInIsSpeaking)
 {
+	if (!bVoiceChatIconEnabled)
+	{
+		RequestSetVoiceChatIconVisible(false);
+		return;
+	}
+
 	if (PlayerHUD)
 	{
 		PlayerHUD->UpdateVoiceChatIcon(bInIsSpeaking);

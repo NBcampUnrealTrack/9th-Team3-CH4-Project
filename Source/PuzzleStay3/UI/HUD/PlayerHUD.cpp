@@ -91,6 +91,11 @@ void APlayerHUD::SetWidgets(const FPS3HUDWidgets& InWidgets)
 	}
 
 	ApplyViewModelToWidgets();
+
+	if (ViewModel)
+	{
+		ViewModel->RefreshStageUI();
+	}
 }
 
 void APlayerHUD::SetViewModel(UPS3ViewModel* InViewModel)

@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "TimerManager.h"
 #include "TutorialNotifyWidget.generated.h"
 
 UCLASS()
@@ -15,4 +16,7 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "UI|TutorialNotify")
 	void HideTutorialNotify();
+
+private:
+	FTimerHandle TutorialNotifyTimerHandle;
 };
