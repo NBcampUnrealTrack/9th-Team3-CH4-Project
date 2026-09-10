@@ -39,7 +39,7 @@ public:
 	float MaxGameLimitTime = 60.0f;
 	
 	UPROPERTY(EditAnywhere, Category = "GameRule")
-	float WaitingTime = 3.0f;
+	float WaitingTime = 1.0f;
 	
 	UPROPERTY(EditAnywhere, Category = "GameRule")
 	EPS3TimerUIType GameStartTimerUIType = EPS3TimerUIType::GameStartTimer;

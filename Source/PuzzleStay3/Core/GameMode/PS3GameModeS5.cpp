@@ -124,9 +124,8 @@ void APS3GameModeS5::RandomShuffleFakeGimmick()
 	int32 CurrentFakeGimmickCount = 0;
 	const int32 TargetFakeGimmickCount = InteractionGimmickCount - MaxInteractionGimmickCount;
 	
-	for (TActorIterator<AGimmickBase> It(GetWorld()); It; ++It)
+	for (AGimmickBase* TargetGimmick :GimmickBaseArray)
 	{
-		AGimmickBase* TargetGimmick = *It;
 		if (IsValid(TargetGimmick) == false) continue;
 		
 		auto* TimeDeductionComp = TargetGimmick->FindComponentByClass<UOverlapVolumeTimeDeductionComponent>();
@@ -171,19 +170,43 @@ void APS3GameModeS5::BindInteractionGimmick()
 		
 		auto* TimeDeductionComp = TargetGimmick->FindComponentByClass<UOverlapVolumeTimeDeductionComponent>();
 		
-		//스크린플레이어 소환용 상호작용 Gimmick 바인드
 		if (IsValid(TimeDeductionComp) == true)
 		{
 			if (InteractionSwitchComp->bIsEscapeDoor == true && TimeDeductionComp->bIsInteractionGimmick == true)
 			{
+				InteractionSwitchComp->bMultiInteractionState = true;
+				InteractionSwitchComp->bIsOtherInteractionGimmick = true;
 				InteractionSwitchComp->OnInteractionSuccessed.AddUObject(this, &ThisClass::OnInteractedGimmick);
 			}
 		}
 		
 		else if (IsValid(TimeDeductionComp) == false && InteractionSwitchComp->bIsEscapeDoor == true)
 		{
-			//InteractionSwitchComp->bIsInteractedGimmick = true;
 			--TargetCountForSpawnScreenPlayer;
+		}
+	}
+}
+
+
+void APS3GameModeS5::ResistEscapeGimmick()
+{
+	for (TActorIterator<AGimmickBase> It(GetWorld()); It; ++It)
+	{
+		AGimmickBase* TargetGimmick = *It;
+		if (IsValid(TargetGimmick) == false) continue;
+		
+		auto* InteractionSwitchComp = TargetGimmick->FindComponentByClass<UInteractionSwitchComponent>();
+		if (IsValid(InteractionSwitchComp) == false) continue;
+		
+		auto* TimeDeductionComp = TargetGimmick->FindComponentByClass<UOverlapVolumeTimeDeductionComponent>();
+		if (IsValid(TimeDeductionComp) == false && InteractionSwitchComp->bIsEscapeDoor == true)
+		{
+			InteractionSwitchComp->bMultiInteractionState = false;
+			InteractionSwitchComp->bIsOtherInteractionGimmick = false;
+			RegisterInteractionSwitch(InteractionSwitchComp);
+			
+			FString TagName = TargetGimmick->Tags.Num() > 0 ? TargetGimmick->Tags[0].ToString() : TEXT("NoTag");
+			UE_LOG(LogTemp, Warning, TEXT("탈출문 기믹 %s "), *TagName);
 		}
 	}
 }
@@ -238,27 +261,7 @@ void APS3GameModeS5::OnInteractedGimmick(bool bIsInteractedGimmick)
 }
 
 
-void APS3GameModeS5::ResistEscapeGimmick()
-{
-	for (TActorIterator<AGimmickBase> It(GetWorld()); It; ++It)
-	{
-		AGimmickBase* TargetGimmick = *It;
-		if (IsValid(TargetGimmick) == false) continue;
-		
-		auto* InteractionSwitchComp = TargetGimmick->FindComponentByClass<UInteractionSwitchComponent>();
-		if (IsValid(InteractionSwitchComp) == false) continue;
-		
-		auto* TimeDeductionComp = TargetGimmick->FindComponentByClass<UOverlapVolumeTimeDeductionComponent>();
-		if (IsValid(TimeDeductionComp) == false && InteractionSwitchComp->bIsEscapeDoor == true)
-		{
-			//InteractionSwitchComp->bIsInteractedGimmick = false;
-			RegisterInteractionSwitch(InteractionSwitchComp);
-			
-			FString TagName = TargetGimmick->Tags.Num() > 0 ? TargetGimmick->Tags[0].ToString() : TEXT("NoTag");
-			UE_LOG(LogTemp, Warning, TEXT("탈출문 기믹 %s "), *TagName);
-		}
-	}
-}
+
 
 void APS3GameModeS5::UnResistEscapeGimmick()
 {
