@@ -226,14 +226,11 @@ private:
 	void HandleGameTimer_UI(EPS3TimerUIType TimerUIType, float Duration);
 	void HandleTimeDeduct_UI(EPS3TimerUIType TimerUIType, float ReduceTime);
 	void ApplyStageUI();
-	void ApplyStage5RoleUI();
 
 	UPROPERTY(BlueprintReadOnly, Category = "UI|HUD", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<APlayerHUD> PlayerHUD;
 
 	EPS3StageType CurrentStageType = EPS3StageType::None;
-	bool bIsScreenPlayerUI = false;
-	bool bIsFieldPlayerUI = false;
 
 	UPROPERTY(BlueprintReadWrite, FieldNotify, Getter, Setter, Category = "UI|ViewModel", meta = (AllowPrivateAccess = "true"))
 	int32 CurrentLifeCount = 0;

@@ -127,14 +127,20 @@ void UPS3ViewModel::HandleStageType_UI(EPS3StageType StageType)
 
 void UPS3ViewModel::HandleScreenPlayer_UI(bool bVisible)
 {
-	bIsScreenPlayerUI = bVisible;
-	ApplyStage5RoleUI();
+	if (CurrentStageType == EPS3StageType::Stage5 && bVisible)
+	{
+		RequestSetDoorOpenButtonVisible(true);
+		RequestSetInteractionNotifyVisible(false);
+	}
 }
 
 void UPS3ViewModel::HandleFieldPlayer_UI(bool bVisible)
 {
-	bIsFieldPlayerUI = bVisible;
-	ApplyStage5RoleUI();
+	if (CurrentStageType == EPS3StageType::Stage5 && bVisible)
+	{
+		RequestSetDoorOpenButtonVisible(false);
+		RequestSetInteractionNotifyVisible(true);
+	}
 }
 
 void UPS3ViewModel::HandleVoiceChatIcon_UI(bool bVisible)
@@ -227,39 +233,15 @@ void UPS3ViewModel::ApplyStageUI()
 		RequestSetDoorOpenButtonVisible(false);
 		break;
 	case EPS3StageType::Stage5:
-		ApplyStage5RoleUI();
-		break;
-	default:
-		break;
-	}
-}
-
-void UPS3ViewModel::ApplyStage5RoleUI()
-{
-	if (CurrentStageType != EPS3StageType::Stage5)
-	{
-		return;
-	}
-
-	if (bIsFieldPlayerUI)
-	{
 		RequestSetLifeCountVisible(false);
 		RequestSetVoiceChatIconVisible(true);
 		RequestSetInteractionNotifyVisible(true);
 		RequestSetTextNotifyVisible(true);
 		RequestSetTimerNotifyVisible(true);
 		RequestSetDoorOpenButtonVisible(false);
-		return;
-	}
-
-	if (bIsScreenPlayerUI)
-	{
-		RequestSetLifeCountVisible(false);
-		RequestSetDoorOpenButtonVisible(true);
-		RequestSetTextNotifyVisible(true);
-		RequestSetTimerNotifyVisible(true);
-		RequestSetVoiceChatIconVisible(true);
-		RequestSetInteractionNotifyVisible(false);
+		break;
+	default:
+		break;
 	}
 }
 
