@@ -27,6 +27,9 @@ public:
 	int32 MaxPlayerCount = 2;
 	
 	UPROPERTY(EditAnywhere, Category = "GameRule")
+	int32 MaxInteractionGimmickCount = 2;
+	
+	UPROPERTY(EditAnywhere, Category = "GameRule")
 	int32 MaxEscapeDoorCount = 2;
 	
 	UPROPERTY(EditAnywhere, Category = "GameRule")
