@@ -4,6 +4,7 @@
 #include "PS3GameModeS4.h"
 
 #include "Core/GameState/PS3GameStateS4.h"
+#include "Data/DataAsset/S4_GameRuleDataAsset.h"
 #include "Data/Enum/DoorType.h"
 
 void APS3GameModeS4::BeginPlay()
@@ -23,6 +24,23 @@ void APS3GameModeS4::BeginPlay()
 		GS->SetStage4Weights(FixedObjectWeight, TargetBalancedWeight);
 	}
 }
+
+void APS3GameModeS4::InitializeToDataAssets()
+{
+	Super::InitializeToDataAssets();
+	
+	if(IsValid(S4_GameRuleDataAsset) == false) return;
+	if (S4_GameRuleDataAsset->NextStageLevel.IsNull()) return;
+	
+	NextStageLevelPath = S4_GameRuleDataAsset->NextStageLevel.ToSoftObjectPath().GetLongPackageName();
+	
+	SubstituteFixedObjectWeight = S4_GameRuleDataAsset->SubstituteFixedObjectWeight;
+
+	Player1Weight = S4_GameRuleDataAsset->Player1Weight;
+
+	Player2Weight = S4_GameRuleDataAsset->Player2Weight;
+}
+
 
 //저울이 정답 판별 후 이 함수 호출
 void APS3GameModeS4::NotifyJeoulResult(bool bIsSuccess)
@@ -45,3 +63,4 @@ void APS3GameModeS4::OpenStage4FirstDoor()
 
 	GS->SetStage4FirstDoorOpened(true);
 }
+
