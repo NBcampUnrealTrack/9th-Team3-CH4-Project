@@ -282,7 +282,7 @@ void UCosmeticComponent::BindOwnerSwitchDelegates()
 		}
 		else
 		{
-			SwitchComponent->OnInteractionSuccessed.AddUObject(
+			SwitchComponent->OnCosmeticInteractionSuccessed.AddUObject(
 				this,
 				&UCosmeticComponent::HandleTimedInteractionSucceeded);
 		}
@@ -353,7 +353,7 @@ void UCosmeticComponent::UnbindOwnerSwitchDelegates()
 		if (SwitchComponent.IsValid())
 		{
 			SwitchComponent->OnSwitchActivatedChanged.RemoveAll(this);
-			SwitchComponent->OnInteractionSuccessed.RemoveAll(this);
+			SwitchComponent->OnCosmeticInteractionSuccessed.RemoveAll(this);
 		}
 	}
 	BoundInteractionSwitchComponents.Empty();
