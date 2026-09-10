@@ -174,7 +174,7 @@ void APS3GameModeS5::BindInteractionGimmick()
 		{
 			if (InteractionSwitchComp->bIsEscapeDoor == true && TimeDeductionComp->bIsInteractionGimmick == true)
 			{
-				InteractionSwitchComp->bToggleInteractionState = false;
+				InteractionSwitchComp->bMultiInteractionState = true;
 				InteractionSwitchComp->bIsOtherInteractionGimmick = true;
 				InteractionSwitchComp->OnInteractionSuccessed.AddUObject(this, &ThisClass::OnInteractedGimmick);
 			}
@@ -201,7 +201,7 @@ void APS3GameModeS5::ResistEscapeGimmick()
 		auto* TimeDeductionComp = TargetGimmick->FindComponentByClass<UOverlapVolumeTimeDeductionComponent>();
 		if (IsValid(TimeDeductionComp) == false && InteractionSwitchComp->bIsEscapeDoor == true)
 		{
-			InteractionSwitchComp->bToggleInteractionState = true;
+			InteractionSwitchComp->bMultiInteractionState = false;
 			InteractionSwitchComp->bIsOtherInteractionGimmick = false;
 			RegisterInteractionSwitch(InteractionSwitchComp);
 			

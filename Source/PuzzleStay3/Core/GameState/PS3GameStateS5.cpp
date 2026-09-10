@@ -19,7 +19,6 @@ void APS3GameStateS5::BeginPlay()
 	InitializeToDataAssets();
 	
 	PS3_BROADCAST_TO_MVVM_OneParams(OnStageType_UI, S5_GameRuleDataAsset->StageType_S5);
-	
 	PS3_BROADCAST_TO_MVVM_OneParams(OnVoiceChatIcon_UI, true);
 }
 
