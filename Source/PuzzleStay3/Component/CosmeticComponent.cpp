@@ -8,6 +8,7 @@
 #include "Components/TimelineComponent.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "Object/ControlDoor.h"
+#include "Object/Door.h"
 #include "Object/GimmickBase.h"
 #include "Object/Jeoul.h"
 #include "Particles/ParticleSystem.h"
@@ -369,17 +370,31 @@ void UCosmeticComponent::BindOwnerJudgementDelegates()
 
 void UCosmeticComponent::BindOwnerDoorDelegate()
 {
-	AControlDoor* ControlDoorOwner = Cast<AControlDoor>(GetOwner());
-	if (!IsValid(ControlDoorOwner))
+	AActor* Owner = GetOwner();
+	if (!IsValid(Owner))
 	{
 		return;
 	}
 
-	ControlDoorOwner->OnIsControlDoorOpen.AddUObject(
-		this,
-		&UCosmeticComponent::HandleDoorOpenStateChanged);
+	AControlDoor* ControlDoorOwner = Cast<AControlDoor>(Owner);
+	if (IsValid(ControlDoorOwner))
+	{
+		ControlDoorOwner->OnIsControlDoorOpen.AddUObject(
+			this,
+			&UCosmeticComponent::HandleDoorOpenStateChanged);
 
-	BoundControlDoorOwner = ControlDoorOwner;
+		BoundControlDoorOwner = ControlDoorOwner;
+	}
+
+	ADoor* DoorOwner = Cast<ADoor>(Owner);
+	if (IsValid(DoorOwner))
+	{
+		DoorOwner->OnIsDoorOpen.AddUObject(
+			this,
+			&UCosmeticComponent::HandleDoorOpenStateChanged);
+
+		BoundDoorOwner = DoorOwner;
+	}
 }
 
 void UCosmeticComponent::UnbindOwnerSwitchDelegates()
@@ -434,6 +449,12 @@ void UCosmeticComponent::UnbindOwnerDoorDelegate()
 	{
 		BoundControlDoorOwner->OnIsControlDoorOpen.RemoveAll(this);
 		BoundControlDoorOwner = nullptr;
+	}
+
+	if (BoundDoorOwner.IsValid())
+	{
+		BoundDoorOwner->OnIsDoorOpen.RemoveAll(this);
+		BoundDoorOwner = nullptr;
 	}
 }
 

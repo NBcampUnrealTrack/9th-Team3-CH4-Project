@@ -8,6 +8,7 @@
 
 class AJeoul;
 class AControlDoor;
+class ADoor;
 class APawn;
 class UFakeDeathTrapComponent;
 class UInteractionSwitchComponent;
@@ -139,6 +140,9 @@ private:
 
 	UPROPERTY(Transient)
 	TWeakObjectPtr<AControlDoor> BoundControlDoorOwner;
+
+	UPROPERTY(Transient)
+	TWeakObjectPtr<ADoor> BoundDoorOwner;
 
 	UPROPERTY(Transient)
 	TObjectPtr<UTimelineComponent> DoorOpacityTimelineComponent;
