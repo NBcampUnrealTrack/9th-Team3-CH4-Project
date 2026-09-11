@@ -5,6 +5,7 @@
 
 #include "Core/GameMode/PS3GamemodeBase.h"
 #include "Core/GameMode/PS3GameModeS5.h"
+#include "Core/GameState/PS3GameStateS5.h"
 #include "Data/Delegates/UIDelegatesSubsystem.h"
 #include "UI/HUD/PlayerHUD.h"
 #include "UI/ViewModel/PS3ViewModel.h"
@@ -14,8 +15,8 @@ void APS3PlayerControllerBase::BeginPlay()
 	Super::BeginPlay();
 	
 	GetWorld()->GetTimerManager().SetTimer(InitTimerHandle, this, &ThisClass::ConfigureInputMapping, 0.01f, false);
+	
 }
-
 
 void APS3PlayerControllerBase::OnClickedRestartGameButton()
 {
@@ -33,6 +34,7 @@ void APS3PlayerControllerBase::OnClickedMainMenuButton()
 	ServerRPC_OnClickedRestartGameButton();
 	
 }
+
 
 void APS3PlayerControllerBase::ServerRPC_OnClickedMainMenuButton_Implementation()
 {
@@ -64,9 +66,18 @@ void APS3PlayerControllerBase::ConfigureInputMapping()
 	PS3ViewModel->OnGameRestartRequested_UI.AddDynamic(this, &ThisClass::OnClickedRestartGameButton);
 	PS3ViewModel->OnExitToMainRequested_UI.AddDynamic(this, &ThisClass::OnClickedMainMenuButton);
 	
+	auto* PS3GameState = Cast<APS3GameStateS5>(GetWorld()->GetGameState());	
+	if (IsValid(PS3GameState) == false) return;
 	
-	FInputModeUIOnly UIOnlyMode;
-	SetInputMode(UIOnlyMode);
+	PS3GameState->OnSpawnedScreenPlayerUIReAssign.AddUObject(this, &ThisClass::OnScreenPlayerSpawned);
+}
 
-	bShowMouseCursor = true;
+
+void APS3PlayerControllerBase::OnScreenPlayerSpawned()
+{
+	if (IsLocalController() == true)
+	{
+		PS3_BROADCAST_TO_MVVM_OneParams(OnScreenPlayer_UI, false);
+		PS3_BROADCAST_TO_MVVM_OneParams(OnFieldPlayer_UI, true);
+	}
 }

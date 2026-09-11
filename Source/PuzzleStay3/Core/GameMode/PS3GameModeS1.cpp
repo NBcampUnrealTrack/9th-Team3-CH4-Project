@@ -15,7 +15,7 @@ APS3GameModeS1::APS3GameModeS1()
 void APS3GameModeS1::BeginPlay()
 {
 	Super::BeginPlay();
-	InitializeToDataAssets();
+	
 }
 
 void APS3GameModeS1::DisableBlockingVolume(EPS3StageNumber StageNumber)

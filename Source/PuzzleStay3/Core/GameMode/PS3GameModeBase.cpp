@@ -199,7 +199,7 @@ void APS3GameModeBase::CallStageClearIfTimerOver()
 	{
 		bStageClearTimerStarted = true;
 
-		UE_LOG(LogTemp, Warning, TEXT("Go to Next Stage After 10 Seconds"));
+		UE_LOG(LogTemp, Warning, TEXT("Go to Next Stage After %f Seconds"), StageClearDelay);
 
 		GetWorldTimerManager().SetTimer(
 			StageClearTimerHandle,

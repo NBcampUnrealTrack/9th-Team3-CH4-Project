@@ -29,6 +29,8 @@ protected:
 	UFUNCTION()
 	void OnClickedMainMenuButton();
 	
+	void OnScreenPlayerSpawned();
+	
 	UFUNCTION(Server, Unreliable)
 	void ServerRPC_OnClickedRestartGameButton();
 	UFUNCTION(Server, Unreliable)

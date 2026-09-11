@@ -23,6 +23,9 @@ public:
 	UPROPERTY(EditAnywhere, Category = "GameRule")
 	EPS3StageType StageType_S5 = EPS3StageType::Stage5;
 	
+	UPROPERTY(EditAnywhere, Category = "GameRule")
+	EPS3TimerUIType GameStartTimerUIType = EPS3TimerUIType::GameStartTimer;
+	
 	UPROPERTY(VisibleAnywhere, Category = "GameRule")
 	int32 MaxPlayerCount = 2;
 	
@@ -40,9 +43,6 @@ public:
 	
 	UPROPERTY(EditAnywhere, Category = "GameRule")
 	float WaitingTime = 1.0f;
-	
-	UPROPERTY(EditAnywhere, Category = "GameRule")
-	EPS3TimerUIType GameStartTimerUIType = EPS3TimerUIType::GameStartTimer;
 	
 	UPROPERTY(EditDefaultsOnly, Category = "SwapController")
 	TSubclassOf<APS3PlayerCharacter> FieldCharacterClass;

@@ -19,12 +19,13 @@ void APS3GameStateS3::BeginPlay()
 
 	SetUIMacroTimerHandle(
 		TextNotify_UI_DelayTime,
-		[this]() { PS3_BROADCAST_TO_MVVM_OneParams(OnTextNotify_UI, EPS3TextNotifyType::Stage3); });
+		[this]() { PS3_BROADCAST_TO_MVVM_OneParams(OnTextNotify_UI, S3_GameRuleDataAsset->TextNotifyTypeForUI_S3); });
 }
 
 void APS3GameStateS3::InitializeToDataAssets()
 {
 	checkf(IsValid(S3_GameRuleDataAsset) == true, TEXT("[APS3GameModeS3]의 데이터에셋이 비어있습니다."));
+	
 }
 
 void APS3GameStateS3::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
