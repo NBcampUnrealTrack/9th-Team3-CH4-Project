@@ -146,17 +146,21 @@ void URandomCollisionTrapComponent::HandleBeginOverlap(
     bool bFromSweep,
     const FHitResult& SweepResult)
 {
-    if (bHasCollision)
-    {
-        return;
-    }
+    if (!GetOwner() || !GetOwner()->HasAuthority()) { return; }
+    
+    if (bHasCollision) { return; }
 
     APawn* PlayerPawn = Cast<APawn>(OtherActor);
     
-    if (!IsValid(PlayerPawn) || !PlayerPawn->IsLocallyControlled())
-    {
-        return;
-    }
+    if (!IsValid(PlayerPawn)) { return; }
+
+    MulticastFakePlatformOverlapped(PlayerPawn);
+}
+
+void URandomCollisionTrapComponent::MulticastFakePlatformOverlapped_Implementation(
+        APawn* PlayerPawn)
+{
+    if (GetNetMode() == NM_DedicatedServer || !IsValid(PlayerPawn)) { return; }
 
     OnFakePlatformOverlapped.Broadcast(PlayerPawn);
 }

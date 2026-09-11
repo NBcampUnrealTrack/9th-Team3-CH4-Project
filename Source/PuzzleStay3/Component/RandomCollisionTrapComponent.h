@@ -27,6 +27,9 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Random Collision Trap|Events")
 	FOnFakePlatformOverlapped OnFakePlatformOverlapped;
 	
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastFakePlatformOverlapped(APawn* PlayerPawn);
+	
 protected:
 	virtual void OnRegister() override;
 	virtual void BeginPlay() override;
