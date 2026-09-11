@@ -3,6 +3,7 @@
 #include "EngineUtils.h"
 #include "Core/GameMode/PS3GameModeS5.h"
 #include "Core/GameState/PS3GameStateS5.h"
+#include "Data/Delegates/S5_GameRuleDelegateComponent.h"
 #include "Data/Delegates/UIDelegatesSubsystem.h"
 #include "Player/Character/PS3PlayerCharacter.h"
 #include "Player/Controller/PS3PlayerController.h"
@@ -18,9 +19,25 @@ void UOverlapVolumeTimeDeductionComponent::BeginPlay()
 	Super::BeginPlay();
 	
 	if (IsValid(GetCastPS3GameModeS5()) == false) return;
-	CastPS3GameModeS5->OnIsGameStart.AddUObject(this, &ThisClass::OnBindWhenGameStarted);
-	
-	//ErrorCheck_S5();
+	PS3_S5_GAME_RULE_DELEGATE_BINDING_FUNCTION(OnIsGameStart, OnBindWhenGameStarted);
+	PS3_S5_GAME_RULE_DELEGATE_BINDING_FUNCTION(OnIsInteractionGimmick, OnColletedGimmickBase);
+	PS3_S5_GAME_RULE_DELEGATE_BINDING_FUNCTION(OnAssignFakeGimmickIDForUI, OnAssignFakeGimmickIDForUI);
+}
+
+
+void UOverlapVolumeTimeDeductionComponent::OnColletedGimmickBase(const UActorComponent* CurrentComponent, bool bIsInteractable)
+{	
+	if (this == CurrentComponent)
+	{
+		bIsInteractionGimmick = bIsInteractable;
+	}
+}
+
+
+void UOverlapVolumeTimeDeductionComponent::OnAssignFakeGimmickIDForUI(UOverlapVolumeTimeDeductionComponent* TimeDeductionComp, int32 IndexNumber)
+{
+	if (TimeDeductTimerUITypeArray.IsValidIndex(IndexNumber) == false) return;
+	TimeDeductionComp->TimeDeductTimerUIType = TimeDeductTimerUITypeArray[IndexNumber];
 }
 
 
@@ -115,6 +132,8 @@ void UOverlapVolumeTimeDeductionComponent::ReSpawnPlayer(APlayerController* Targ
 	
 	PS3GameStateS5->ReSpawnPlayer(TargetPlayerController);
 }
+
+
 
 void UOverlapVolumeTimeDeductionComponent::ErrorCheck_S5()
 {

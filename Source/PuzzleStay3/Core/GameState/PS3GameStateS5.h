@@ -7,7 +7,7 @@
 #include "PS3GameStateS5.generated.h"
 
 
-
+class US5_GameRuleDelegateComponent;
 class APS3GameModeS5;
 
 UCLASS()
@@ -18,6 +18,10 @@ class PUZZLESTAY3_API APS3GameStateS5 : public APS3GameStateBase
 protected:
 	APS3GameStateS5();
 	
+public:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	TObjectPtr<US5_GameRuleDelegateComponent> S5_GameRuleDelegateComponent;
+	US5_GameRuleDelegateComponent* GetDelegate_S5(){return S5_GameRuleDelegateComponent;}
 	
 public:
 	virtual void BeginPlay() override;
@@ -70,6 +74,6 @@ private:
 	APS3GameModeS5* GetCastPS3GameModeS5();
 	
 public:
-	FOnSpawnedScreenPlayerUIReAssign OnSpawnedScreenPlayerUIReAssign;
+	
 
 };

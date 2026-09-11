@@ -42,19 +42,6 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "GameRule")
 	TObjectPtr<class US5_GameRuleDataAsset> S5_GameRuleDataAsset;
 	
-	TArray<EPS3TimerUIType> TimeDeductTimerUITypeArray =
-	{
-		EPS3TimerUIType::GimmickB_1,
-		EPS3TimerUIType::GimmickB_2,
-		EPS3TimerUIType::GimmickB_3,
-		EPS3TimerUIType::GimmickB_4,
-		EPS3TimerUIType::GimmickB_5,
-		EPS3TimerUIType::GimmickB_6,
-		EPS3TimerUIType::GimmickB_7,
-		EPS3TimerUIType::GimmickB_8,
-		EPS3TimerUIType::GimmickB_9,
-		EPS3TimerUIType::GimmickB_10,
-	};
 	
 public:
 	void ReSpawnPlayer(APlayerController* TargetPlayerController);
@@ -74,8 +61,7 @@ public:
 	int32 OnCollectGimmickBase();
 	
 public:
-	FOnIsGameStart OnIsGameStart;
-	FOnScreenPlayerSpawned OnScreenPlayerSpawned;
+	
 	
 	int32 RoleSelectedPlayerCount = 0;
 	int32 MaxPlayerCount = 2;
@@ -87,6 +73,7 @@ public:
 	bool bIsTakeFieldControllerType = false;
 	bool bIsTakeScreenControllerType = false;
 	
+
 	
 protected:
 	FTimerHandle AllPlayerReadyTimeHandle;
@@ -115,14 +102,13 @@ private:
 	bool bIsInteracted = false;
 	
 	void OnInteractedGimmick(bool bIsInteractedGimmick);
-	void InitializeToDataAssets();
+	virtual void InitializeToDataAssets() override;
 	void InitializeGimmick();
 	void RandomShuffleFakeGimmick();
 	void BindInteractionGimmick();
 	void ResistEscapeGimmick();
 	void UnResistEscapeGimmick();
 	
-	void AssignFakeGimmickIDForUI(class UOverlapVolumeTimeDeductionComponent* TimeDeductionComp, int32 IndexNumber);
 	
 };
 

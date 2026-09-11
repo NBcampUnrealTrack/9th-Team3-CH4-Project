@@ -373,10 +373,10 @@ void UCosmeticComponent::BindOwnerDoorDelegate()
 	{
 		return;
 	}
-
-	ControlDoorOwner->OnIsControlDoorOpen.AddUObject(
+	
+	/*ControlDoorOwner->OnIsControlDoorOpen.AddUObject(
 		this,
-		&UCosmeticComponent::HandleDoorOpenStateChanged);
+		&UCosmeticComponent::HandleDoorOpenStateChanged);*/
 
 	BoundControlDoorOwner = ControlDoorOwner;
 }
@@ -431,7 +431,7 @@ void UCosmeticComponent::UnbindOwnerDoorDelegate()
 {
 	if (BoundControlDoorOwner.IsValid())
 	{
-		BoundControlDoorOwner->OnIsControlDoorOpen.RemoveAll(this);
+		//BoundControlDoorOwner->OnIsControlDoorOpen.RemoveAll(this);
 		BoundControlDoorOwner = nullptr;
 	}
 }

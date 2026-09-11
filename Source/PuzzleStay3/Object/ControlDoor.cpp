@@ -6,6 +6,8 @@
 #include "Components/DecalComponent.h"
 #include "Components/TimelineComponent.h"
 #include "Core/GameMode/PS3GameModeS5.h"
+#include "Core/GameState/PS3GameStateS5.h"
+#include "Data/Delegates/S5_GameRuleDelegateComponent.h"
 #include "Net/UnrealNetwork.h"
 
 
@@ -139,11 +141,8 @@ void AControlDoor::InitializeBindFunction()
 {
 	if (HasAuthority() == true)
 	{
-		auto* PS3GameModeS5 = Cast<APS3GameModeS5>(GetWorld()->GetAuthGameMode());
-		if (IsValid(PS3GameModeS5) == false) return;
-		
-		PS3GameModeS5->OnIsGameStart.AddUObject(this, &ThisClass::OnGameStart);
-		PS3GameModeS5->OnScreenPlayerSpawned.AddUObject(this, &ThisClass::OnScreenPlayerSpawned);
+		PS3_S5_GAME_RULE_DELEGATE_BINDING_FUNCTION(OnIsGameStart, OnGameStart);
+		PS3_S5_GAME_RULE_DELEGATE_BINDING_FUNCTION(OnScreenPlayerSpawned, OnScreenPlayerSpawned);
 	}
 }
 
@@ -202,14 +201,13 @@ void AControlDoor::NetMulti_OnOperateDoor_Implementation(EControlDoorType Presse
 			{
 				StartLocation = ControlDoorMesh->GetRelativeLocation();
 			}
-			
-			OnIsControlDoorOpen.Broadcast(true);
+			PS3_S5_GAME_RULE_DELEGATE_BROADCAST_OneParams(OnIsControlDoorOpen, true);
 			DoorTimelineComp->Play();
 		}
 		
 		else
 		{
-			OnIsControlDoorOpen.Broadcast(false);
+			PS3_S5_GAME_RULE_DELEGATE_BROADCAST_OneParams(OnIsControlDoorOpen, false);
 			DoorTimelineComp->Reverse();
 		}
 	}

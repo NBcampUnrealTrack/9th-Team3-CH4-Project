@@ -34,7 +34,7 @@ protected:
 	TObjectPtr<UStaticMeshComponent> ControlDoorMesh;
 	
 public:
-	FOnIsControlDoorOpen OnIsControlDoorOpen;
+	
 	
 	UFUNCTION(NetMulticast, Reliable)
 	void NetMulti_OnOperateDoor(EControlDoorType PressedButtonType, bool bIsOpen);

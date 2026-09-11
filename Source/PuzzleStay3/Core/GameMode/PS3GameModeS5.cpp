@@ -7,6 +7,7 @@
 #include "Component/S5_InteractionGimmickComponent.h"
 #include "Core/GameState/PS3GameStateS5.h"
 #include "Data/DataAsset/S5_GameRuleDataAsset.h"
+#include "Data/Delegates/S5_GameRuleDelegateComponent.h"
 #include "Data/Enum/PlayerStartType.h"
 #include "Data/Enum/PS3PlayerRole.h"
 #include "Kismet/KismetSystemLibrary.h"
@@ -52,6 +53,8 @@ void APS3GameModeS5::BeginPlay()
 
 void APS3GameModeS5::InitializeToDataAssets()
 {
+	Super::InitializeToDataAssets();
+	
 	checkf(IsValid(S5_GameRuleDataAsset) == true, TEXT("[APS3GameModeS5]의 데이터어셋이 비어있습니다."));
 	checkf(IsValid(S5_GameRuleDataAsset->FieldCharacterClass) == true, TEXT("[US5_GameRuleDataAsset]데이터어셋의 [FieldCharacterClass]가 비어있습니다."));
 	checkf(IsValid(S5_GameRuleDataAsset->FieldControllerClass) == true, TEXT("[US5_GameRuleDataAsset]데이터어셋의 [FieldControllerClass]가 비어있습니다."));
@@ -99,11 +102,14 @@ int32 APS3GameModeS5::OnCollectGimmickBase()
 		{
 			InteractionSwitchComp->bIsEscapeDoor = true;
 		}
-	
+		
+		auto* InteractionGimmickComp = TargetGimmick->FindComponentByClass<US5_InteractionGimmickComponent>();
 		auto* TimeDeductionComp = TargetGimmick->FindComponentByClass<UOverlapVolumeTimeDeductionComponent>();
-		if (IsValid(TimeDeductionComp) == true && IsValid(InteractionSwitchComp) == true)
+		if (IsValid(TimeDeductionComp) == true && IsValid(InteractionGimmickComp) == true)
 		{
-			TimeDeductionComp->bIsInteractionGimmick = true;
+			PS3_S5_GAME_RULE_DELEGATE_BROADCAST_TwoParams(OnIsInteractionGimmick, InteractionGimmickComp, true);
+			PS3_S5_GAME_RULE_DELEGATE_BROADCAST_TwoParams(OnIsInteractionGimmick, TimeDeductionComp, true);
+			
 			++InteractionGimmickCount;
 		}
 	}
@@ -132,21 +138,19 @@ void APS3GameModeS5::RandomShuffleFakeGimmick()
 		if (IsValid(TargetGimmick) == false) continue;
 		
 		auto* TimeDeductionComp = TargetGimmick->FindComponentByClass<UOverlapVolumeTimeDeductionComponent>();
-		auto* InteractionSwitchComp = TargetGimmick->FindComponentByClass<UInteractionSwitchComponent>();
+		auto* InteractionGimmickComp = TargetGimmick->FindComponentByClass<US5_InteractionGimmickComponent>();
 		
-		if (IsValid(TimeDeductionComp) == true && IsValid(InteractionSwitchComp) == true)
+		if (IsValid(TimeDeductionComp) == true && IsValid(InteractionGimmickComp) == true)
 		{
-			InteractionSwitchComp->bIsEscapeDoor = false;
-			TimeDeductionComp->bIsInteractionGimmick = false;
-			
-			AssignFakeGimmickIDForUI(TimeDeductionComp, IndexNumber++);
+			PS3_S5_GAME_RULE_DELEGATE_BROADCAST_TwoParams(OnIsInteractionGimmick, InteractionGimmickComp, false);
+			PS3_S5_GAME_RULE_DELEGATE_BROADCAST_TwoParams(OnIsInteractionGimmick, TimeDeductionComp, false);
+			PS3_S5_GAME_RULE_DELEGATE_BROADCAST_TwoParams(OnAssignFakeGimmickIDForUI, TimeDeductionComp, IndexNumber++);
 			
 			++CurrentFakeGimmickCount;
 			--TargetCountForSpawnScreenPlayer;
 			
-			
 			FString TagName = TargetGimmick->Tags.Num() > 0 ? TargetGimmick->Tags[0].ToString() : TEXT("NoTag");
-			UE_LOG(LogTemp, Warning, TEXT("\n[페이크 기믹] -> %s"), *TagName);
+			UE_LOG(LogTemp, Warning, TEXT("\n[페이크 기믹] -> %s 현재 bool = %d"), *TagName, InteractionGimmickComp->bIsInteractionGimmick);
 		}
 		
 		if (CurrentFakeGimmickCount >= TargetFakeGimmickCount) return;
@@ -154,32 +158,29 @@ void APS3GameModeS5::RandomShuffleFakeGimmick()
 }
 
 
-void APS3GameModeS5::AssignFakeGimmickIDForUI(UOverlapVolumeTimeDeductionComponent* TimeDeductionComp, int32 IndexNumber)
-{
-	if (TimeDeductTimerUITypeArray.IsValidIndex(IndexNumber) == false) return;
-	TimeDeductionComp->TimeDeductTimerUIType = TimeDeductTimerUITypeArray[IndexNumber];
-}
-
-
 void APS3GameModeS5::BindInteractionGimmick()
 {
-	for (TActorIterator<AGimmickBase> It(GetWorld()); It; ++It)
+	
+	for (AGimmickBase* TargetGimmick :GimmickBaseArray)
 	{
-		AGimmickBase* TargetGimmick = *It;
 		if (IsValid(TargetGimmick) == false) continue;
 		
 		auto* InteractionSwitchComp = TargetGimmick->FindComponentByClass<UInteractionSwitchComponent>();
-		if (IsValid(InteractionSwitchComp) == false) continue;
+		if (IsValid(InteractionSwitchComp) == true) continue;
 		
+		auto* InteractionGimmickComp = TargetGimmick->FindComponentByClass<US5_InteractionGimmickComponent>();
 		auto* TimeDeductionComp = TargetGimmick->FindComponentByClass<UOverlapVolumeTimeDeductionComponent>();
 		
-		if (IsValid(TimeDeductionComp) == false) continue;
+		if (IsValid(TimeDeductionComp) == false || IsValid(InteractionGimmickComp) == false) continue;
 		
-		if (InteractionSwitchComp->bIsEscapeDoor == true && TimeDeductionComp->bIsInteractionGimmick == true)
+		if (InteractionGimmickComp->bIsInteractionGimmick == false 
+			|| TimeDeductionComp->bIsInteractionGimmick == false) continue;
+		
+		if (InteractionGimmickComp->bIsInteractionGimmick == true && TimeDeductionComp->bIsInteractionGimmick == true)
 		{
-			InteractionSwitchComp->bMultiInteractionState = true;
-			InteractionSwitchComp->bIsOtherInteractionGimmick = true;
-			InteractionSwitchComp->OnInteractionSuccessed.AddUObject(this, &ThisClass::OnInteractedGimmick);
+			PS3_S5_GAME_RULE_DELEGATE_BROADCAST_TwoParams(OnIsInteractionGimmick, InteractionGimmickComp, true);
+			PS3_S5_GAME_RULE_DELEGATE_BROADCAST_TwoParams(OnIsInteractionGimmick, TimeDeductionComp, true);
+			PS3_S5_GAME_RULE_DELEGATE_BINDING_FUNCTION(OnInteractedGimmick, OnInteractedGimmick);
 			
 			FString TagName = TargetGimmick->Tags.Num() > 0 ? TargetGimmick->Tags[0].ToString() : TEXT("NoTag");
 			UE_LOG(LogTemp, Warning, TEXT("\n[인터렉션 기믹] -> %s "), *TagName);
@@ -199,9 +200,7 @@ void APS3GameModeS5::ResistEscapeGimmick()
 		auto* InteractionSwitchComp = TargetGimmick->FindComponentByClass<UInteractionSwitchComponent>();
 		if (IsValid(InteractionSwitchComp) == false) continue;
 		
-		auto* TimeDeductComp = TargetGimmick->FindComponentByClass<UOverlapVolumeTimeDeductionComponent>();
-		
-		if (IsValid(TimeDeductComp) ==false && InteractionSwitchComp->bIsEscapeDoor == true)
+		if (InteractionSwitchComp->bIsEscapeDoor == true)
 		{
 			InteractionSwitchComp->bMultiInteractionState = false;
 			InteractionSwitchComp->bIsOtherInteractionGimmick = false;
@@ -263,7 +262,7 @@ void APS3GameModeS5::OnInteractedGimmick(bool bIsInteractedGimmick)
 		
 		if (bIsScreenPlayerAlreadySpawned == true)
 		{
-			OnScreenPlayerSpawned.Broadcast();
+			PS3_S5_GAME_RULE_DELEGATE_BROADCAST(OnScreenPlayerSpawned);
 			
 			auto* PS3GameStateS5 = Cast<APS3GameStateS5>(GetWorld()->GetGameState());
 			if (IsValid(PS3GameStateS5) == false) return;
@@ -481,7 +480,7 @@ void APS3GameModeS5::OnGameStart()
 {
 	GetWorld()->GetTimerManager().ClearTimer(TimerForGameStartHandle);
 	
-	OnIsGameStart.Broadcast(true);
+	PS3_S5_GAME_RULE_DELEGATE_BROADCAST_OneParams(OnIsGameStart, true);
 	
 	UE_LOG(LogTemp, Warning, TEXT("게임이 시작되었습니다."));
 	GetWorld()->GetTimerManager().SetTimer(GameLimitTimeHandle, this, &ThisClass::OnReduceGameTime, ReducedTimeRange, true);
@@ -518,6 +517,6 @@ void APS3GameModeS5::OnGameOver()
 	auto* PS3GameStateS5 = GetGameState<APS3GameStateS5>();
 	if (IsValid(PS3GameStateS5) == false) return;
 	
-	OnIsGameStart.Broadcast(false);
+	PS3_S5_GAME_RULE_DELEGATE_BROADCAST_OneParams(OnIsGameStart, false);
 	PS3GameStateS5->OnGameOver();
 }

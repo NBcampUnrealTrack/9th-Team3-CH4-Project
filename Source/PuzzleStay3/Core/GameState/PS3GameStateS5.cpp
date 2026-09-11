@@ -2,6 +2,7 @@
 
 #include "Core/GameMode/PS3GameModeS5.h"
 #include "Data/DataAsset/S5_GameRuleDataAsset.h"
+#include "Data/Delegates/S5_GameRuleDelegateComponent.h"
 #include "Data/Delegates/UIDelegatesSubsystem.h"
 #include "Net/UnrealNetwork.h"
 
@@ -9,6 +10,8 @@
 APS3GameStateS5::APS3GameStateS5()
 {
 	bReplicates = true;
+	
+	S5_GameRuleDelegateComponent = CreateDefaultSubobject<US5_GameRuleDelegateComponent>("S5_GameRuleDelegateComponent");
 }
 
 
@@ -43,7 +46,7 @@ void APS3GameStateS5::BroadcastToTimerManager()
 
 void APS3GameStateS5::OnSpawnScreenPlayerUIReAssign()
 {
-	OnSpawnedScreenPlayerUIReAssign.Broadcast();
+	PS3_S5_GAME_RULE_DELEGATE_BROADCAST(OnSpawnedScreenPlayerUIReAssign)
 }
 
 

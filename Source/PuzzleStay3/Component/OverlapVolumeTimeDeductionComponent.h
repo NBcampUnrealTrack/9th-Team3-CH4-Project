@@ -22,6 +22,21 @@ protected:
 public:
 	EPS3TimerUIType TimeDeductTimerUIType = EPS3TimerUIType::None;
 	
+	
+	TArray<EPS3TimerUIType> TimeDeductTimerUITypeArray =
+	{
+		EPS3TimerUIType::GimmickB_1,
+		EPS3TimerUIType::GimmickB_2,
+		EPS3TimerUIType::GimmickB_3,
+		EPS3TimerUIType::GimmickB_4,
+		EPS3TimerUIType::GimmickB_5,
+		EPS3TimerUIType::GimmickB_6,
+		EPS3TimerUIType::GimmickB_7,
+		EPS3TimerUIType::GimmickB_8,
+		EPS3TimerUIType::GimmickB_9,
+		EPS3TimerUIType::GimmickB_10,
+	};
+	
 protected:
 	UFUNCTION()
 	void OnCharacterOverLapped
@@ -66,6 +81,8 @@ public:
 	bool bIsInteractionGimmick = true;
 	
 private:
+	void OnAssignFakeGimmickIDForUI(UOverlapVolumeTimeDeductionComponent* CurrentComp, int32 IndexNumber);
+	void OnColletedGimmickBase(const UActorComponent* TimeDeductionComp, bool bIsInteractable);
 	void ErrorCheck_S5();
 	APS3GameModeS5* GetCastPS3GameModeS5();
 	void OnBindWhenGameStarted(bool bIsGameStart);

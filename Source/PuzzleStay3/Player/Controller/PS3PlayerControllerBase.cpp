@@ -6,6 +6,7 @@
 #include "Core/GameMode/PS3GamemodeBase.h"
 #include "Core/GameMode/PS3GameModeS5.h"
 #include "Core/GameState/PS3GameStateS5.h"
+#include "Data/Delegates/S5_GameRuleDelegateComponent.h"
 #include "Data/Delegates/UIDelegatesSubsystem.h"
 #include "UI/HUD/PlayerHUD.h"
 #include "UI/ViewModel/PS3ViewModel.h"
@@ -66,10 +67,8 @@ void APS3PlayerControllerBase::ConfigureInputMapping()
 	PS3ViewModel->OnGameRestartRequested_UI.AddDynamic(this, &ThisClass::OnClickedRestartGameButton);
 	PS3ViewModel->OnExitToMainRequested_UI.AddDynamic(this, &ThisClass::OnClickedMainMenuButton);
 	
-	auto* PS3GameState = Cast<APS3GameStateS5>(GetWorld()->GetGameState());	
-	if (IsValid(PS3GameState) == false) return;
+	PS3_S5_GAME_RULE_DELEGATE_BINDING_FUNCTION(OnSpawnedScreenPlayerUIReAssign, OnScreenPlayerSpawned);
 	
-	PS3GameState->OnSpawnedScreenPlayerUIReAssign.AddUObject(this, &ThisClass::OnScreenPlayerSpawned);
 }
 
 
