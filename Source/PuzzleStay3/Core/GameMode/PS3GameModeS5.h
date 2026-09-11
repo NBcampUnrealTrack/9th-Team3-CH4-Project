@@ -61,7 +61,13 @@ public:
 	int32 OnCollectGimmickBase();
 	
 public:
+<<<<<<< HEAD
 	
+=======
+	FOnIsGameStart OnIsGameStart;
+	FOnScreenPlayerSpawned OnScreenPlayerSpawned;
+	FOnIsInteractionGimmick OnIsInteractionGimmick;
+>>>>>>> dev
 	
 	int32 RoleSelectedPlayerCount = 0;
 	int32 MaxPlayerCount = 2;
