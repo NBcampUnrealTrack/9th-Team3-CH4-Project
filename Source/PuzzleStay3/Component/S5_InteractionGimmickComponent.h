@@ -5,9 +5,7 @@
 #include "Player/Interaction/PS3InteractableInterface.h"
 #include "S5_InteractionGimmickComponent.generated.h"
 
-DECLARE_MULTICAST_DELEGATE_OneParam(FOnInteractedGimmick, bool);
-DECLARE_MULTICAST_DELEGATE(FOnCosmeticInteractionSuccessed);
-
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnInteractionGimmick, bool);
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class PUZZLESTAY3_API US5_InteractionGimmickComponent : public UActorComponent , public IPS3InteractableInterface
@@ -17,10 +15,16 @@ class PUZZLESTAY3_API US5_InteractionGimmickComponent : public UActorComponent ,
 public:
 	US5_InteractionGimmickComponent();
 
+	virtual void BeginPlay() override;
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 	
 	virtual bool CanInteract_Implementation(AActor* Requestor) const override;
 	virtual bool Interact_Implementation(AActor* Requestor) override;
+	
+	void OnStartedGame(bool bIsGameStart);
+	void OnColletedGimmickBase(const UActorComponent* CurrentComponent, bool bIsInteractable);
+	
+	FOnInteractionGimmick OnInteractionGimmick;
 	
 	UPROPERTY(Replicated)
 	bool bIsInteractionGimmick = false;
@@ -28,6 +32,11 @@ public:
 	UPROPERTY(Replicated)
 	bool bIsInteractedGimmick = false;
 	
+	UPROPERTY(Replicated)
+	bool bIsStartedGame = false;
 	
-	FOnInteractedGimmick OnInteractedGimmick;
+	
 };
+
+
+

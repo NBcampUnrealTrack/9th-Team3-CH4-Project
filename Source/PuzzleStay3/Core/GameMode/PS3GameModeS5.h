@@ -76,6 +76,7 @@ public:
 public:
 	FOnIsGameStart OnIsGameStart;
 	FOnScreenPlayerSpawned OnScreenPlayerSpawned;
+	FOnIsInteractionGimmick OnIsInteractionGimmick;
 	
 	int32 RoleSelectedPlayerCount = 0;
 	int32 MaxPlayerCount = 2;
@@ -115,7 +116,7 @@ private:
 	bool bIsInteracted = false;
 	
 	void OnInteractedGimmick(bool bIsInteractedGimmick);
-	void InitializeToDataAssets();
+	virtual void InitializeToDataAssets() override;
 	void InitializeGimmick();
 	void RandomShuffleFakeGimmick();
 	void BindInteractionGimmick();
