@@ -44,7 +44,10 @@ void APS3GameModeBase::PostLogin(APlayerController* NewPlayer)
 void APS3GameModeBase::InitializeToDataAssets()
 {
 	if(IsValid(Base_GameRuleDataAsset) == false) return;
+	if (Base_GameRuleDataAsset->TitleLevel.IsNull()) return;
 	
+	TitleLevelPath = Base_GameRuleDataAsset->TitleLevel.ToSoftObjectPath().GetLongPackageName();
+
 	StageClearDelay = Base_GameRuleDataAsset->StageClearDelay;
 }
 
@@ -209,5 +212,13 @@ void APS3GameModeBase::CallStageClearIfTimerOver()
 			false
 		);
 	}
+}
+
+void APS3GameModeBase::GotoTitleLevel()
+{
+	if (!HasAuthority()) return;
+	if (TitleLevelPath.IsEmpty()) return;
+
+	GetWorld()->ServerTravel(TitleLevelPath);
 }
 
