@@ -12,12 +12,19 @@ class PUZZLESTAY3_API APS3GameModeS2 : public APS3GameModeBase
 {
 	GENERATED_BODY()
 
-protected:
+public:
 	
-	void BeginPlay() override;
+	virtual void BeginPlay() override;
 	
 	virtual void PostLogin(APlayerController* NewPlayer) override;
 	
+protected:
+	virtual void InitializeToDataAssets() override;
+	
+	UPROPERTY(EditAnywhere, Category = "GameRule")
+	TObjectPtr<class US2_GameRuleDataAsset> S2_GameRuleDataAsset;
+	
+protected:	
 	//플레이어가 생명 0개 되면 델리게이트 -> 모드가 듣고 리스폰 처리
 	void RegisterPlayerLifeCountState(APS3PlayerState* PS3PlayerState);
 	

@@ -13,7 +13,9 @@ class PUZZLESTAY3_API APS3GameStateS2 : public APS3GameStateBase
 	
 public:
 	virtual void BeginPlay() override;
-	void InitializeToDataAssets();
+	
+protected:
+	virtual void InitializeToDataAssets() override;
 
 	UPROPERTY(EditAnywhere, Category = "GameRule")
 	TObjectPtr<class US2_GameRuleDataAsset> S2_GameRuleDataAsset;

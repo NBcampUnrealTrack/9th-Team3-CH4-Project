@@ -19,4 +19,6 @@ public:
 	UPROPERTY(EditAnywhere, Category = "GameRule")
 	EPS3StageType StageType_S2 = EPS3StageType::Stage2;
 
+	UPROPERTY(EditAnywhere, Category = "GameRule")
+	TSoftObjectPtr<UWorld> NextStageLevel;
 };

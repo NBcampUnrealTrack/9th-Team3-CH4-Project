@@ -13,7 +13,7 @@ void UTimerNotifyWidget::HideTimerNotifyWidget()
 	SetVisibility(ESlateVisibility::Collapsed);
 }
 
-void UTimerNotifyWidget::UpdateTimerNotify(FName InTimerId, float InDuration)
+void UTimerNotifyWidget::UpdateTimerNotify(FName InTimerId, float InMaxTime, float InCurrentTime)
 {
 	if (!TimerContainer || !EntryWidgetClass)
 	{
@@ -22,8 +22,16 @@ void UTimerNotifyWidget::UpdateTimerNotify(FName InTimerId, float InDuration)
 
 	if (UTimerNotifyEntryWidget* ExistingTimerEntryWidget = FindActiveTimerEntry(InTimerId))
 	{
-		ShowTimerNotify();
-		ExistingTimerEntryWidget->StartTimer(InTimerId, InDuration);
+		ExistingTimerEntryWidget->UpdateTimerState(InTimerId, InMaxTime, InCurrentTime);
+		if (InCurrentTime > 0.0f)
+		{
+			ShowTimerNotify();
+		}
+		return;
+	}
+
+	if (InTimerId.IsNone() || InMaxTime <= 0.0f || InCurrentTime <= 0.0f)
+	{
 		return;
 	}
 
@@ -37,7 +45,7 @@ void UTimerNotifyWidget::UpdateTimerNotify(FName InTimerId, float InDuration)
 	ActiveTimerEntries.Add(TimerEntryWidget);
 	TimerContainer->AddChild(TimerEntryWidget);
 	ShowTimerNotify();
-	TimerEntryWidget->StartTimer(InTimerId, InDuration);
+	TimerEntryWidget->UpdateTimerState(InTimerId, InMaxTime, InCurrentTime);
 }
 
 void UTimerNotifyWidget::ReduceTimerNotify(FName InTimerId, float InReduceTime)

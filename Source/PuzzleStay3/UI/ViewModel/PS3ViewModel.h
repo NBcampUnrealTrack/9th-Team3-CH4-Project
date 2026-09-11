@@ -62,7 +62,7 @@ public:
 	void RequestSetTimerNotifyVisible(bool bVisible);
 
 	UFUNCTION(BlueprintCallable, Category = "UI|TimerNotify")
-	void RequestTimerNotify(FName InTimerId, float InDuration);
+	void RequestTimerNotify(FName InTimerId, float InMaxTime, float InCurrentTime);
 
 	UFUNCTION(BlueprintCallable, Category = "UI|TimerNotify")
 	void RequestReduceTimerNotify(FName InTimerId, float InReduceTime);
@@ -211,6 +211,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "UI|ViewModel")
 	void SetIsOpen(bool bInIsOpen);
 
+	void RefreshStageUI();
+
 private:
 	void BindRoleSelectionUIDelegate();
 	void UnbindRoleSelectionUIDelegate();
@@ -221,16 +223,32 @@ private:
 	void HandleScreenPlayer_UI(bool bVisible);
 	void HandleFieldPlayer_UI(bool bVisible);
 	void HandleVoiceChatIcon_UI(bool bVisible);
+	void HandleOptionPopup_UI(bool bVisible);
 	void HandleIsGameOver_UI(bool bVisible);
+	void HandleTutorial_UI(bool bVisible);
+	void HandleTitle_UI(bool bVisible);
+	void HandleTimerNotifyVisible_UI(bool bVisible);
+	void HandleLifeCount_UI(int32 InCurrentLifeCount, int32 InMaxLifeCount);
 	void HandleButtonEnabled_UI(EControlDoorType DoorType, bool bEnabled);
-	void HandleGameTimer_UI(EPS3TimerUIType TimerUIType, float Duration);
+	void HandleGameTimer_UI(EPS3TimerUIType TimerUIType, float CurrentTime);
 	void HandleTimeDeduct_UI(EPS3TimerUIType TimerUIType, float ReduceTime);
+	void HandleTimerReset_UI();
+	void HandleInteractionNotifyAddRequested_UI(EPS3InteractionNotifyType NotifyType);
+	void HandleInteractionNotifyRemoveRequested_UI(EPS3InteractionNotifyType NotifyType);
+	void HandleInteractionNotifyResetRequested_UI();
+	void HandleTextNotifyVisible_UI(bool bVisible);
+	void HandleTextNotify_UI(EPS3TextNotifyType NotifyType);
+	float ResolveTimerMaxTime(EPS3TimerUIType TimerUIType) const;
 	void ApplyStageUI();
 
 	UPROPERTY(BlueprintReadOnly, Category = "UI|HUD", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<APlayerHUD> PlayerHUD;
 
 	EPS3StageType CurrentStageType = EPS3StageType::None;
+
+	bool bTextNotifyEnabled = false;
+
+	bool bVoiceChatIconEnabled = false;
 
 	UPROPERTY(BlueprintReadWrite, FieldNotify, Getter, Setter, Category = "UI|ViewModel", meta = (AllowPrivateAccess = "true"))
 	int32 CurrentLifeCount = 0;
