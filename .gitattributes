@@ -1,2 +1,4 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+Content/PuzzleStay3/Dev/Player/Asset/Textures/BackPack/T_Backpack_Normal.uasset filter=lfs diff=lfs merge=lfs -text
+Content/PuzzleStay3/Dev/Player/Asset/Textures/Jacket/T_Jacket_Normal.uasset filter=lfs diff=lfs merge=lfs -text
