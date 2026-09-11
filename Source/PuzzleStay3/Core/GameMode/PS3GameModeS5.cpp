@@ -107,13 +107,8 @@ int32 APS3GameModeS5::OnCollectGimmickBase()
 		auto* TimeDeductionComp = TargetGimmick->FindComponentByClass<UOverlapVolumeTimeDeductionComponent>();
 		if (IsValid(TimeDeductionComp) == true && IsValid(InteractionGimmickComp) == true)
 		{
-<<<<<<< HEAD
 			PS3_S5_GAME_RULE_DELEGATE_BROADCAST_TwoParams(OnIsInteractionGimmick, InteractionGimmickComp, true);
 			PS3_S5_GAME_RULE_DELEGATE_BROADCAST_TwoParams(OnIsInteractionGimmick, TimeDeductionComp, true);
-=======
-			OnIsInteractionGimmick.Broadcast(InteractionGimmickComp, true);
-			OnIsInteractionGimmick.Broadcast(TimeDeductionComp, true);
->>>>>>> dev
 			
 			++InteractionGimmickCount;
 		}
@@ -147,15 +142,9 @@ void APS3GameModeS5::RandomShuffleFakeGimmick()
 		
 		if (IsValid(TimeDeductionComp) == true && IsValid(InteractionGimmickComp) == true)
 		{
-<<<<<<< HEAD
 			PS3_S5_GAME_RULE_DELEGATE_BROADCAST_TwoParams(OnIsInteractionGimmick, InteractionGimmickComp, false);
 			PS3_S5_GAME_RULE_DELEGATE_BROADCAST_TwoParams(OnIsInteractionGimmick, TimeDeductionComp, false);
 			PS3_S5_GAME_RULE_DELEGATE_BROADCAST_TwoParams(OnAssignFakeGimmickIDForUI, TimeDeductionComp, IndexNumber++);
-=======
-			OnIsInteractionGimmick.Broadcast(InteractionGimmickComp, false);
-			OnIsInteractionGimmick.Broadcast(TimeDeductionComp, false);
-			AssignFakeGimmickIDForUI(TimeDeductionComp, IndexNumber);
->>>>>>> dev
 			
 			++CurrentFakeGimmickCount;
 			--TargetCountForSpawnScreenPlayer;
@@ -189,15 +178,9 @@ void APS3GameModeS5::BindInteractionGimmick()
 		
 		if (InteractionGimmickComp->bIsInteractionGimmick == true && TimeDeductionComp->bIsInteractionGimmick == true)
 		{
-<<<<<<< HEAD
 			PS3_S5_GAME_RULE_DELEGATE_BROADCAST_TwoParams(OnIsInteractionGimmick, InteractionGimmickComp, true);
 			PS3_S5_GAME_RULE_DELEGATE_BROADCAST_TwoParams(OnIsInteractionGimmick, TimeDeductionComp, true);
 			PS3_S5_GAME_RULE_DELEGATE_BINDING_FUNCTION(OnInteractedGimmick, OnInteractedGimmick);
-=======
-			OnIsInteractionGimmick.Broadcast(InteractionGimmickComp, true);
-			OnIsInteractionGimmick.Broadcast(TimeDeductionComp, true);
-			InteractionGimmickComp->OnInteractionGimmick.AddUObject(this, &ThisClass::OnInteractedGimmick);
->>>>>>> dev
 			
 			FString TagName = TargetGimmick->Tags.Num() > 0 ? TargetGimmick->Tags[0].ToString() : TEXT("NoTag");
 			UE_LOG(LogTemp, Warning, TEXT("\n[인터렉션 기믹] -> %s "), *TagName);
@@ -302,12 +285,6 @@ void APS3GameModeS5::UnResistEscapeGimmick()
 		UnregisterInteractionSwitch(OldInteractionSwitchComp);
 	}
 	InteractionSwitches.Empty();
-}
-
-void APS3GameModeS5::AssignFakeGimmickIDForUI(class UOverlapVolumeTimeDeductionComponent* TimeDeductionComp, int32 IndexNumber)
-{
-	if (TimeDeductTimerUITypeArray.IsValidIndex(IndexNumber) == false) return;
-	TimeDeductionComp->TimeDeductTimerUIType = TimeDeductTimerUITypeArray[IndexNumber];
 }
 
 

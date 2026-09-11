@@ -3,11 +3,11 @@
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
 #include "Player/Interaction/PS3InteractableInterface.h"
-#include "Data/Delegates/CosmeticDelegates.h"
 #include "InteractionSwitchComponent.generated.h"
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnSwitchActivatedChanged, bool);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnInteractionSuccessed, bool);
+DECLARE_MULTICAST_DELEGATE(FOnCosmeticInteractionSuccessed);
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class PUZZLESTAY3_API UInteractionSwitchComponent : public UActorComponent, public IPS3InteractableInterface
