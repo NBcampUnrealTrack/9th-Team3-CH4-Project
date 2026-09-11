@@ -16,7 +16,6 @@ void APS3GameModeS3::BeginPlay()
 	
 	CheckVoiceObjectHeldPlayerCount();
 	
-	InitializeToDataAssets();
 }
 
 void APS3GameModeS3::PostLogin(APlayerController* NewPlayer)
@@ -85,7 +84,7 @@ void APS3GameModeS3::CheckVoiceObjectHeldPlayerCount()
 
 void APS3GameModeS3::ChangeVoiceChatStateAndBlockingVolumeCollision(int32 Count)
 {
-	if (Count < 2) return;
+	if (Count < MaxPlayer) return;
 	
 	APS3GameStateS3* GS = GetGameState<APS3GameStateS3>();
 	if (!IsValid(GS)) return;
