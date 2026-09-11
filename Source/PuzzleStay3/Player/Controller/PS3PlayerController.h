@@ -2,7 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "Data/Enum/JeoulCutsceneState.h"
-#include "GameFramework/PlayerController.h"
+#include "PS3PlayerControllerBase.h"
 #include "InputActionValue.h"
 #include "PS3PlayerController.generated.h"
 
@@ -16,7 +16,7 @@ class AJeoul;
 class APS3PlayerCharacter;
 
 UCLASS()
-class PUZZLESTAY3_API APS3PlayerController : public APlayerController
+class PUZZLESTAY3_API APS3PlayerController : public APS3PlayerControllerBase
 {
 	GENERATED_BODY()
 
