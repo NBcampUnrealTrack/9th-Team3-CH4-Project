@@ -155,5 +155,6 @@ private:
 	double LastDoorStateChangeTime = 0.0;
 	bool bIsTrapTimedActive = false;
 	bool bHasCompletedTrapTimed = false;
+	bool bHasHiddenTrapMesh = false;
 	ECosmeticDoorTravelDirection DoorTravelDirection = ECosmeticDoorTravelDirection::None;
 };
