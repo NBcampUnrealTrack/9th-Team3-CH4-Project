@@ -49,16 +49,18 @@ void UFakeDeathTrapComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 
 void UFakeDeathTrapComponent::ApplyLocalFakeTrapState(bool bShouldBeVisible)
 {
-	if (GetNetMode() == NM_DedicatedServer)
-	{
-		return;
-	}
+	if (GetNetMode() == NM_DedicatedServer)	{ return; }
 
 	ResolveVisualMesh();
 
 	bIsVisibleForLocalPlayer = bShouldBeVisible;
 
 	SetLocalVisibility(bShouldBeVisible);
+	
+	SetCollisionEnabled(
+		bShouldBeVisible
+			? ECollisionEnabled::QueryOnly
+			: ECollisionEnabled::NoCollision);
 }
 
 void UFakeDeathTrapComponent::ResolveVisualMesh()
