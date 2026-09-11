@@ -12,6 +12,7 @@
 #include "Player/Interaction/PS3InteractableInterface.h"
 #include "Player/PlayerState/PS3PlayerState.h"
 #include "Components/ActorComponent.h"
+#include "Components/CapsuleComponent.h"
 #include "Engine/OverlapResult.h"
 
 
@@ -199,8 +200,10 @@ void APS3PlayerCharacter::Server_TryInteract_Implementation()
 	}
 	
 	const FVector TraceDirection = GetActorForwardVector();
-	const FVector TraceStart = GetActorLocation() + TraceDirection * InteractionTraceStartOffset + FVector::UpVector * InteractionTraceHeight;
-	const FVector TraceEnd = TraceStart + TraceDirection * InteractionDistance;
+	const float CapsuleRadius = GetCapsuleComponent()->GetScaledCapsuleRadius();
+	const FVector SphereCenter = GetActorLocation()
+		+ TraceDirection * (CapsuleRadius + InteractionSphereRadius)
+		+ FVector::UpVector * InteractionSphereHeight;
 
 	FCollisionQueryParams QueryParams(SCENE_QUERY_STAT(PlayerInteractionTrace), false, this);
 
@@ -209,23 +212,35 @@ void APS3PlayerCharacter::Server_TryInteract_Implementation()
 	ObjectQueryParams.AddObjectTypesToQuery(ECC_WorldDynamic);
 	ObjectQueryParams.AddObjectTypesToQuery(ECC_PhysicsBody);
 
-	TArray<FOverlapResult> OverlapResults;
-	World->OverlapMultiByObjectType(OverlapResults, TraceStart, FQuat::Identity, ObjectQueryParams, FCollisionShape::MakeSphere(InteractionDistance), QueryParams);
+	UObject* InteractableTarget = nullptr;
+	ADumbbell* HitDumbbell = nullptr;
+	FVector ImpactPoint = SphereCenter;
 
-	OverlapResults.Sort([TraceStart](const FOverlapResult& A, const FOverlapResult& B)
+	TArray<FOverlapResult> OverlapResults;
+	World->OverlapMultiByObjectType(
+		OverlapResults,
+		SphereCenter,
+		FQuat::Identity,
+		ObjectQueryParams,
+		FCollisionShape::MakeSphere(InteractionSphereRadius),
+		QueryParams);
+
+	const FVector CharacterLocation = GetActorLocation();
+	OverlapResults.Sort([CharacterLocation](const FOverlapResult& A, const FOverlapResult& B)
 	{
 		const AActor* ActorA = A.GetActor();
 		const AActor* ActorB = B.GetActor();
-		const float DistanceA = IsValid(ActorA) ? FVector::DistSquared(TraceStart, ActorA->GetActorLocation()) : TNumericLimits<float>::Max();
-		const float DistanceB = IsValid(ActorB) ? FVector::DistSquared(TraceStart, ActorB->GetActorLocation()) : TNumericLimits<float>::Max();
+		const float DistanceA = IsValid(ActorA)
+			? FVector::DistSquared(CharacterLocation, ActorA->GetActorLocation())
+			: TNumericLimits<float>::Max();
+		const float DistanceB = IsValid(ActorB)
+			? FVector::DistSquared(CharacterLocation, ActorB->GetActorLocation())
+			: TNumericLimits<float>::Max();
 		return DistanceA < DistanceB;
 	});
 
-	UObject* InteractableTarget = nullptr;
-	ADumbbell* HitDumbbell = nullptr;
-	FVector ImpactPoint = TraceEnd;
 	TSet<TObjectPtr<AActor>> CheckedActors;
-	const float MinimumConeDot = FMath::Cos(FMath::DegreesToRadians(InteractionConeHalfAngle));
+	const FVector VisibilityStart = GetActorLocation() + FVector::UpVector * BaseEyeHeight;
 
 	for (const FOverlapResult& OverlapResult : OverlapResults)
 	{
@@ -235,13 +250,6 @@ void APS3PlayerCharacter::Server_TryInteract_Implementation()
 			continue;
 		}
 		CheckedActors.Add(HitActor);
-
-		const FVector ToCandidate = HitActor->GetActorLocation() - TraceStart;
-		const float CandidateDistance = ToCandidate.Size();
-		if (CandidateDistance <= UE_KINDA_SMALL_NUMBER || CandidateDistance > InteractionDistance || FVector::DotProduct(TraceDirection, ToCandidate / CandidateDistance) < MinimumConeDot)
-		{
-			continue;
-		}
 
 		ADumbbell* CandidateDumbbell = Cast<ADumbbell>(HitActor);
 		if (IsValid(CandidateDumbbell) && IsValid(HeldDumbbell))
@@ -256,7 +264,9 @@ void APS3PlayerCharacter::Server_TryInteract_Implementation()
 		}
 
 		FHitResult VisibilityHit;
-		if (World->LineTraceSingleByChannel(VisibilityHit, TraceStart, HitActor->GetActorLocation(), ECC_Visibility, QueryParams) && VisibilityHit.GetActor() != HitActor)
+		if (World->LineTraceSingleByChannel(
+			VisibilityHit, VisibilityStart, HitActor->GetActorLocation(), ECC_Visibility, QueryParams)
+			&& VisibilityHit.GetActor() != HitActor)
 		{
 			continue;
 		}
@@ -272,7 +282,7 @@ void APS3PlayerCharacter::Server_TryInteract_Implementation()
 #if !(UE_BUILD_SHIPPING || UE_BUILD_TEST)
 	if (bDrawInteractionTrace)
 	{
-		Client_DrawInteractionTrace(TraceStart, TraceEnd, bHit, ImpactPoint);
+		Client_DrawInteractionTrace(SphereCenter, bHit, ImpactPoint);
 	}
 #endif
 	
@@ -295,7 +305,7 @@ void APS3PlayerCharacter::Server_TryInteract_Implementation()
 	}
 }
 
-void APS3PlayerCharacter::Client_DrawInteractionTrace_Implementation(const FVector TraceStart, const FVector TraceEnd, const bool bHit, const FVector ImpactPoint)
+void APS3PlayerCharacter::Client_DrawInteractionTrace_Implementation(const FVector SphereCenter, const bool bHit, const FVector ImpactPoint)
 {
 #if !(UE_BUILD_SHIPPING || UE_BUILD_TEST)
 	UWorld* World = GetWorld();
@@ -304,9 +314,8 @@ void APS3PlayerCharacter::Client_DrawInteractionTrace_Implementation(const FVect
 		return;
 	}
 	
-	const FVector Direction = (TraceEnd - TraceStart).GetSafeNormal();
-	const float ConeAngleRadians = FMath::DegreesToRadians(InteractionConeHalfAngle);
-	DrawDebugCone(World, TraceStart, Direction, FVector::Distance(TraceStart, TraceEnd), ConeAngleRadians, ConeAngleRadians, 24, bHit ? FColor::Green : FColor::Red, false, InteractionTraceDebugDuration, 0, 1.5f);
+	DrawDebugSphere(World, SphereCenter, InteractionSphereRadius, 24,
+		bHit ? FColor::Green : FColor::Red, false, InteractionTraceDebugDuration, 0, 1.5f);
 
 	if (bHit)
 	{

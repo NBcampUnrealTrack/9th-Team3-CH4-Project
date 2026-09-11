@@ -54,13 +54,19 @@ private:
 	void ApplyConversionToPlugin(bool bEnabled);
 	void HandleChannelJoined(const FString& ChannelName);
 	void HandleChannelExited(const FString& ChannelName, const FVoiceChatResult& Reason);
+	void HandlePlayerAdded(const FString& ChannelName, const FString& PlayerName);
+	void ReapplyPlayerReceiving();
 	void HandleCapturedAudio(TArrayView<int16> PcmSamples, int32 SampleRate, int32 NumChannels);
 
 	IVoiceChatUser* VoiceChatUser = nullptr;
 
 	FDelegateHandle ChannelJoinedHandle;
 	FDelegateHandle ChannelExitedHandle;
+	FDelegateHandle PlayerAddedHandle;
 	FDelegateHandle CapturedAudioHandle;
+	FTimerHandle PlayerReceivingRetryTimerHandle;
+	FString PendingVoiceChannelName;
+	FString PendingVoicePlayerName;
 
 	bool bVoiceReady = false;
 	bool bConversionEnabled = false;

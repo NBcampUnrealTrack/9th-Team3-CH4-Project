@@ -1,11 +1,13 @@
 #include "VoicePluginControlComponent.h"
 
+#include "Engine/World.h"
 #include "GameFramework/PlayerController.h"
 #include "IOnlineSubsystemEOS.h"
 #include "Interfaces/OnlineIdentityInterface.h"
 #include "OnlineSubsystem.h"
 #include "OnlineSubsystemNames.h"
 #include "OnlineSubsystemUtils.h"
+#include "TimerManager.h"
 #include "VoiceChat.h"
 
 UVoicePluginControlComponent::UVoicePluginControlComponent()
@@ -66,6 +68,7 @@ bool UVoicePluginControlComponent::InitializeEOSVoice(const int32 LocalUserNum)
 
 	ChannelJoinedHandle = VoiceChatUser->OnVoiceChatChannelJoined().AddUObject(this, &ThisClass::HandleChannelJoined);
 	ChannelExitedHandle = VoiceChatUser->OnVoiceChatChannelExited().AddUObject(this, &ThisClass::HandleChannelExited);
+	PlayerAddedHandle = VoiceChatUser->OnVoiceChatPlayerAdded().AddUObject(this, &ThisClass::HandlePlayerAdded);
 	CapturedAudioHandle = VoiceChatUser->RegisterOnVoiceChatAfterCaptureAudioReadDelegate(
 		FOnVoiceChatAfterCaptureAudioReadDelegate::FDelegate::CreateUObject(this, &ThisClass::HandleCapturedAudio));
 
@@ -78,6 +81,13 @@ bool UVoicePluginControlComponent::InitializeEOSVoice(const int32 LocalUserNum)
 
 void UVoicePluginControlComponent::ShutdownEOSVoice()
 {
+	if (UWorld* World = GetWorld())
+	{
+		World->GetTimerManager().ClearTimer(PlayerReceivingRetryTimerHandle);
+	}
+	PendingVoiceChannelName.Reset();
+	PendingVoicePlayerName.Reset();
+
 	if (VoiceChatUser == nullptr)
 	{
 		return;
@@ -95,6 +105,12 @@ void UVoicePluginControlComponent::ShutdownEOSVoice()
 	{
 		VoiceChatUser->OnVoiceChatChannelExited().Remove(ChannelExitedHandle);
 		ChannelExitedHandle.Reset();
+	}
+
+	if (PlayerAddedHandle.IsValid())
+	{
+		VoiceChatUser->OnVoiceChatPlayerAdded().Remove(PlayerAddedHandle);
+		PlayerAddedHandle.Reset();
 	}
 
 	if (CapturedAudioHandle.IsValid())
@@ -177,6 +193,49 @@ void UVoicePluginControlComponent::HandleChannelExited(
 		*ChannelName,
 		*LexToString(Reason.ResultCode),
 		*Reason.ErrorDesc);
+}
+
+void UVoicePluginControlComponent::HandlePlayerAdded(
+	const FString& ChannelName,
+	const FString& PlayerName)
+{
+	if (VoiceChatUser == nullptr || ChannelName.IsEmpty() || PlayerName.IsEmpty())
+	{
+		return;
+	}
+
+	PendingVoiceChannelName = ChannelName;
+	PendingVoicePlayerName = PlayerName;
+	ReapplyPlayerReceiving();
+
+	// EOS P2P가 참가자의 차단 상태를 비동기로 갱신한 뒤 수신 옵션을 한 번 더 적용합니다.
+	if (UWorld* World = GetWorld())
+	{
+		World->GetTimerManager().ClearTimer(PlayerReceivingRetryTimerHandle);
+		World->GetTimerManager().SetTimer(
+			PlayerReceivingRetryTimerHandle,
+			this,
+			&ThisClass::ReapplyPlayerReceiving,
+			0.25f,
+			false);
+	}
+}
+
+void UVoicePluginControlComponent::ReapplyPlayerReceiving()
+{
+	if (VoiceChatUser == nullptr || PendingVoiceChannelName.IsEmpty() || PendingVoicePlayerName.IsEmpty())
+	{
+		return;
+	}
+
+	VoiceChatUser->SetChannelPlayerMuted(PendingVoiceChannelName, PendingVoicePlayerName, false);
+
+	// 이미 음소거 해제 상태면 위 호출이 no-op이므로 볼륨을 다시 설정해 EOS 수신 옵션을 강제로 갱신합니다.
+	const float CurrentVolume = VoiceChatUser->GetPlayerVolume(PendingVoicePlayerName);
+	VoiceChatUser->SetPlayerVolume(PendingVoicePlayerName, CurrentVolume);
+
+	UE_LOG(LogTemp, Log, TEXT("EOS voice receiving reapplied: channel=%s, player=%s"),
+		*PendingVoiceChannelName, *PendingVoicePlayerName);
 }
 
 void UVoicePluginControlComponent::HandleCapturedAudio(
