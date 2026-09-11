@@ -45,7 +45,7 @@ void APS3GameModeS5::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	InitializeToDataAssets();
+	//InitializeToDataAssets();
 	GetWorld()->GetTimerManager().SetTimer(InitTimerHandle, this, &ThisClass::InitializeGimmick, 0.1f, false);
 }
 
