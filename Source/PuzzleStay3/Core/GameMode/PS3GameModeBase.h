@@ -25,12 +25,12 @@ class PUZZLESTAY3_API APS3GameModeBase : public AGameModeBase
 public:
 	virtual void BeginPlay() override;
 	virtual void PostLogin(APlayerController* NewPlayer) override;
-	
+
 	void SetPlayerIdentity(APS3PlayerState* NewPlayerState);
-	
+
 protected:
 	virtual void InitializeToDataAssets();
-	
+
 	UPROPERTY(EditAnywhere, Category = "GameRule")
 	TObjectPtr<class UBase_GameRuleDataAsset> Base_GameRuleDataAsset;
 
@@ -43,11 +43,11 @@ public:
 
 	//모든 b기믹스위치 활성화 여부 확인
 	bool AllInteractionSwitchActivated() const;
-	
+
 	bool GetInteractionSwitchTimerUsed() const { return bInteractionSwitchTimerUsed; }
-	
+
 	void SetInteractionSwitchTimerUsed(bool IsUsed);
-	
+
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GameRule|InteractionSwitch")
 	TArray<TObjectPtr<UInteractionSwitchComponent>> InteractionSwitches;
@@ -57,9 +57,9 @@ private:
 	virtual void HandleSwitchActivatedChanged(bool bActivated);
 
 	FDelegateHandle InteractionSwitchCompoHandle;
-	
+
 	bool bInteractionSwitchTimerUsed = false;
-	
+
 #pragma endregion
 
 #pragma region OpenDoor
@@ -72,7 +72,6 @@ private:
 #pragma region BlokingVolume
 
 public:
-	
 	virtual void DisableBlockingVolume(EPS3StageNumber StageNumber);
 
 #pragma endregion
@@ -101,10 +100,10 @@ private:
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "GameRule|StageClear")
 	FString NextStageLevelPath;
-	
+
 	// 모든 스위치 활성화 후 다음 스테이지로 넘어가기까지 대기 시간.
 	float StageClearDelay;
-	
+
 	//각 스테이지 클리어 시 사용할 가상함수
 	virtual void StageClear();
 	void CallStageClearIfTimerOver();
@@ -112,5 +111,13 @@ protected:
 private:
 	FTimerHandle StageClearTimerHandle;
 	bool bStageClearTimerStarted = false;
+#pragma endregion
+
+#pragma region GotoTitleLevel
+	
+protected:
+	FString TitleLevelPath;
+public:
+	void GotoTitleLevel();
 #pragma endregion
 };

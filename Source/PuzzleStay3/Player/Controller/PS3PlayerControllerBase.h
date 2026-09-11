@@ -27,7 +27,7 @@ protected:
 	UFUNCTION()
 	void OnClickedRestartGameButton();
 	UFUNCTION()
-	void OnClickedMainMenuButton();
+	void OnClickedTitleMenuButton();
 	
 	UFUNCTION(Server, Unreliable)
 	void ServerRPC_OnClickedRestartGameButton();

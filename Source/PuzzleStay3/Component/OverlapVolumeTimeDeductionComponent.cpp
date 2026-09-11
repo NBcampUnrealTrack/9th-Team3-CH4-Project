@@ -19,7 +19,7 @@ void UOverlapVolumeTimeDeductionComponent::BeginPlay()
 	
 	if (IsValid(GetCastPS3GameModeS5()) == false) return;
 	CastPS3GameModeS5->OnIsGameStart.AddUObject(this, &ThisClass::OnBindWhenGameStarted);
-	
+	CastPS3GameModeS5->OnIsInteractionGimmick.AddUObject(this, &ThisClass::OnColletedGimmickBase);
 	//ErrorCheck_S5();
 }
 
@@ -114,6 +114,15 @@ void UOverlapVolumeTimeDeductionComponent::ReSpawnPlayer(APlayerController* Targ
 	if (IsValid(PS3GameStateS5) == false) return;
 	
 	PS3GameStateS5->ReSpawnPlayer(TargetPlayerController);
+}
+
+void UOverlapVolumeTimeDeductionComponent::OnColletedGimmickBase(const UActorComponent* CurrentComponent,
+	bool bIsInteractable)
+{
+	if (this == CurrentComponent)
+	{
+		bIsInteractionGimmick = bIsInteractable;
+	}
 }
 
 void UOverlapVolumeTimeDeductionComponent::ErrorCheck_S5()
