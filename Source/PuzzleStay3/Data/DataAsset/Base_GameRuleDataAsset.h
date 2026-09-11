@@ -5,28 +5,24 @@
 #include "CoreMinimal.h"
 #include "Data/Enum/PS3StageType.h"
 #include "Engine/DataAsset.h"
-#include "S3_GameRuleDataAsset.generated.h"
+#include "Base_GameRuleDataAsset.generated.h"
 
-class APS3PlayerCharacter;
 enum class EPS3StageType : uint8;
 
 UCLASS()
-class PUZZLESTAY3_API US3_GameRuleDataAsset : public UDataAsset
+class PUZZLESTAY3_API UBase_GameRuleDataAsset : public UDataAsset
 {
 	GENERATED_BODY()
 	
 public:	
-	UPROPERTY(EditAnywhere, Category = "GameRule")
-	EPS3StageType StageType_S3 = EPS3StageType::Stage3;
 	
 	UPROPERTY(EditAnywhere, Category = "GameRule")
-	TSoftObjectPtr<UWorld> NextStageLevel;
+	float StageClearDelay = 10.0f;
 	
 	UPROPERTY(EditAnywhere, Category = "GameRule")
-	int32 MaxPlayer = 2;
+	float StageType_UI_DelayTime = 0.1f;
 	
 	UPROPERTY(EditAnywhere, Category = "GameRule")
-	int32 MaxFakeDeathTrap = 10;
-	
+	float TextNotify_UI_DelayTime = 0.5f;
 
 };

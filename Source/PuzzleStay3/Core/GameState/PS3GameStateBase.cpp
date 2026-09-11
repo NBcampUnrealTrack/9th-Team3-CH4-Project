@@ -3,6 +3,7 @@
 
 #include "PS3GameStateBase.h"
 
+#include "Data/DataAsset/Base_GameRuleDataAsset.h"
 #include "Net/UnrealNetwork.h"
 
 APS3GameStateBase::APS3GameStateBase()
@@ -15,6 +16,16 @@ void APS3GameStateBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(APS3GameStateBase, bEscapeDoorOpened);
+}
+
+void APS3GameStateBase::InitializeToDataAssets()
+{
+	checkf(IsValid(Base_GameRuleDataAsset) == true, TEXT("[APS3GameModeS1]의 데이터에셋이 비어있습니다."));
+	
+	
+	StageType_UI_DelayTime = Base_GameRuleDataAsset->StageType_UI_DelayTime;
+	
+	TextNotify_UI_DelayTime = Base_GameRuleDataAsset->TextNotify_UI_DelayTime;
 }
 
 void APS3GameStateBase::SetEscapeDoorOpened(bool bOpened)

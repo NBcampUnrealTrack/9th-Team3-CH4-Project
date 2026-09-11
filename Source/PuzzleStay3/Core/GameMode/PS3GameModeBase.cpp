@@ -5,6 +5,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Component/InteractionSwitchComponent.h"
 #include "Core/GameState/PS3GameStateBase.h"
+#include "Data/DataAsset/Base_GameRuleDataAsset.h"
 #include "Player/PlayerState/PS3PlayerState.h"
 
 
@@ -12,6 +13,8 @@ void APS3GameModeBase::BeginPlay()
 {
 	Super::BeginPlay();
 
+	InitializeToDataAssets();
+	
 	//레벨 시작 시 플레이어의 사망 상태 변경 이벤트를 구독
 	for (APlayerState* PlayerState : GameState->PlayerArray)
 	{
@@ -36,6 +39,13 @@ void APS3GameModeBase::PostLogin(APlayerController* NewPlayer)
 	RegisterPlayerDeadState(NewPlayerState);
 
 	SetPlayerIdentity(NewPlayerState);
+}
+
+void APS3GameModeBase::InitializeToDataAssets()
+{
+	if(IsValid(Base_GameRuleDataAsset) == false) return;
+	
+	StageClearDelay = Base_GameRuleDataAsset->StageClearDelay;
 }
 
 void APS3GameModeBase::SetPlayerIdentity(APS3PlayerState* NewPlayerState)
@@ -98,6 +108,11 @@ bool APS3GameModeBase::AllInteractionSwitchActivated() const
 	}
 
 	return true;
+}
+
+void APS3GameModeBase::SetInteractionSwitchTimerUsed(bool IsUsed)
+{
+	bInteractionSwitchTimerUsed = IsUsed;
 }
 
 void APS3GameModeBase::HandleSwitchActivatedChanged(bool bActivated)
@@ -173,9 +188,9 @@ void APS3GameModeBase::ResetAllPlayersDeadState()
 void APS3GameModeBase::StageClear()
 {
 	if (!HasAuthority()) return;
-	if (NextStageLevelName.IsEmpty()) return;
+	if (NextStageLevelPath.IsEmpty()) return;
 
-	GetWorld()->ServerTravel(NextStageLevelName);
+	GetWorld()->ServerTravel(NextStageLevelPath);
 }
 
 void APS3GameModeBase::CallStageClearIfTimerOver()
@@ -195,3 +210,4 @@ void APS3GameModeBase::CallStageClearIfTimerOver()
 		);
 	}
 }
+

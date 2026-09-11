@@ -33,6 +33,13 @@ class PUZZLESTAY3_API APS3GameModeS4 : public APS3GameModeBase
 public:
 	virtual void BeginPlay() override;
 
+protected:
+	virtual void InitializeToDataAssets() override;
+	
+	UPROPERTY(EditAnywhere, Category = "GameRule")
+	TObjectPtr<class US4_GameRuleDataAsset> S4_GameRuleDataAsset;
+	
+public:
 	UFUNCTION(BlueprintPure)
 	float GetTargetBalancedWeight() const { return TargetBalancedWeight; }
 
@@ -42,16 +49,13 @@ public:
 	void NotifyJeoulResult(bool bIsSuccess);
 	
 	void OpenStage4FirstDoor();
-	
+
 private:
-	UPROPERTY(EditDefaultsOnly, Category = "GameRule|Stage4")
-	TArray<float> SubstituteFixedObjectWeight = { 500.f, 520.f, 550.f };
+	TArray<float> SubstituteFixedObjectWeight;
 
-	UPROPERTY(EditDefaultsOnly, Category = "GameRule|Stage4")
-	float Player1Weight = 100.f;
+	float Player1Weight;
 
-	UPROPERTY(EditDefaultsOnly, Category = "GameRule|Stage4")
-	float Player2Weight = 70.f;
+	float Player2Weight;
 
 	float FixedObjectWeight = 0.f;
 	float TargetBalancedWeight = 0.f;
