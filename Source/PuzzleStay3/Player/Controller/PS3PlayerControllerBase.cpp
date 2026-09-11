@@ -66,18 +66,6 @@ void APS3PlayerControllerBase::ConfigureInputMapping()
 	PS3ViewModel->OnGameRestartRequested_UI.AddDynamic(this, &ThisClass::OnClickedRestartGameButton);
 	PS3ViewModel->OnExitToMainRequested_UI.AddDynamic(this, &ThisClass::OnClickedMainMenuButton);
 	
-	auto* PS3GameState = Cast<APS3GameStateS5>(GetWorld()->GetGameState());	
-	if (IsValid(PS3GameState) == false) return;
-	
-	PS3GameState->OnSpawnedScreenPlayerUIReAssign.AddUObject(this, &ThisClass::OnScreenPlayerSpawned);
 }
 
 
-void APS3PlayerControllerBase::OnScreenPlayerSpawned()
-{
-	if (IsLocalController() == true)
-	{
-		PS3_BROADCAST_TO_MVVM_OneParams(OnScreenPlayer_UI, false);
-		PS3_BROADCAST_TO_MVVM_OneParams(OnFieldPlayer_UI, true);
-	}
-}
