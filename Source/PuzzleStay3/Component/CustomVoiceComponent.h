@@ -23,6 +23,7 @@ public:
 	UCustomVoiceComponent();
 
 	void BindPlayerState(APS3PlayerState* NewPlayerState);
+	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category = "Voice")
 	bool TryAcquireVoiceObject();
 	bool TryReleaseVoiceObject();
 

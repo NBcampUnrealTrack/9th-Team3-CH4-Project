@@ -139,6 +139,8 @@ void ADoor::EvaluateDoorState()
 	if (bIsOpen != bShouldBeOpen)
 	{
 		bIsOpen = bShouldBeOpen;
+		OnIsDoorOpen.Broadcast(bIsOpen); // << 추가
+		
 		UE_LOG(LogTemp, Warning, TEXT("[Door] DoorID %d 문 상태 변경: bIsOpen = %s (활성화: %d / 전체: %d)"),
 			DoorID, bIsOpen ? TEXT("True") : TEXT("False"), ActiveCount, TotalLinkedSwitches);
 	}
@@ -178,6 +180,7 @@ void ADoor::OnOpenDoor(bool bOpened)
 {
 	if (!HasAuthority()) return;
 	bIsOpen = bOpened;
+	OnIsDoorOpen.Broadcast(bIsOpen); 
 
 	//test dnjsqls
 	UE_LOG(LogTemp, Warning, TEXT("[Door] 서버: OnOpenDoor 호출됨! bIsOpen = %s"), bIsOpen ? TEXT("True") : TEXT("False"));
@@ -185,6 +188,9 @@ void ADoor::OnOpenDoor(bool bOpened)
 
 void ADoor::OnRep_bIsOpen()
 {
+	// 클라이언트 지점: Replication 수신 시 방송
+	OnIsDoorOpen.Broadcast(bIsOpen); 
+
 	//test dnjsqls
 	UE_LOG(LogTemp, Log, TEXT("[Door] 클라이언트: OnRep_bIsOpen 호출됨 (클라이언트 동기화 완료)"));
 }
