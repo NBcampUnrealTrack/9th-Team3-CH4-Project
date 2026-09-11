@@ -43,7 +43,16 @@ void APS3GameStateS5::BroadcastToTimerManager()
 
 void APS3GameStateS5::OnSpawnScreenPlayerUIReAssign()
 {
-	OnSpawnedScreenPlayerUIReAssign.Broadcast();
+	if(HasAuthority() == true)
+	{
+		NetMultiRPC_OnSpawnScreenPlayerUIReAssign();
+	}
+}
+
+void APS3GameStateS5::NetMultiRPC_OnSpawnScreenPlayerUIReAssign_Implementation()
+{
+	PS3_BROADCAST_TO_MVVM_OneParams(OnFieldPlayer_UI, true);
+	
 }
 
 

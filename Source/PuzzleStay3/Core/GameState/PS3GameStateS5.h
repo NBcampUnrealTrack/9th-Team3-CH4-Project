@@ -36,6 +36,8 @@ public:
 	
 	void OnSpawnScreenPlayerUIReAssign();
 	
+	UFUNCTION(NetMulticast, Reliable)
+	void NetMultiRPC_OnSpawnScreenPlayerUIReAssign();
 	
 public:
 	UPROPERTY(EditAnywhere, Category = "GameRule")
