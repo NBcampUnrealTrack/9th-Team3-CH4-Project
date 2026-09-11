@@ -1,7 +1,9 @@
 #include "Component/CosmeticComponent.h"
 
+#include "Component/FakeDeathTrapComponent.h"
 #include "Component/InteractionSwitchComponent.h"
 #include "Component/OverlapSwitchComponent.h"
+#include "Component/RandomCollisionTrapComponent.h"
 #include "Components/PointLightComponent.h"
 #include "Components/TimelineComponent.h"
 #include "Materials/MaterialInstanceDynamic.h"
@@ -33,9 +35,12 @@ void UCosmeticComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	{
 		World->GetTimerManager().ClearTimer(ActiveDurationTimerHandle);
 		World->GetTimerManager().ClearTimer(DoorTravelTimerHandle);
+		World->GetTimerManager().ClearTimer(TrapTimedDurationTimerHandle);
+		World->GetTimerManager().ClearTimer(TrapTimedOpacityTimerHandle);
 	}
 
 	UnbindOwnerSwitchDelegates();
+	UnbindOwnerTrapDelegates();
 	UnbindOwnerJudgementDelegates();
 	UnbindOwnerDoorDelegate();
 	DestroyManagedComponents();
@@ -121,6 +126,7 @@ void UCosmeticComponent::CreateSmokeEffect()
 	ManagedParticleComponent->RegisterComponent();
 	ManagedParticleComponent->SetVisibility(false);
 	ManagedParticleComponent->DeactivateSystem();
+	CreateSmokeDynamicMaterial();
 }
 
 void UCosmeticComponent::ApplyActiveState()
@@ -166,12 +172,12 @@ void UCosmeticComponent::DestroyManagedComponents()
 		DoorOpacityTimelineComponent = nullptr;
 	}
 
-	DoorSmokeDynamicMaterial = nullptr;
+	SmokeDynamicMaterial = nullptr;
 }
 
 void UCosmeticComponent::InitializeDoorState()
 {
-	if (ActivationType != ECosmeticActivationType::Door)
+	if (ActivationType != ECosmeticActivationType::DoorProgress)
 	{
 		return;
 	}
@@ -180,8 +186,7 @@ void UCosmeticComponent::InitializeDoorState()
 	DoorProgressTime = DoorTravelDuration;
 	DoorTravelDirection = ECosmeticDoorTravelDirection::None;
 	InitializeDoorOpacityTimeline();
-	CreateDoorSmokeDynamicMaterial();
-	ApplyDoorSmokeOpacity();
+	ApplyDoorProgressOpacity();
 
 	if (const UWorld* World = GetWorld())
 	{
@@ -218,35 +223,38 @@ void UCosmeticComponent::InitializeDoorOpacityTimeline()
 	DoorOpacityTimelineComponent->RegisterComponent();
 }
 
-void UCosmeticComponent::CreateDoorSmokeDynamicMaterial()
+void UCosmeticComponent::CreateSmokeDynamicMaterial()
 {
 	if (!IsValid(ManagedParticleComponent))
 	{
 		return;
 	}
 
-	DoorSmokeDynamicMaterial = ManagedParticleComponent->CreateDynamicMaterialInstance(0);
+	SmokeDynamicMaterial = ManagedParticleComponent->CreateDynamicMaterialInstance(0);
 }
 
 void UCosmeticComponent::BindActivationDelegates()
 {
 	switch (ActivationType)
 	{
-	case ECosmeticActivationType::Toggle:
-	case ECosmeticActivationType::Timed:
+	case ECosmeticActivationType::SwitchToggle:
+	case ECosmeticActivationType::SwitchTimed:
 		if (EffectType != ECosmeticEffectType::ColorJudgement)
 		{
 			BindOwnerSwitchDelegates();
 		}
 		break;
-	case ECosmeticActivationType::JudgementToggle:
+	case ECosmeticActivationType::TrapTimed:
+		BindOwnerTrapDelegates();
+		break;
+	case ECosmeticActivationType::JudgementPersistent:
 	case ECosmeticActivationType::JudgementTimed:
 		if (EffectType == ECosmeticEffectType::ColorJudgement)
 		{
 			BindOwnerJudgementDelegates();
 		}
 		break;
-	case ECosmeticActivationType::Door:
+	case ECosmeticActivationType::DoorProgress:
 		if (EffectType == ECosmeticEffectType::Smoke)
 		{
 			BindOwnerDoorDelegate();
@@ -274,7 +282,7 @@ void UCosmeticComponent::BindOwnerSwitchDelegates()
 			continue;
 		}
 
-		if (ActivationType == ECosmeticActivationType::Toggle)
+		if (ActivationType == ECosmeticActivationType::SwitchToggle)
 		{
 			SwitchComponent->OnSwitchActivatedChanged.AddUObject(
 				this,
@@ -299,7 +307,7 @@ void UCosmeticComponent::BindOwnerSwitchDelegates()
 			continue;
 		}
 
-		if (ActivationType == ECosmeticActivationType::Toggle)
+		if (ActivationType == ECosmeticActivationType::SwitchToggle)
 		{
 			SwitchComponent->OnOverlapStateChanged.AddUObject(
 				this,
@@ -313,6 +321,33 @@ void UCosmeticComponent::BindOwnerSwitchDelegates()
 		}
 
 		BoundOverlapSwitchComponents.Add(SwitchComponent);
+	}
+}
+
+void UCosmeticComponent::BindOwnerTrapDelegates()
+{
+	AActor* Owner = GetOwner();
+	if (!IsValid(Owner))
+	{
+		return;
+	}
+
+	UFakeDeathTrapComponent* FakeDeathTrapComponent = Owner->FindComponentByClass<UFakeDeathTrapComponent>();
+	if (IsValid(FakeDeathTrapComponent) && FakeDeathTrapComponent->GetOwner() == Owner)
+	{
+		FakeDeathTrapComponent->OnFakeDeathTrapOverlapped.AddUniqueDynamic(
+			this,
+			&UCosmeticComponent::HandleFakeDeathTrapOverlapped);
+		BoundFakeDeathTrapComponent = FakeDeathTrapComponent;
+	}
+
+	URandomCollisionTrapComponent* RandomCollisionTrapComponent = Owner->FindComponentByClass<URandomCollisionTrapComponent>();
+	if (IsValid(RandomCollisionTrapComponent) && RandomCollisionTrapComponent->GetOwner() == Owner)
+	{
+		RandomCollisionTrapComponent->OnFakePlatformOverlapped.AddUniqueDynamic(
+			this,
+			&UCosmeticComponent::HandleFakePlatformOverlapped);
+		BoundRandomCollisionTrapComponent = RandomCollisionTrapComponent;
 	}
 }
 
@@ -368,6 +403,21 @@ void UCosmeticComponent::UnbindOwnerSwitchDelegates()
 	BoundOverlapSwitchComponents.Empty();
 }
 
+void UCosmeticComponent::UnbindOwnerTrapDelegates()
+{
+	if (BoundFakeDeathTrapComponent.IsValid())
+	{
+		BoundFakeDeathTrapComponent->OnFakeDeathTrapOverlapped.RemoveAll(this);
+		BoundFakeDeathTrapComponent = nullptr;
+	}
+
+	if (BoundRandomCollisionTrapComponent.IsValid())
+	{
+		BoundRandomCollisionTrapComponent->OnFakePlatformOverlapped.RemoveAll(this);
+		BoundRandomCollisionTrapComponent = nullptr;
+	}
+}
+
 void UCosmeticComponent::UnbindOwnerJudgementDelegates()
 {
 	if (BoundJeoulOwner.IsValid())
@@ -402,6 +452,16 @@ void UCosmeticComponent::HandleTimedOverlapStateChanged(bool bOverlapped)
 	{
 		StartTimedActivation();
 	}
+}
+
+void UCosmeticComponent::HandleFakeDeathTrapOverlapped(APawn* PlayerPawn)
+{
+	StartTrapTimedActivation();
+}
+
+void UCosmeticComponent::HandleFakePlatformOverlapped(APawn* PlayerPawn)
+{
+	StartTrapTimedActivation();
 }
 
 void UCosmeticComponent::HandleJudgementFinished(bool bIsSuccess)
@@ -465,7 +525,7 @@ void UCosmeticComponent::HandleDoorOpenStateChanged(bool bIsOpen)
 	{
 		SetCosmeticActive(true);
 	}
-	ApplyDoorSmokeOpacity();
+	ApplyDoorProgressOpacity();
 	StartDoorOpacityTimeline();
 
 	if (World)
@@ -512,12 +572,12 @@ void UCosmeticComponent::UpdateDoorProgressToNow()
 void UCosmeticComponent::HandleDoorOpacityTimelineUpdate()
 {
 	UpdateDoorProgressToNow();
-	ApplyDoorSmokeOpacity();
+	ApplyDoorProgressOpacity();
 }
 
 void UCosmeticComponent::StartDoorOpacityTimeline()
 {
-	if (!IsValid(DoorOpacityTimelineComponent) || !IsValid(DoorSmokeDynamicMaterial))
+	if (!IsValid(DoorOpacityTimelineComponent) || !IsValid(SmokeDynamicMaterial))
 	{
 		return;
 	}
@@ -533,13 +593,8 @@ void UCosmeticComponent::StopDoorOpacityTimeline()
 	}
 }
 
-void UCosmeticComponent::ApplyDoorSmokeOpacity()
+void UCosmeticComponent::ApplyDoorProgressOpacity()
 {
-	if (!IsValid(DoorSmokeDynamicMaterial))
-	{
-		return;
-	}
-
 	float Opacity = 0.0f;
 	if (DoorTravelDuration > KINDA_SMALL_NUMBER)
 	{
@@ -547,7 +602,17 @@ void UCosmeticComponent::ApplyDoorSmokeOpacity()
 		Opacity = 1.0f - FMath::Abs(NormalizedDoorProgress * 2.0f - 1.0f);
 	}
 
-	DoorSmokeDynamicMaterial->SetScalarParameterValue(SmokeOpacityParameterName, Opacity);
+	SetSmokeOpacity(Opacity);
+}
+
+void UCosmeticComponent::SetSmokeOpacity(float Opacity)
+{
+	if (!IsValid(SmokeDynamicMaterial))
+	{
+		return;
+	}
+
+	SmokeDynamicMaterial->SetScalarParameterValue(SmokeOpacityParameterName, Opacity);
 }
 
 void UCosmeticComponent::FinishDoorTravel()
@@ -567,7 +632,7 @@ void UCosmeticComponent::FinishDoorTravel()
 	}
 
 	StopDoorOpacityTimeline();
-	ApplyDoorSmokeOpacity();
+	ApplyDoorProgressOpacity();
 	DoorTravelDirection = ECosmeticDoorTravelDirection::None;
 
 	if (const UWorld* World = GetWorld())
@@ -582,7 +647,7 @@ void UCosmeticComponent::FinishDoorTravelImmediately(bool bOpening)
 {
 	DoorProgressTime = bOpening ? 0.0f : FMath::Max(0.0f, DoorTravelDuration);
 	StopDoorOpacityTimeline();
-	ApplyDoorSmokeOpacity();
+	ApplyDoorProgressOpacity();
 	DoorTravelDirection = ECosmeticDoorTravelDirection::None;
 
 	if (const UWorld* World = GetWorld())
@@ -619,4 +684,81 @@ void UCosmeticComponent::StartTimedActivation()
 void UCosmeticComponent::FinishTimedActivation()
 {
 	SetCosmeticActive(false);
+}
+
+void UCosmeticComponent::StartTrapTimedActivation()
+{
+	if (bIsTrapTimedActive || bHasCompletedTrapTimed)
+	{
+		return;
+	}
+
+	bIsTrapTimedActive = true;
+	SetCosmeticActive(true);
+
+	UWorld* World = GetWorld();
+	if (!IsValid(World) || ActiveDuration <= KINDA_SMALL_NUMBER)
+	{
+		FinishTrapTimedActivation();
+		return;
+	}
+
+	TrapTimedStartTime = World->GetTimeSeconds();
+
+	if (EffectType == ECosmeticEffectType::Smoke)
+	{
+		SetSmokeOpacity(0.0f);
+		World->GetTimerManager().SetTimer(
+			TrapTimedOpacityTimerHandle,
+			this,
+			&UCosmeticComponent::UpdateTrapTimedOpacity,
+			1.0f / 30.0f,
+			true);
+	}
+
+	World->GetTimerManager().SetTimer(
+		TrapTimedDurationTimerHandle,
+		this,
+		&UCosmeticComponent::FinishTrapTimedActivation,
+		ActiveDuration,
+		false);
+}
+
+void UCosmeticComponent::UpdateTrapTimedOpacity()
+{
+	if (EffectType != ECosmeticEffectType::Smoke)
+	{
+		return;
+	}
+
+	const UWorld* World = GetWorld();
+	if (!IsValid(World) || ActiveDuration <= KINDA_SMALL_NUMBER)
+	{
+		SetSmokeOpacity(0.0f);
+		return;
+	}
+
+	const float ElapsedTime = static_cast<float>(FMath::Max(0.0, World->GetTimeSeconds() - TrapTimedStartTime));
+	const float NormalizedProgress = FMath::Clamp(ElapsedTime / ActiveDuration, 0.0f, 1.0f);
+	const float Opacity = 1.0f - FMath::Abs(NormalizedProgress * 2.0f - 1.0f);
+	SetSmokeOpacity(Opacity);
+}
+
+void UCosmeticComponent::FinishTrapTimedActivation()
+{
+	if (UWorld* World = GetWorld())
+	{
+		World->GetTimerManager().ClearTimer(TrapTimedDurationTimerHandle);
+		World->GetTimerManager().ClearTimer(TrapTimedOpacityTimerHandle);
+	}
+
+	if (EffectType == ECosmeticEffectType::Smoke)
+	{
+		SetSmokeOpacity(0.0f);
+	}
+
+	bIsTrapTimedActive = false;
+	SetCosmeticActive(false);
+
+	bHasCompletedTrapTimed = true;
 }

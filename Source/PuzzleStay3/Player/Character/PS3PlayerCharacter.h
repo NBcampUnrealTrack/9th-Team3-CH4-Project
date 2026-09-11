@@ -63,8 +63,20 @@ protected:
 	TObjectPtr<UCameraComponent> Camera;
 
 	//상호작용할 라인트레이스 거리
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PS3|Character|Interaction")
-	float InteractionDistance = 300.0f;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PS3|Character|Interaction", meta = (ClampMin = "0.0"))
+	float InteractionDistance = 400.0f;
+	
+	// 캐릭터 전방을 기준으로 좌우/상하에 허용할 원뿔의 반각
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PS3|Character|Interaction", meta = (ClampMin = "1.0", ClampMax = "89.0", Units = "Degrees"))
+	float InteractionConeHalfAngle = 35.0f;
+
+	// 캐릭터 중심에서 라인트레이스를 시작할 높이
+	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly,Category = "PS3|Character|Interaction")
+	float InteractionTraceHeight = 60.0f;
+
+	// 캐릭터 몸 안에서 시작하지 않도록 앞쪽으로 이동
+	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly,Category = "PS3|Character|Interaction",meta = (ClampMin = "0.0"))
+	float InteractionTraceStartOffset = 30.0f;
 
 	// 에디터와 개발 빌드에서 서버 판정 라인트레이스를 로컬 플레이어 화면에 표시
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PS3|Character|Interaction|Debug")

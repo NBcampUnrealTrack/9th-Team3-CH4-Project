@@ -26,8 +26,19 @@ public:
 	virtual void PostLogin(APlayerController* NewPlayer) override;
 	
 	void NotifyVoiceObjectHeldStateChanged();
+	
+protected:
+	virtual void InitializeToDataAssets() override;
+	
+	UPROPERTY(EditAnywhere, Category = "GameRule")
+	TObjectPtr<class US3_GameRuleDataAsset> S3_GameRuleDataAsset;
+	
 private:
 	
+	int32 MaxPlayer;
+	int32 MaxFakeDeathTrap;
+	
+private:
 	void CheckVoiceObjectHeldPlayerCount();
 	
 	void ChangeVoiceChatStateAndBlockingVolumeCollision(int32 Count);
@@ -62,12 +73,7 @@ public:
 	
 	void BroadcastRandomVisibleResults();
 	
-private:
-	UPROPERTY(EditAnywhere)
-	TObjectPtr<class US3_GameRuleDataAsset> S3_GameRuleDataAsset;
 	
-	int32 MaxPlayer;
-	int32 MaxFakeDeathTrap;
 
 };
 

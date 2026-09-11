@@ -4,6 +4,7 @@
 #include "PS3GameModeS2.h"
 
 #include "Component/RandomCollisionTrapComponent.h"
+#include "Data/DataAsset/S2_GameRuleDataAsset.h"
 #include "GameFramework/GameStateBase.h"
 #include "opensubdiv/far/error.h"
 #include "Player/PlayerState/PS3PlayerState.h"
@@ -36,6 +37,16 @@ void APS3GameModeS2::PostLogin(APlayerController* NewPlayer)
 	if (!IsValid(NewPlayer)) return;
 	
 	RegisterPlayerLifeCountState(NewPlayer->GetPlayerState<APS3PlayerState>());
+}
+
+void APS3GameModeS2::InitializeToDataAssets()
+{
+	Super::InitializeToDataAssets();
+	
+	if(IsValid(S2_GameRuleDataAsset) == false) return;
+	if (S2_GameRuleDataAsset->NextStageLevel.IsNull()) return;
+	
+	NextStageLevelPath = S2_GameRuleDataAsset->NextStageLevel.ToSoftObjectPath().GetLongPackageName();
 }
 
 void APS3GameModeS2::RegisterPlayerLifeCountState(APS3PlayerState* PS3PlayerState)
