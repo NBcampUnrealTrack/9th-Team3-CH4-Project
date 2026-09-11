@@ -12,7 +12,7 @@
 void APS3GameModeS2::BeginPlay()
 {
 	Super::BeginPlay();
-
+	
 	MakeRandomCollisionResults();
 	
 	//로그용 시작

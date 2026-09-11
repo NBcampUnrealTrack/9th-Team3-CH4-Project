@@ -8,6 +8,7 @@
 #include "Components/TimelineComponent.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "Object/ControlDoor.h"
+#include "Object/GimmickBase.h"
 #include "Object/Jeoul.h"
 #include "Particles/ParticleSystem.h"
 #include "Particles/ParticleSystemComponent.h"
@@ -694,6 +695,7 @@ void UCosmeticComponent::StartTrapTimedActivation()
 	}
 
 	bIsTrapTimedActive = true;
+	bHasHiddenTrapMesh = false;
 	SetCosmeticActive(true);
 
 	UWorld* World = GetWorld();
@@ -742,6 +744,16 @@ void UCosmeticComponent::UpdateTrapTimedOpacity()
 	const float NormalizedProgress = FMath::Clamp(ElapsedTime / ActiveDuration, 0.0f, 1.0f);
 	const float Opacity = 1.0f - FMath::Abs(NormalizedProgress * 2.0f - 1.0f);
 	SetSmokeOpacity(Opacity);
+
+	if (!bHasHiddenTrapMesh && NormalizedProgress >= 0.5f)
+	{
+		if (AGimmickBase* GimmickOwner = Cast<AGimmickBase>(GetOwner()))
+		{
+			GimmickOwner->HideGimmickMesh();
+		}
+
+		bHasHiddenTrapMesh = true;
+	}
 }
 
 void UCosmeticComponent::FinishTrapTimedActivation()

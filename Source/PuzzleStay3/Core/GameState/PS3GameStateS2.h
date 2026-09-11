@@ -19,5 +19,5 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "GameRule")
 	TObjectPtr<class US2_GameRuleDataAsset> S2_GameRuleDataAsset;
-	
+
 };

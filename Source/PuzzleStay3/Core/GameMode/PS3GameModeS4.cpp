@@ -10,7 +10,7 @@
 void APS3GameModeS4::BeginPlay()
 {
 	Super::BeginPlay();
-
+	
 	const int32 RandomIndex = FMath::RandRange(0, SubstituteFixedObjectWeight.Num() - 1);
 
 	FixedObjectWeight = SubstituteFixedObjectWeight[RandomIndex];

@@ -35,8 +35,6 @@ public:
 	UPROPERTY(BlueprintAssignable)
 	FOnStage3BlockingVolumeDisabled OnStage3BlockingVolumeDisabled;
 
-
-	
 protected:
 	UPROPERTY(ReplicatedUsing = OnRep_Stage3BlockingVolumeDisabled)
 	bool bStage3BlockingVolumeDisabled = false;
