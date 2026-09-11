@@ -2,10 +2,11 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "Data/Delegates/CosmeticDelegates.h"
 #include "Player/Interaction/PS3InteractableInterface.h"
 #include "S5_InteractionGimmickComponent.generated.h"
 
-DECLARE_MULTICAST_DELEGATE_OneParam(FOnInteractionGimmick, bool);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnInteractionGimmick_S5, bool);
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class PUZZLESTAY3_API US5_InteractionGimmickComponent : public UActorComponent , public IPS3InteractableInterface
@@ -24,7 +25,9 @@ public:
 	void OnStartedGame(bool bIsGameStart);
 	void OnColletedGimmickBase(const UActorComponent* CurrentComponent, bool bIsInteractable);
 	
-	FOnInteractionGimmick OnInteractionGimmick;
+	FOnInteractionGimmick_S5 OnInteractionGimmick;
+	FOnCosmeticInteractionSuccessed OnCosmeticInteractionSuccessed;
+	FOnInteractGimmickActivatedChanged_S5 OnSwitchActivatedChanged;
 	
 	UPROPERTY(Replicated)
 	bool bIsInteractionGimmick = false;
