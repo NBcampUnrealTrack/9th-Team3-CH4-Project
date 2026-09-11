@@ -40,7 +40,7 @@ public:
 	void ResetSwitch();
 
 	UFUNCTION(BlueprintCallable, Category = "Gimmick")
-	void SetLocked(bool bNewLocked) { bIsLocked = bNewLocked; }
+	void SetLocked(bool bNewLocked);
 
 	AActor* GetInteractingActor() const { return InteractingActor; }
 
@@ -52,6 +52,10 @@ public:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gimmick|Settings")
 	int32 SwitchID = 1;
+	
+	// ★ UI 알림 요청 관련 함수 (포커스/오버랩 진입 및 이탈 시 호출)
+	UFUNCTION(BlueprintCallable, Category = "Gimmick|UI")
+	void ShowInteractionUI(bool bShow);
 	
 	// 스테이지 5 전용: true일 경우 내부 상태 로직을 수행하지 않고 브로드캐스트 후 종료
 	UPROPERTY(EditAnywhere, Replicated, BlueprintReadWrite, Category = "Gimmick")

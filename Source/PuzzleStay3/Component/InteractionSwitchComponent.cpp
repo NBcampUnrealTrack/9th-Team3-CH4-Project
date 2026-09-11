@@ -1,5 +1,8 @@
 #include "InteractionSwitchComponent.h"
+
+#include "Data/Delegates/UIDelegatesSubsystem.h"
 #include "Data/Enum/InteractionState.h"
+#include "Data/Enum/PS3InteractionNotifyType.h"
 #include "Net/UnrealNetwork.h"
 #include "Player/Character/PS3PlayerCharacter.h"
 #include "PuzzleStay3/Player/PlayerState/PS3PlayerState.h"
@@ -19,7 +22,7 @@ void UInteractionSwitchComponent::BeginPlay()
 	{
 		return;
 	}
-	
+
 	if (UWorld* World = GetWorld())
 	{
 		if (APS3GameModeBase* GM = World->GetAuthGameMode<APS3GameModeBase>())
@@ -84,7 +87,7 @@ bool UInteractionSwitchComponent::CanInteract_Implementation(AActor* Requestor) 
 				}
 			}
 		}
-		
+
 		if (bIsActivated && InteractingActor != Requestor)
 		{
 			FString OwnerName = InteractingActor ? InteractingActor->GetName() : TEXT("다른 플레이어");
@@ -103,17 +106,20 @@ bool UInteractionSwitchComponent::Interact_Implementation(AActor* Requestor)
 bool UInteractionSwitchComponent::TryInteract(AActor* Requestor)
 {
 	if (bIsEscapeDoor == false) return false;
-	if (!CanInteract_Implementation(Requestor))	return false;
-	
+	if (!CanInteract_Implementation(Requestor)) return false;
+
 	OnInteractionSuccessed.Broadcast(bIsInteractedGimmick);
-	
+
+	// ★ 상호작용 성공 시 화면의 F키 안내 UI 제거 알림
+	ShowInteractionUI(false);
+
 	if (bIsOtherInteractionGimmick)
 	{
 		OnCosmeticInteractionSuccessed.Broadcast();
 		return true;
 	}
-	
-	if (!GetOwner() || !GetOwner()->HasAuthority())	return false;
+
+	if (!GetOwner() || !GetOwner()->HasAuthority()) return false;
 	bIsInteractedGimmick = true;
 
 	APS3PlayerCharacter* Character = Cast<APS3PlayerCharacter>(Requestor);
@@ -178,7 +184,7 @@ void UInteractionSwitchComponent::ResetSwitch()
 	if (GetOwner() && GetOwner()->HasAuthority())
 	{
 		GetWorld()->GetTimerManager().ClearTimer(AutoDisableTimerHandle);
-		
+
 		if (!bMultiInteractionState)
 		{
 			// 점유 중이던 플레이어의 InteractionState 해제
@@ -197,6 +203,38 @@ void UInteractionSwitchComponent::ResetSwitch()
 		bIsActivated = false;
 		InteractingActor = nullptr;
 		OnRep_IsActivated();
+	}
+}
+
+void UInteractionSwitchComponent::SetLocked(bool bNewLocked)
+{
+	bIsLocked = bNewLocked;
+
+	if (bIsLocked)
+	{
+		// 스위치가 잠기면 안내 UI 일괄 제거
+		PS3_BROADCAST_TO_MVVM(OnInteractionNotifyResetRequested_UI);
+	}
+}
+
+void UInteractionSwitchComponent::ShowInteractionUI(bool bShow)
+{
+	// 퍼즐이 완결되어 영구 잠긴 상태(bIsLocked)일 때만 UI 노출을 강제로 차단
+	if (bIsLocked)
+	{
+		PS3_BROADCAST_TO_MVVM_OneParams(OnInteractionNotifyRemoveRequested_UI, EPS3InteractionNotifyType::Interact);
+		return;
+	}
+
+	if (bShow)
+	{
+		// F키 안내 UI 추가 요청
+		PS3_BROADCAST_TO_MVVM_OneParams(OnInteractionNotifyAddRequested_UI, EPS3InteractionNotifyType::Interact);
+	}
+	else
+	{
+		// F키 안내 UI 제거 요청
+		PS3_BROADCAST_TO_MVVM_OneParams(OnInteractionNotifyRemoveRequested_UI, EPS3InteractionNotifyType::Interact);
 	}
 }
 
