@@ -179,7 +179,7 @@ void APS3GameModeS5::BindInteractionGimmick()
 		{
 			OnIsInteractionGimmick.Broadcast(InteractionGimmickComp, true);
 			OnIsInteractionGimmick.Broadcast(TimeDeductionComp, true);
-			InteractionSwitchComp->OnInteractionSuccessed.AddUObject(this, &ThisClass::OnInteractedGimmick);
+			InteractionGimmickComp->OnInteractionGimmick.AddUObject(this, &ThisClass::OnInteractedGimmick);
 			
 			FString TagName = TargetGimmick->Tags.Num() > 0 ? TargetGimmick->Tags[0].ToString() : TEXT("NoTag");
 			UE_LOG(LogTemp, Warning, TEXT("\n[인터렉션 기믹] -> %s "), *TagName);
