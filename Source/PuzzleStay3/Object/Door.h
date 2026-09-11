@@ -5,6 +5,8 @@
 #include "Data/Enum/DoorType.h"
 #include "Door.generated.h"
 
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnIsDoorOpen, bool);
+
 class UOverlapSwitchComponent;
 class UInteractionSwitchComponent;
 
@@ -15,6 +17,8 @@ class PUZZLESTAY3_API ADoor : public AActor
 	
 public:	
 	ADoor();
+	
+	FOnIsDoorOpen OnIsDoorOpen;
 	
 protected:
 	virtual void BeginPlay() override;
