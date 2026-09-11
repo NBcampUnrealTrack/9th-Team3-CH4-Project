@@ -202,7 +202,7 @@ void APS3PlayerCharacter::Server_TryInteract_Implementation()
 	const FVector TraceDirection = GetActorForwardVector();
 	const float CapsuleRadius = GetCapsuleComponent()->GetScaledCapsuleRadius();
 	const FVector SphereCenter = GetActorLocation()
-		+ TraceDirection * (CapsuleRadius + InteractionSphereRadius)
+		+ TraceDirection * (CapsuleRadius + InteractionSphereRadius + InteractionSphereForwardOffset)
 		+ FVector::UpVector * InteractionSphereHeight;
 
 	FCollisionQueryParams QueryParams(SCENE_QUERY_STAT(PlayerInteractionTrace), false, this);
