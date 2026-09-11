@@ -18,8 +18,10 @@ void APS3GameStateS5::BeginPlay()
 	
 	InitializeToDataAssets();
 	
-	PS3_BROADCAST_TO_MVVM_OneParams(OnStageType_UI, S5_GameRuleDataAsset->StageType_S5);
-	PS3_BROADCAST_TO_MVVM_OneParams(OnVoiceChatIcon_UI, true);
+	FTimerHandle BroadCastToUITimerHandle;
+	GetWorld()->GetTimerManager().SetTimer(BroadCastToUITimerHandle, this, 
+		&ThisClass::BroadcastToTimerManager, 0.1, false);
+	
 }
 
 
@@ -32,12 +34,16 @@ void APS3GameStateS5::InitializeToDataAssets()
 	}
 }
 
-void APS3GameStateS5::InitializeBindFunction()
+
+void APS3GameStateS5::BroadcastToTimerManager()
 {
-	if (HasAuthority() == false) return;
-	
-	if (IsValid(GetCastPS3GameModeS5()) == false) return;
-	CastPS3GameModeS5->OnScreenPlayerSpawned.AddUObject(this, &APS3GameStateS5::OnScreenPlayerUI_Hide);
+	PS3_BROADCAST_TO_MVVM_OneParams(OnStageType_UI, S5_GameRuleDataAsset->StageType_S5);
+}
+
+
+void APS3GameStateS5::OnSpawnScreenPlayerUIReAssign()
+{
+	OnSpawnedScreenPlayerUIReAssign.Broadcast();
 }
 
 
@@ -120,18 +126,6 @@ void APS3GameStateS5::SetDeductGameLimitTime_AuthorityOnRep(float TimeToDeducted
 }
 
 
-void APS3GameStateS5::NetMultiRPC_OnScreenPlayerUI_Hide_Implementation()
-{
-	PS3_BROADCAST_TO_MVVM_OneParams(OnScreenPlayer_UI, false);
-}
-
-
-void APS3GameStateS5::OnScreenPlayerUI_Hide()
-{
-	NetMultiRPC_OnScreenPlayerUI_Hide();
-}
-
-
 void APS3GameStateS5::SetIsGameOver_AuthorityOnRep(bool SetIsGameOver)
 {
 	if (HasAuthority() == true)
@@ -158,6 +152,7 @@ void APS3GameStateS5::OnTimeDeduction(float TimeToDeducted)
 {
 	SetDeductGameLimitTime_AuthorityOnRep(TimeToDeducted);
 }
+
 
 
 void APS3GameStateS5::StageRestart()

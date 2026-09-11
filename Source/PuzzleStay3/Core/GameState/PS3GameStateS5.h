@@ -3,14 +3,13 @@
 
 #include "CoreMinimal.h"
 #include "PS3GameStateBase.h"
+#include "Data/Delegates/GameStateDelegates.h"
 #include "PS3GameStateS5.generated.h"
+
 
 
 class APS3GameModeS5;
 
-/**
- * 
- */
 UCLASS()
 class PUZZLESTAY3_API APS3GameStateS5 : public APS3GameStateBase
 {
@@ -34,6 +33,8 @@ public:
 	void OnGameOver();
 	void OnReduceGameTime(float ReducedTimeRange);
 	void OnTimeDeduction(float TimeToDeducted);
+	
+	void OnSpawnScreenPlayerUIReAssign();
 	
 	
 public:
@@ -63,16 +64,12 @@ protected:
 	void OnRep_GameLimitTime();
 	void SetDeductGameLimitTime_AuthorityOnRep(float TimeToDeducted);
 	
-	
-	UFUNCTION(NetMulticast, Reliable)
-	void NetMultiRPC_OnScreenPlayerUI_Hide();
-	
-	void OnScreenPlayerUI_Hide();
-	
 private:
 	void InitializeToDataAssets();
-	void InitializeBindFunction();
+	void BroadcastToTimerManager();
 	APS3GameModeS5* GetCastPS3GameModeS5();
+	
 public:
+	FOnSpawnedScreenPlayerUIReAssign OnSpawnedScreenPlayerUIReAssign;
 
 };
