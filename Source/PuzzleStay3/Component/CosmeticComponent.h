@@ -17,6 +17,7 @@ class UParticleSystem;
 class UParticleSystemComponent;
 class UPointLightComponent;
 class URandomCollisionTrapComponent;
+class US5_InteractionGimmickComponent;
 class UTimelineComponent;
 class UMaterialInstanceDynamic;
 
@@ -94,6 +95,7 @@ private:
 	void UnbindOwnerJudgementDelegates();
 	void UnbindOwnerDoorDelegate();
 	void HandleToggleActivationChanged(bool bActive);
+	void HandleSwitchOnInteractionSucceeded();
 	void HandleTimedInteractionSucceeded();
 	void HandleTimedOverlapStateChanged(bool bOverlapped);
 	UFUNCTION()
@@ -128,6 +130,9 @@ private:
 
 	UPROPERTY(Transient)
 	TArray<TWeakObjectPtr<UOverlapSwitchComponent>> BoundOverlapSwitchComponents;
+
+	UPROPERTY(Transient)
+	TArray<TWeakObjectPtr<US5_InteractionGimmickComponent>> BoundS5InteractionGimmickComponents;
 
 	UPROPERTY(Transient)
 	TWeakObjectPtr<UFakeDeathTrapComponent> BoundFakeDeathTrapComponent;

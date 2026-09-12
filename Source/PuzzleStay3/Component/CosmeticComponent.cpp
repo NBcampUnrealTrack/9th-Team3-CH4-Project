@@ -4,6 +4,7 @@
 #include "Component/InteractionSwitchComponent.h"
 #include "Component/OverlapSwitchComponent.h"
 #include "Component/RandomCollisionTrapComponent.h"
+#include "Component/S5_InteractionGimmickComponent.h"
 #include "Components/PointLightComponent.h"
 #include "Components/TimelineComponent.h"
 #include "Materials/MaterialInstanceDynamic.h"
@@ -240,6 +241,7 @@ void UCosmeticComponent::BindActivationDelegates()
 	switch (ActivationType)
 	{
 	case ECosmeticActivationType::SwitchToggle:
+	case ECosmeticActivationType::SwitchOn:
 	case ECosmeticActivationType::SwitchTimed:
 		if (EffectType != ECosmeticEffectType::ColorJudgement)
 		{
@@ -284,17 +286,25 @@ void UCosmeticComponent::BindOwnerSwitchDelegates()
 			continue;
 		}
 
-		if (ActivationType == ECosmeticActivationType::SwitchToggle)
+		switch (ActivationType)
 		{
+		case ECosmeticActivationType::SwitchToggle:
 			SwitchComponent->OnSwitchActivatedChanged.AddUObject(
 				this,
 				&UCosmeticComponent::HandleToggleActivationChanged);
-		}
-		else
-		{
+			break;
+		case ECosmeticActivationType::SwitchOn:
+			SwitchComponent->OnCosmeticInteractionSuccessed.AddUObject(
+				this,
+				&UCosmeticComponent::HandleSwitchOnInteractionSucceeded);
+			break;
+		case ECosmeticActivationType::SwitchTimed:
 			SwitchComponent->OnCosmeticInteractionSuccessed.AddUObject(
 				this,
 				&UCosmeticComponent::HandleTimedInteractionSucceeded);
+			break;
+		default:
+			break;
 		}
 
 		BoundInteractionSwitchComponents.Add(SwitchComponent);
@@ -315,7 +325,7 @@ void UCosmeticComponent::BindOwnerSwitchDelegates()
 				this,
 				&UCosmeticComponent::HandleToggleActivationChanged);
 		}
-		else
+		else if (ActivationType == ECosmeticActivationType::SwitchTimed)
 		{
 			SwitchComponent->OnOverlapStateChanged.AddUObject(
 				this,
@@ -323,6 +333,35 @@ void UCosmeticComponent::BindOwnerSwitchDelegates()
 		}
 
 		BoundOverlapSwitchComponents.Add(SwitchComponent);
+	}
+
+	TArray<US5_InteractionGimmickComponent*> S5InteractionGimmickComponents;
+	Owner->GetComponents<US5_InteractionGimmickComponent>(S5InteractionGimmickComponents);
+	for (US5_InteractionGimmickComponent* S5InteractionGimmickComponent : S5InteractionGimmickComponents)
+	{
+		if (!IsValid(S5InteractionGimmickComponent) || S5InteractionGimmickComponent->GetOwner() != Owner)
+		{
+			continue;
+		}
+
+		if (ActivationType == ECosmeticActivationType::SwitchOn)
+		{
+			S5InteractionGimmickComponent->OnCosmeticInteractionSuccessed.AddUObject(
+				this,
+				&UCosmeticComponent::HandleSwitchOnInteractionSucceeded);
+		}
+		else if (ActivationType == ECosmeticActivationType::SwitchTimed)
+		{
+			S5InteractionGimmickComponent->OnCosmeticInteractionSuccessed.AddUObject(
+				this,
+				&UCosmeticComponent::HandleTimedInteractionSucceeded);
+		}
+		else
+		{
+			continue;
+		}
+
+		BoundS5InteractionGimmickComponents.Add(S5InteractionGimmickComponent);
 	}
 }
 
@@ -417,6 +456,15 @@ void UCosmeticComponent::UnbindOwnerSwitchDelegates()
 		}
 	}
 	BoundOverlapSwitchComponents.Empty();
+
+	for (const TWeakObjectPtr<US5_InteractionGimmickComponent>& S5InteractionGimmickComponent : BoundS5InteractionGimmickComponents)
+	{
+		if (S5InteractionGimmickComponent.IsValid())
+		{
+			S5InteractionGimmickComponent->OnCosmeticInteractionSuccessed.RemoveAll(this);
+		}
+	}
+	BoundS5InteractionGimmickComponents.Empty();
 }
 
 void UCosmeticComponent::UnbindOwnerTrapDelegates()
@@ -461,6 +509,11 @@ void UCosmeticComponent::UnbindOwnerDoorDelegate()
 void UCosmeticComponent::HandleToggleActivationChanged(bool bActive)
 {
 	SetCosmeticActive(bActive);
+}
+
+void UCosmeticComponent::HandleSwitchOnInteractionSucceeded()
+{
+	SetCosmeticActive(true);
 }
 
 void UCosmeticComponent::HandleTimedInteractionSucceeded()
