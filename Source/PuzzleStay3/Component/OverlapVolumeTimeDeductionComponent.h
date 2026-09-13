@@ -48,6 +48,7 @@ protected:
 	
 	void ReSpawnPlayer(APlayerController* TargetPlayerController);
 	
+	void OnColletedGimmickBase(const UActorComponent* CurrentComponent, bool bIsInteractable);
 	
 protected:
 	UPROPERTY()

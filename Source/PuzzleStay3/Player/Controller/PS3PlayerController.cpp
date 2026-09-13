@@ -33,9 +33,6 @@ APS3PlayerController::APS3PlayerController()
 	VoiceComponent = CreateDefaultSubobject<UCustomVoiceComponent>(
 	TEXT("VoiceComponent"));
 	
-
-	
-	
 }
 
 void APS3PlayerController::BeginPlay()
