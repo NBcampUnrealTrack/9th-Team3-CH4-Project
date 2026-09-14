@@ -17,7 +17,9 @@ void APS3GameStateS1::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutL
 void APS3GameStateS1::BeginPlay()
 {
 	Super::BeginPlay();
-
+	
+	InitializeToDataAssets();
+		
 	SetUIMacroTimerHandle(
 		StageType_UI_DelayTime,
 		[this]() { PS3_BROADCAST_TO_MVVM_OneParams(OnStageType_UI, S1_GameRuleDataAsset->StageType_S1); });
