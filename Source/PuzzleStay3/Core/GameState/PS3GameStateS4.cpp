@@ -12,8 +12,6 @@ void APS3GameStateS4::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	InitializeToDataAssets();
-	
 	SetUIMacroTimerHandle(
 	StageType_UI_DelayTime,
 	[this]() { PS3_BROADCAST_TO_MVVM_OneParams(OnStageType_UI, S4_GameRuleDataAsset->StageType_S4); });
