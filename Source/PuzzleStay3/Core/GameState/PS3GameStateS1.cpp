@@ -17,7 +17,9 @@ void APS3GameStateS1::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutL
 void APS3GameStateS1::BeginPlay()
 {
 	Super::BeginPlay();
-
+	
+	InitializeToDataAssets();
+		
 	SetUIMacroTimerHandle(
 		StageType_UI_DelayTime,
 		[this]() { PS3_BROADCAST_TO_MVVM_OneParams(OnStageType_UI, S1_GameRuleDataAsset->StageType_S1); });
@@ -33,8 +35,6 @@ void APS3GameStateS1::BeginPlay()
 
 void APS3GameStateS1::InitializeToDataAssets()
 {
-	Super::InitializeToDataAssets();
-	
 	checkf(IsValid(S1_GameRuleDataAsset) == true, TEXT("[APS3GameModeS1]의 데이터에셋이 비어있습니다."));
 	
 	Tutorial_UI_DelayTime = S1_GameRuleDataAsset->Tutorial_UI_DelayTime;
