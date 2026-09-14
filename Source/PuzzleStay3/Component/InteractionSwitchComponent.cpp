@@ -36,13 +36,13 @@ void UInteractionSwitchComponent::EndPlay(const EEndPlayReason::Type EndPlayReas
 {
 	if (GetOwner() && GetOwner()->HasAuthority())
 	{
-		GetWorld()->GetTimerManager().ClearTimer(AutoDisableTimerHandle);
-
-		if (bRegisterToGameMode)
+		if (UWorld* World = GetWorld())
 		{
-			if (UWorld* World = GetWorld())
+			World->GetTimerManager().ClearTimer(AutoDisableTimerHandle);
+
+			if (bRegisterToGameMode)
 			{
-				if (APS3GameModeBase* GM = Cast<APS3GameModeBase>(World->GetAuthGameMode()))
+				if (APS3GameModeBase* GM = World->GetAuthGameMode<APS3GameModeBase>())
 				{
 					GM->UnregisterInteractionSwitch(this);
 				}
@@ -82,15 +82,15 @@ bool UInteractionSwitchComponent::CanInteract_Implementation(AActor* Requestor) 
 				if (!bIsActivated && PS->IsInteracting())
 				{
 					UE_LOG(LogTemp, Warning, TEXT("[InteractionSwitch] 상호작용 실패: %s 님이 이미 다른 상호작용을 진행 중입니다."),
-					       *Requestor->GetName());
+						*Requestor->GetName());
 					return false;
 				}
 			}
 		}
 
-		if (bIsActivated && InteractingActor != Requestor)
+		if (bIsActivated && IsValid(InteractingActor) && InteractingActor != Requestor)
 		{
-			FString OwnerName = InteractingActor ? InteractingActor->GetName() : TEXT("다른 플레이어");
+			FString OwnerName = InteractingActor->GetName();
 			UE_LOG(LogTemp, Warning, TEXT("[InteractionSwitch] 상호작용 실패: 현재 %s 님이 이미 상호작용 중인 스위치입니다."), *OwnerName);
 			return false;
 		}
@@ -107,11 +107,9 @@ bool UInteractionSwitchComponent::TryInteract(AActor* Requestor)
 {
 	if (bIsEscapeDoor == false) return false;
 	if (!CanInteract_Implementation(Requestor)) return false;
+	if (!GetOwner() || !GetOwner()->HasAuthority()) return false;
 
 	OnInteractionSuccessed.Broadcast(bIsInteractedGimmick);
-
-	// ★ 상호작용 성공 시 화면의 F키 안내 UI 제거 알림
-	ShowInteractionUI(false);
 
 	if (bIsOtherInteractionGimmick)
 	{
@@ -119,7 +117,6 @@ bool UInteractionSwitchComponent::TryInteract(AActor* Requestor)
 		return true;
 	}
 
-	if (!GetOwner() || !GetOwner()->HasAuthority()) return false;
 	bIsInteractedGimmick = true;
 
 	APS3PlayerCharacter* Character = Cast<APS3PlayerCharacter>(Requestor);
@@ -141,7 +138,7 @@ bool UInteractionSwitchComponent::TryInteract(AActor* Requestor)
 		}
 
 		UE_LOG(LogTemp, Warning, TEXT("[InteractionSwitch] ON: %s 님이 [%s] 스위치를 켰습니다."),
-		       *Requestor->GetName(), *GetOwner()->GetName());
+			*Requestor->GetName(), *GetOwner()->GetName());
 	}
 	else
 	{
@@ -151,11 +148,15 @@ bool UInteractionSwitchComponent::TryInteract(AActor* Requestor)
 		}
 
 		InteractingActor = nullptr;
-		GetWorld()->GetTimerManager().ClearTimer(AutoDisableTimerHandle);
+		if (UWorld* World = GetWorld())
+		{
+			World->GetTimerManager().ClearTimer(AutoDisableTimerHandle);
+		}
 
 		UE_LOG(LogTemp, Warning, TEXT("[InteractionSwitch] OFF: %s 님이 [%s] 스위치를 껐습니다."),
-		       *Requestor->GetName(), *GetOwner()->GetName());
+			*Requestor->GetName(), *GetOwner()->GetName());
 	}
+
 	OnRep_IsActivated();
 	OnCosmeticInteractionSuccessed.Broadcast();
 
@@ -169,13 +170,13 @@ void UInteractionSwitchComponent::StartDisableTimer()
 		World->GetTimerManager().SetTimer(
 			AutoDisableTimerHandle,
 			this,
-			&UInteractionSwitchComponent::ResetSwitch, // 시간 만료 시 꺼짐 함수 호출
+			&UInteractionSwitchComponent::ResetSwitch,
 			AutoDisableTime,
 			false
 		);
 
 		UE_LOG(LogTemp, Warning, TEXT("[InteractionSwitch] 타이머 시작: [%s] 스위치가 %.1f초 후 자동으로 꺼집니다."),
-		       *GetOwner()->GetName(), AutoDisableTime);
+			*GetOwner()->GetName(), AutoDisableTime);
 	}
 }
 
@@ -183,11 +184,13 @@ void UInteractionSwitchComponent::ResetSwitch()
 {
 	if (GetOwner() && GetOwner()->HasAuthority())
 	{
-		GetWorld()->GetTimerManager().ClearTimer(AutoDisableTimerHandle);
-
-		if (!bMultiInteractionState)
+		if (UWorld* World = GetWorld())
 		{
-			// 점유 중이던 플레이어의 InteractionState 해제
+			World->GetTimerManager().ClearTimer(AutoDisableTimerHandle);
+		}
+
+		if (!bMultiInteractionState && IsValid(InteractingActor))
+		{
 			if (APS3PlayerCharacter* Character = Cast<APS3PlayerCharacter>(InteractingActor))
 			{
 				if (APS3PlayerState* PS = Character->GetPlayerState<APS3PlayerState>())
@@ -198,7 +201,7 @@ void UInteractionSwitchComponent::ResetSwitch()
 		}
 
 		UE_LOG(LogTemp, Warning, TEXT("[InteractionSwitch] 타이머 만료: [%s] 스위치가 시간 초과로 리셋되었습니다."),
-		       *GetOwner()->GetName());
+			*GetOwner()->GetName());
 
 		bIsActivated = false;
 		InteractingActor = nullptr;
