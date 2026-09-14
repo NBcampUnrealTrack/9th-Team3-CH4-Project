@@ -219,6 +219,8 @@ void APS3ScreenPlayerController::HideToCeiling()
 		TArray<AActor*> CeilingActors;
 		UGameplayStatics::GetAllActorsWithTag(GetWorld(), FName("Ceiling"), CeilingActors);
 
+		checkf(CeilingActors.Num() > 0, TEXT("천장 메쉬 ActorTag 배열에 [Ceiling] Tag를 추가해주세요."));
+		
 		for (AActor* Actor : CeilingActors)
 		{
 			if (IsValid(Actor) == false) continue;
@@ -229,6 +231,7 @@ void APS3ScreenPlayerController::HideToCeiling()
 			MeshComp->SetVisibility(false);
 			MeshComp->SetCastHiddenShadow(true);	
 		}	
+		
 	}
 }
 
