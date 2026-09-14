@@ -18,6 +18,7 @@ APS3ScreenPlayerController::APS3ScreenPlayerController()
 void APS3ScreenPlayerController::ReceivedPlayer()
 {
 	Super::ReceivedPlayer();
+	
 	ConfigureLocalInputMode();
 	
 	UWorld* World = GetWorld();
@@ -25,13 +26,21 @@ void APS3ScreenPlayerController::ReceivedPlayer()
 	World->GetTimerManager().SetTimer(PS3CameraTimerHandle, this, &ThisClass::SetCameraView, 0.1f, false);
 }
 
+void APS3ScreenPlayerController::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	ShowToCeiling();
+	
+	Super::EndPlay(EndPlayReason);
+}
+
 
 void APS3ScreenPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	ContainDoorArray();
+	checkf(IsValid(InputMappingContext) == true, TEXT("스크린 컨트롤러 IMC 할당 안됨"));
 	
+	ContainDoorArray();
 	OnScreenPlayerUI_Show();
 
 }
@@ -68,27 +77,24 @@ void APS3ScreenPlayerController::SetupInputComponent()
 	Super::SetupInputComponent();
 	
 	UEnhancedInputComponent* EIC = Cast<UEnhancedInputComponent>(InputComponent);
-	if (!IsValid(EIC))
-	{
-		return;
-	}
+	if (IsValid(EIC) == false) return;
 	
-	if (IsValid(Button_A))
+	checkf(IsValid(Button_A) == true,TEXT("스크린 컨트롤러 버튼A 할당 안됨"));
 	{
 		EIC->BindAction(Button_A, ETriggerEvent::Started, this, &ThisClass::OpenDoor);
 		EIC->BindAction(Button_A, ETriggerEvent::Completed, this, &ThisClass::CloseDoor);
 	}
-	if (IsValid(Button_B))
+	checkf(IsValid(Button_B) == true,TEXT("스크린 컨트롤러 버튼B 할당 안됨"));
 	{
 		EIC->BindAction(Button_B, ETriggerEvent::Started, this, &ThisClass::OpenDoor);
 		EIC->BindAction(Button_B, ETriggerEvent::Completed, this, &ThisClass::CloseDoor);
 	}
-	if (IsValid(Button_C))
+	checkf(IsValid(Button_C) == true,TEXT("스크린 컨트롤러 버튼C 할당 안됨"));
 	{
 		EIC->BindAction(Button_C, ETriggerEvent::Started, this, &ThisClass::OpenDoor);
 		EIC->BindAction(Button_C, ETriggerEvent::Completed, this, &ThisClass::CloseDoor);
 	}
-	if (IsValid(Button_D))
+	checkf(IsValid(Button_D) == true,TEXT("스크린 컨트롤러 버튼D 할당 안됨"));
 	{
 		EIC->BindAction(Button_D, ETriggerEvent::Started, this, &ThisClass::OpenDoor);
 		EIC->BindAction(Button_D, ETriggerEvent::Completed, this, &ThisClass::CloseDoor);
@@ -180,6 +186,51 @@ void APS3ScreenPlayerController::SetCameraView()
 	if (IsValid(PS3CameraActor) == false) return;
 	
 	SetViewTargetWithBlend(PS3CameraActor, 0.0f);
+	
+	HideToCeiling();
+}
+
+void APS3ScreenPlayerController::ShowToCeiling()
+{
+	if (IsLocalPlayerController() == true)
+	{
+		TArray<AActor*> CeilingActors;
+		UGameplayStatics::GetAllActorsWithTag(GetWorld(), FName("Ceiling"), CeilingActors);
+
+		for (AActor* Actor : CeilingActors)
+		{
+			if (IsValid(Actor) == false) continue;
+		
+			UStaticMeshComponent* MeshComp = Actor->FindComponentByClass<UStaticMeshComponent>();
+			if (IsValid(MeshComp) == false) continue;
+		
+			MeshComp->SetVisibility(true);
+			MeshComp->SetCastHiddenShadow(false);	
+		}	
+	}
+}
+
+void APS3ScreenPlayerController::HideToCeiling()
+{
+	if (IsLocalController() == true)
+	{
+		TArray<AActor*> CeilingActors;
+		UGameplayStatics::GetAllActorsWithTag(GetWorld(), FName("Ceiling"), CeilingActors);
+
+		checkf(CeilingActors.Num() > 0, TEXT("천장 메쉬 ActorTag 배열에 [Ceiling] Tag를 추가해주세요."));
+		
+		for (AActor* Actor : CeilingActors)
+		{
+			if (IsValid(Actor) == false) continue;
+		
+			UStaticMeshComponent* MeshComp = Actor->FindComponentByClass<UStaticMeshComponent>();
+			if (IsValid(MeshComp) == false) continue;
+		
+			MeshComp->SetVisibility(false);
+			MeshComp->SetCastHiddenShadow(true);	
+		}	
+		
+	}
 }
 
 
