@@ -35,6 +35,15 @@ void UTextNotifyWidget::ShowTextNotify(EPS3TextNotifyType NotifyType)
 	case EPS3TextNotifyType::DoorClosedSound:
 		ShowTextNotifyInternal(FText::FromString(TEXT("어디선가 문이 닫히는 소리가 났다.")), DefaultTextNotifyFontSize, StageTextNotifyDuration);
 		break;
+	case EPS3TextNotifyType::RadioBroken:
+		ShowTextNotifyInternal(FText::FromString(TEXT("무전기가 고장난 것 같다.")), DefaultTextNotifyFontSize, StageTextNotifyDuration);
+		break;
+	case EPS3TextNotifyType::RadioAcquired:
+		ShowTextNotifyInternal(FText::FromString(TEXT("무전기를 얻었다. 하지만 상태가 좋지 않은 것 같다.")), DefaultTextNotifyFontSize, StageTextNotifyDuration);
+		break;
+	case EPS3TextNotifyType::BlockVolume:
+		ShowTextNotifyInternal(FText::FromString(TEXT("가기 전에 먼저 해야 할 일이 있는 것 같다.")), DefaultTextNotifyFontSize, StageTextNotifyDuration);
+		break;
 	case EPS3TextNotifyType::None:
 	default:
 		break;
