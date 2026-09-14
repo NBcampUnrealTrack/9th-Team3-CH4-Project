@@ -51,3 +51,5 @@ bool UFinalTreasureComponent::Interact_Implementation(AActor* Requestor)
 
 	return GM->RegisterFinalTreasureInteraction(PS);
 }
+
+

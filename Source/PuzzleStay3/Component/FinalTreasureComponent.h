@@ -22,7 +22,6 @@ public:
 	virtual bool Interact_Implementation(AActor* Requestor) override;
 
 protected:
-	virtual void BeginPlay() override;
 	
 	// BP에서 Level Sequence 재생, UI 숨김, 입력 잠금 등을 처리
 	UFUNCTION(BlueprintImplementableEvent, Category = "Final Treasure")
