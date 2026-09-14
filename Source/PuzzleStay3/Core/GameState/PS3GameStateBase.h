@@ -16,6 +16,8 @@ class PUZZLESTAY3_API APS3GameStateBase : public AGameStateBase
 public:
 	APS3GameStateBase();
 
+	virtual void BeginPlay() override;
+	
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 protected:
