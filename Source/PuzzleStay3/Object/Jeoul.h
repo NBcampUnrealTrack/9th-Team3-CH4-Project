@@ -23,6 +23,14 @@ enum class EJeoulState : uint8
 	Resolved // 정답 완료
 };
 
+UENUM(BlueprintType)
+enum class EJeoulTiltState : uint8
+{
+	Balanced,   // 수평
+	TiltLeft,   // 왼쪽 기울음
+	TiltRight   // 오른쪽 기울음
+};
+
 UCLASS()
 class PUZZLESTAY3_API AJeoul : public AActor
 {
@@ -32,10 +40,9 @@ public:
 	AJeoul();
 	FOnJeoulCheckStarted OnJeoulCheckStarted;
 	FOnJeoulCheckFinished OnJeoulCheckFinished;
-
+	
 protected:
 	virtual void BeginPlay() override;
-	virtual void Tick(float DeltaTime) override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 #pragma region Mesh & Components
@@ -43,25 +50,16 @@ protected:
 	TObjectPtr<USceneComponent> DefaultSceneRoot;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-	TObjectPtr<UStaticMeshComponent> JeoulBaseMesh;
+	TObjectPtr<USkeletalMeshComponent> JeoulSkeletalMesh;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-	TObjectPtr<UStaticMeshComponent> JeoulBeamMesh;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-	TObjectPtr<USceneComponent> BeamPivot;
-
+	TObjectPtr<UBoxComponent> OverlapTrigger;
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<UBoxComponent> PlateTrigger;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<UCameraComponent> CutsceneCamera;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-	TObjectPtr<UInteractionSwitchComponent> InteractionSwitchComp;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-	TObjectPtr<UStaticMeshComponent> CheckButtonMesh;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components|Spots")
 	TObjectPtr<USceneComponent> Player1Spot;
@@ -72,11 +70,23 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components|Spots")
 	TArray<TObjectPtr<USceneComponent>> DumbbellSpots;
 
+	UPROPERTY(EditInstanceOnly, BlueprintReadWrite, Category = "Jeoul Settings")
+	TObjectPtr<AActor> ExternalSwitchActor;
+private:
+	UPROPERTY()
+	TObjectPtr<UInteractionSwitchComponent> ExternalSwitch;
+	
 #pragma endregion
 
 public:
 	UCameraComponent* GetCutsceneCamera() const { return CutsceneCamera; }
-
+	
+	UFUNCTION(BlueprintCallable, Category = "Jeoul")
+	EJeoulTiltState GetTiltState() const { return CurrentTiltState; }
+	
+	UFUNCTION(BlueprintCallable, Category = "Jeoul")
+	EJeoulState GetJeoulState() const { return CurrentState; }
+	
 	float CalculateWeightOnPlate(UBoxComponent* InPlateTrigger);
 
 	UFUNCTION(Server, Reliable)
@@ -101,26 +111,17 @@ public:
 private:
 	void OnCheckButtonPressed(bool bActivated);
 
-	UFUNCTION()
-	void OnRep_TargetBeamRotation();
-
 	bool HasBothPlayersOnPlate() const;
-
-	UPROPERTY(EditAnywhere, Category = "Jeoul Settings")
-	float MaxTiltAngle = 25.0f;
-
-	UPROPERTY(EditAnywhere, Category = "Jeoul Settings")
-	float TiltSensitivity = 10.0f;
 
 	FRotator InitialBeamRotation;
 
-	UPROPERTY(ReplicatedUsing = OnRep_TargetBeamRotation)
-	FRotator TargetBeamRotation;
-
-	static void SetupBlockingMesh(UStaticMeshComponent* Mesh, ECollisionResponse VisibilityResponse);
+	static void SetupBlockingMesh(UPrimitiveComponent* Mesh, ECollisionResponse VisibilityResponse);
 
 	UPROPERTY(Replicated)
 	EJeoulState CurrentState = EJeoulState::Idle;
+	
+	UPROPERTY(Replicated, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	EJeoulTiltState CurrentTiltState = EJeoulTiltState::Balanced;
 
 	UPROPERTY(EditAnywhere, Category = "Jeoul Settings")
 	float CutSceneTime = 3.0f;

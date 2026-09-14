@@ -3,11 +3,12 @@
 #include "Camera/CameraComponent.h"
 #include "Component/InteractionSwitchComponent.h"
 #include "Components/BoxComponent.h"
+#include "Components/SkeletalMeshComponent.h"
+#include "Components/CapsuleComponent.h"
 #include "Core/GameMode/PS3GameModeS4.h"
 #include "Core/GameState/PS3GameStateBase.h"
 #include "Core/GameState/PS3GameStateS4.h"
 #include "GameFramework/Character.h"
-#include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Net/UnrealNetwork.h"
 #include "Player/Character/PS3PlayerCharacter.h"
@@ -15,82 +16,57 @@
 
 AJeoul::AJeoul()
 {
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
 	bReplicates = true;
 
 	DefaultSceneRoot = CreateDefaultSubobject<USceneComponent>(TEXT("DefaultSceneRoot"));
 	SetRootComponent(DefaultSceneRoot);
 
-	JeoulBaseMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("JeoulBaseMesh"));
-	JeoulBaseMesh->SetupAttachment(RootComponent);
-	JeoulBaseMesh->SetCollisionProfileName(TEXT("BlockAllDynamic"));
-	JeoulBaseMesh->SetCollisionResponseToChannel(ECC_Visibility, ECR_Ignore);
+	JeoulSkeletalMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("JeoulSkeletalMesh"));
+	JeoulSkeletalMesh->SetupAttachment(RootComponent);
 
-	BeamPivot = CreateDefaultSubobject<USceneComponent>(TEXT("BeamPivot"));
-	BeamPivot->SetupAttachment(JeoulBaseMesh);
-
-	JeoulBeamMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("JeoulBeamMesh"));
-	JeoulBeamMesh->SetupAttachment(BeamPivot);
-	JeoulBeamMesh->SetCollisionProfileName(TEXT("BlockAllDynamic"));
-	JeoulBaseMesh->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
-
+	OverlapTrigger = CreateDefaultSubobject<UBoxComponent>(TEXT("OverlapTrigger"));
+	OverlapTrigger->SetupAttachment(JeoulSkeletalMesh);
+	OverlapTrigger->SetCollisionObjectType(ECC_GameTraceChannel2);
+	OverlapTrigger->SetCollisionResponseToAllChannels(ECR_Overlap);
+	OverlapTrigger->SetGenerateOverlapEvents(true);
+	
 	PlateTrigger = CreateDefaultSubobject<UBoxComponent>(TEXT("PlateTrigger"));
-	PlateTrigger->SetupAttachment(BeamPivot);
-	PlateTrigger->SetCollisionObjectType(ECC_GameTraceChannel2); // "Trigger"로 이름 붙인 채널
-	PlateTrigger->SetCollisionResponseToAllChannels(ECR_Overlap);
-	PlateTrigger->SetGenerateOverlapEvents(true);
+	PlateTrigger->SetupAttachment(JeoulSkeletalMesh, TEXT("ikHandle1"));
+	PlateTrigger->SetCollisionProfileName(TEXT("BlockAllDynamic"));
 
 	CutsceneCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("CutsceneCamera"));
 	CutsceneCamera->SetupAttachment(RootComponent);
 
-	CheckButtonMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("CheckButtonMesh"));
-	CheckButtonMesh->SetupAttachment(JeoulBaseMesh);
-	CheckButtonMesh->SetCollisionProfileName(TEXT("BlockAllDynamic"));
-	CheckButtonMesh->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block); // 버튼만 Block!
-
-	InteractionSwitchComp = CreateDefaultSubobject<UInteractionSwitchComponent>(TEXT("InteractionSwitchComp"));
-	InteractionSwitchComp->SetRegisterToGameMode(false); // GM 집계 제외
-
 	Player1Spot = CreateDefaultSubobject<USceneComponent>(TEXT("Player1Spot"));
-	Player1Spot->SetupAttachment(BeamPivot);
+	Player1Spot->SetupAttachment(PlateTrigger);
+
 	Player2Spot = CreateDefaultSubobject<USceneComponent>(TEXT("Player2Spot"));
-	Player2Spot->SetupAttachment(BeamPivot);
+	Player2Spot->SetupAttachment(PlateTrigger);
 
 	for (int32 i = 0; i < 3; ++i)
 	{
 		FName SpotName = *FString::Printf(TEXT("DumbbellSpot_%d"), i + 1);
 		USceneComponent* DumbbellSpot = CreateDefaultSubobject<USceneComponent>(SpotName);
-		DumbbellSpot->SetupAttachment(BeamPivot);
+		DumbbellSpot->SetupAttachment(PlateTrigger);
 		DumbbellSpots.Add(DumbbellSpot);
 	}
 
-	SetupBlockingMesh(JeoulBaseMesh, ECR_Ignore);
-	SetupBlockingMesh(JeoulBeamMesh, ECR_Ignore);
-	SetupBlockingMesh(CheckButtonMesh, ECR_Block);
+	SetupBlockingMesh(JeoulSkeletalMesh, ECR_Ignore);
 }
 
 void AJeoul::BeginPlay()
 {
 	Super::BeginPlay();
-
-	InitialBeamRotation = BeamPivot->GetRelativeRotation();
-	TargetBeamRotation = InitialBeamRotation;
-
-	if (HasAuthority())
+	
+	if (ExternalSwitchActor)
 	{
-		InteractionSwitchComp->OnSwitchActivatedChanged.AddUObject(this, &AJeoul::OnCheckButtonPressed);
+		ExternalSwitch = ExternalSwitchActor->FindComponentByClass<UInteractionSwitchComponent>();
 	}
-}
 
-void AJeoul::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
-	FRotator CurrentRot = BeamPivot->GetRelativeRotation();
-	if (!CurrentRot.Equals(TargetBeamRotation, 0.1f))
+	if (HasAuthority() && ExternalSwitch)
 	{
-		FRotator NewRot = FMath::RInterpTo(CurrentRot, TargetBeamRotation, DeltaTime, 3.0f);
-		BeamPivot->SetRelativeRotation(NewRot);
+		ExternalSwitch->OnSwitchActivatedChanged.AddUObject(this, &AJeoul::OnCheckButtonPressed);
 	}
 }
 
@@ -98,21 +74,16 @@ void AJeoul::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimePr
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME(AJeoul, TargetBeamRotation);
 	DOREPLIFETIME(AJeoul, CurrentState);
-}
-
-void AJeoul::OnRep_TargetBeamRotation()
-{
-	// 클라이언트 측에서 TargetBeamRotation 업데이트 시 보간 애니메이션이 Tick에서 즉시 동작함
+	DOREPLIFETIME(AJeoul, CurrentTiltState);
 }
 
 bool AJeoul::HasBothPlayersOnPlate() const
 {
-	if (!PlateTrigger) return false;
+	if (!OverlapTrigger) return false;
 
 	TArray<AActor*> OverlappingActors;
-	PlateTrigger->GetOverlappingActors(OverlappingActors);
+	OverlapTrigger->GetOverlappingActors(OverlappingActors);
 
 	int32 PlayerCount = 0;
 	for (AActor* Actor : OverlappingActors)
@@ -126,17 +97,16 @@ bool AJeoul::HasBothPlayersOnPlate() const
 	return PlayerCount >= 2;
 }
 
-void AJeoul::SetupBlockingMesh(UStaticMeshComponent* Mesh, ECollisionResponse VisibilityResponse)
+void AJeoul::SetupBlockingMesh(UPrimitiveComponent* Mesh, ECollisionResponse VisibilityResponse)
 {
+	if (!Mesh) return;
 	Mesh->SetCollisionProfileName(TEXT("BlockAllDynamic"));
 	Mesh->SetCollisionResponseToChannel(ECC_Visibility, VisibilityResponse);
 }
 
 void AJeoul::OnCheckButtonPressed(bool bActivated)
 {
-	if (!HasAuthority()) return;
-
-	if (!bActivated) return;
+	if (!HasAuthority() || !bActivated || !ExternalSwitch) return; 
 	
 	if (CurrentState == EJeoulState::Idle)
 	{
@@ -145,7 +115,7 @@ void AJeoul::OnCheckButtonPressed(bool bActivated)
 	else if (CurrentState == EJeoulState::Resolved || CurrentState == EJeoulState::Checking)
 	{
 		if (APS3PlayerCharacter* InteractingChar = Cast<APS3PlayerCharacter>(
-			InteractionSwitchComp->GetInteractingActor()))
+			ExternalSwitch->GetInteractingActor()))
 		{
 			if (APS3PlayerController* PC = Cast<APS3PlayerController>(InteractingChar->GetController()))
 			{
@@ -160,8 +130,18 @@ void AJeoul::Multicast_RestorePlayerCharacter_Implementation(APS3PlayerCharacter
 	if (!IsValid(TargetCharacter)) return;
 
 	TargetCharacter->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+	
+	// 2. ★ 핵심: 저울에 의해 기울어졌던 캐릭터 액터의 Pitch/Roll을 0으로 만들어 똑바로 세움
+	FRotator CurrentRot = TargetCharacter->GetActorRotation();
+	FRotator UprightRot = FRotator(0.0f, CurrentRot.Yaw, 0.0f);
+	TargetCharacter->SetActorRotation(UprightRot);
 
-	// [수정: 2번 방식] MovementMode 제어 코드 제거 -> 캐릭터 입력 복구 플래그만 true 설정
+	// 3. ★ 핵심: 컨트롤러 카메라 시점도 Pitch/Roll을 제거하여 수평 복구
+	if (AController* Controller = TargetCharacter->GetController())
+	{
+		Controller->SetControlRotation(UprightRot);
+	}
+	
 	TargetCharacter->SetCanUseFieldControls(true);
 }
 
@@ -171,14 +151,14 @@ void AJeoul::Multicast_AlignPlayerCharacter_Implementation(APS3PlayerCharacter* 
 	if (!IsValid(TargetCharacter)) return;
 
 	TargetCharacter->SetCanUseFieldControls(false);
-	
+
 	if (UCharacterMovementComponent* MovementComp = TargetCharacter->GetCharacterMovement())
 	{
 		MovementComp->StopMovementImmediately();
 	}
 
 	TargetCharacter->SetActorLocationAndRotation(TargetLocation, TargetRotation, false, nullptr,
-												 ETeleportType::TeleportPhysics);
+	                                             ETeleportType::TeleportPhysics);
 
 	if (AttachTarget)
 	{
@@ -187,16 +167,18 @@ void AJeoul::Multicast_AlignPlayerCharacter_Implementation(APS3PlayerCharacter* 
 
 	if (AController* Controller = TargetCharacter->GetController())
 	{
-		Controller->SetControlRotation(TargetRotation);
+		// ★ 핵심: ControlRotation에는 Pitch와 Roll을 0으로 만들어 Yaw(좌우 바라보는 방향)만 설정
+		FRotator CleanCameraRotation = FRotator(0.0f, TargetRotation.Yaw, 0.0f);
+		Controller->SetControlRotation(CleanCameraRotation);
 	}
 }
 
 void AJeoul::AlignPlayersAndDumbbells()
 {
-	if (!HasAuthority() || !PlateTrigger) return;
+	if (!HasAuthority() || !OverlapTrigger) return;
 
 	TArray<AActor*> OverlappingActors;
-	PlateTrigger->GetOverlappingActors(OverlappingActors);
+	OverlapTrigger->GetOverlappingActors(OverlappingActors);
 
 	int32 DumbbellIndex = 0;
 	int32 PlayerSpotIndex = 0;
@@ -220,7 +202,7 @@ void AJeoul::AlignPlayersAndDumbbells()
 					TargetLocation.Z += Capsule->GetScaledCapsuleHalfHeight();
 				}
 				Multicast_AlignPlayerCharacter(Cast<APS3PlayerCharacter>(Character), TargetLocation, TargetRotation,
-				                               BeamPivot);
+				                               JeoulSkeletalMesh);
 			}
 		}
 		else if (ADumbbell* Dumbbell = Cast<ADumbbell>(Actor))
@@ -231,7 +213,7 @@ void AJeoul::AlignPlayersAndDumbbells()
 				if (SlotSpot)
 				{
 					Dumbbell->AttachToComponent(
-						BeamPivot,
+						JeoulSkeletalMesh,
 						FAttachmentTransformRules::SnapToTargetNotIncludingScale
 					);
 					Dumbbell->SetActorRelativeLocation(SlotSpot->GetRelativeLocation());
@@ -245,10 +227,7 @@ void AJeoul::AlignPlayersAndDumbbells()
 
 void AJeoul::RequestCutsceneReturn(APS3PlayerController* RequestingController)
 {
-	if (!HasAuthority() || !IsValid(RequestingController))
-	{
-		return;
-	}
+	if (!HasAuthority() || !IsValid(RequestingController)) return;
 
 	const TArray<TWeakObjectPtr<APS3PlayerController>> Participants = MoveTemp(CutsceneParticipants);
 	CutsceneParticipants.Reset();
@@ -259,7 +238,6 @@ void AJeoul::RequestCutsceneReturn(APS3PlayerController* RequestingController)
 		{
 			if (APS3PlayerCharacter* TargetChar = Cast<APS3PlayerCharacter>(PlayerController->GetPawn()))
 			{
-				// 전 클라이언트에서 부착 해제 및 이동 기능 동시 복구
 				Multicast_RestorePlayerCharacter(TargetChar);
 			}
 
@@ -268,12 +246,13 @@ void AJeoul::RequestCutsceneReturn(APS3PlayerController* RequestingController)
 	}
 }
 
-float AJeoul::CalculateWeightOnPlate(UBoxComponent* InPlateTrigger)
+
+float AJeoul::CalculateWeightOnPlate(UBoxComponent* InOverlapTrigger)
 {
-	if (!InPlateTrigger) return 0.0f;
+	if (!InOverlapTrigger) return 0.0f;
 
 	TArray<AActor*> OverlappingActors;
-	InPlateTrigger->GetOverlappingActors(OverlappingActors);
+	InOverlapTrigger->GetOverlappingActors(OverlappingActors);
 
 	float TotalWeight = 0.0f;
 	TSet<ADumbbell*> CountedDumbbells;
@@ -292,7 +271,7 @@ float AJeoul::CalculateWeightOnPlate(UBoxComponent* InPlateTrigger)
 				if (HasAuthority())
 				{
 					Dumbbell->AttachToComponent(
-						BeamPivot,
+						JeoulSkeletalMesh,
 						FAttachmentTransformRules::KeepWorldTransform
 					);
 				}
@@ -300,7 +279,7 @@ float AJeoul::CalculateWeightOnPlate(UBoxComponent* InPlateTrigger)
 		}
 		else if (APS3PlayerCharacter* PlayerChar = Cast<APS3PlayerCharacter>(Actor))
 		{
-			if (ADumbbell* HeldDumbbell = PlayerChar->GetHeldDumbbell()) // 또는 HeldDumbbell 멤버변수 접근
+			if (ADumbbell* HeldDumbbell = PlayerChar->GetHeldDumbbell())
 			{
 				if (!CountedDumbbells.Contains(HeldDumbbell))
 				{
@@ -315,7 +294,6 @@ float AJeoul::CalculateWeightOnPlate(UBoxComponent* InPlateTrigger)
 
 void AJeoul::Multicast_OnJeoulCheckStarted_Implementation()
 {
-	// 연출 시작 방송 (추후 GameMode가 수신 시 PlayerController 시점 전환 가능)
 	OnJeoulCheckStarted.Broadcast();
 }
 
@@ -340,9 +318,9 @@ void AJeoul::Server_CheckBalance_Implementation()
 	{
 		UE_LOG(LogTemp, Warning, TEXT("[Jeoul] 체크 실패: 플레이어 2명이 모두 저울판 위에 올라와 있지 않습니다."));
 
-		if (InteractionSwitchComp)
+		if (ExternalSwitch)
 		{
-			InteractionSwitchComp->ResetSwitch();
+			ExternalSwitch->ResetSwitch();
 		}
 		return;
 	}
@@ -352,30 +330,23 @@ void AJeoul::Server_CheckBalance_Implementation()
 	AlignPlayersAndDumbbells();
 
 	TArray<AActor*> PlayersOnPlate;
-	PlateTrigger->GetOverlappingActors(
-		PlayersOnPlate,
-		APS3PlayerCharacter::StaticClass());
+	OverlapTrigger->GetOverlappingActors(PlayersOnPlate, APS3PlayerCharacter::StaticClass());
 
 	for (AActor* PlayerActor : PlayersOnPlate)
 	{
-		APS3PlayerCharacter* PlayerCharacter =
-			Cast<APS3PlayerCharacter>(PlayerActor);
-
+		APS3PlayerCharacter* PlayerCharacter = Cast<APS3PlayerCharacter>(PlayerActor);
 		if (!IsValid(PlayerCharacter)) continue;
 
-		if (APS3PlayerController* PlayerController =
-			Cast<APS3PlayerController>(PlayerCharacter->GetController()))
+		if (APS3PlayerController* PlayerController = Cast<APS3PlayerController>(PlayerCharacter->GetController()))
 		{
-			CutsceneParticipants.AddUnique(
-				TWeakObjectPtr<APS3PlayerController>(PlayerController));
-
+			CutsceneParticipants.AddUnique(TWeakObjectPtr<APS3PlayerController>(PlayerController));
 			PlayerController->Client_BeginJeoulCutscene(this);
 		}
 	}
 
 	Multicast_OnJeoulCheckStarted();
 
-	const float TotalWeight = CalculateWeightOnPlate(PlateTrigger);
+	const float TotalWeight = CalculateWeightOnPlate(OverlapTrigger);
 
 	float JudgeWeight = 0.0f;
 	if (APS3GameStateS4* GS = GetWorld()->GetGameState<APS3GameStateS4>())
@@ -385,14 +356,22 @@ void AJeoul::Server_CheckBalance_Implementation()
 
 	float WeightDifference = JudgeWeight - TotalWeight;
 
-	float TargetRoll = FMath::Clamp(WeightDifference * TiltSensitivity, -MaxTiltAngle, MaxTiltAngle);
-	TargetBeamRotation = InitialBeamRotation + FRotator(0.0f, 0.0f, TargetRoll);
+	// 무게 차이에 기반한 기울임 상태 결정 (리플리케이션되어 클라이언트 AnimBP에 연동)
+	if (FMath::IsNearlyEqual(TotalWeight, JudgeWeight, 0.01f) && TotalWeight > 0.0f)
+	{
+		CurrentTiltState = EJeoulTiltState::Balanced;
+	}
+	else if (WeightDifference > 0.0f)
+	{
+		CurrentTiltState = EJeoulTiltState::TiltLeft;
+	}
+	else
+	{
+		CurrentTiltState = EJeoulTiltState::TiltRight;
+	}
 
-	//dnjsqls
-	UE_LOG(LogTemp, Warning, TEXT("[Jeoul] 무게 차이: %f, TargetRoll: %f, 현재 무게: %f, 목표 무게: %f"), WeightDifference,
-	       TargetRoll, TotalWeight, JudgeWeight);
+	UE_LOG(LogTemp, Warning, TEXT("[Jeoul] 무게 차이: %f, 현재 무게: %f, 목표 무게: %f"), WeightDifference, TotalWeight, JudgeWeight);
 
-	// CutSceneTime 후 컷씬 종료 및 결과 판단 타이머
 	FTimerHandle ResultTimer;
 	GetWorldTimerManager().SetTimer(ResultTimer, [this, TotalWeight, JudgeWeight]()
 	{
@@ -410,25 +389,24 @@ void AJeoul::Server_CheckBalance_Implementation()
 
 			Multicast_OnJeoulCheckFinished(true);
 
-			if (InteractionSwitchComp)
+			if (ExternalSwitch)
 			{
-				InteractionSwitchComp->ResetSwitch();
+				ExternalSwitch->ResetSwitch();
 			}
 		}
 		else
 		{
 			UE_LOG(LogTemp, Warning, TEXT("[Jeoul] 무게 불균형! 저울대 기울기 원위치 리셋"));
 
-			TargetBeamRotation = InitialBeamRotation;
-
-			if (InteractionSwitchComp)
+			if (ExternalSwitch)
 			{
-				InteractionSwitchComp->ResetSwitch(); // 컷씬 종료 시점에 리셋
+				ExternalSwitch->ResetSwitch();
 			}
 
 			FTimerHandle ResetTimer;
 			GetWorldTimerManager().SetTimer(ResetTimer, [this]()
 			{
+				CurrentTiltState = EJeoulTiltState::Balanced;
 				CurrentState = EJeoulState::Idle;
 				Multicast_OnJeoulCheckFinished(false);
 			}, ResetBeamTime, false);
