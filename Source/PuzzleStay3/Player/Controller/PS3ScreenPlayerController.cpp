@@ -38,8 +38,9 @@ void APS3ScreenPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	ContainDoorArray();
+	checkf(IsValid(InputMappingContext) == true, TEXT("스크린 컨트롤러 IMC 할당 안됨"));
 	
+	ContainDoorArray();
 	OnScreenPlayerUI_Show();
 
 }
@@ -76,27 +77,24 @@ void APS3ScreenPlayerController::SetupInputComponent()
 	Super::SetupInputComponent();
 	
 	UEnhancedInputComponent* EIC = Cast<UEnhancedInputComponent>(InputComponent);
-	if (!IsValid(EIC))
-	{
-		return;
-	}
+	if (IsValid(EIC) == false) return;
 	
-	if (IsValid(Button_A))
+	checkf(IsValid(Button_A) == true,TEXT("스크린 컨트롤러 버튼A 할당 안됨"));
 	{
 		EIC->BindAction(Button_A, ETriggerEvent::Started, this, &ThisClass::OpenDoor);
 		EIC->BindAction(Button_A, ETriggerEvent::Completed, this, &ThisClass::CloseDoor);
 	}
-	if (IsValid(Button_B))
+	checkf(IsValid(Button_B) == true,TEXT("스크린 컨트롤러 버튼B 할당 안됨"));
 	{
 		EIC->BindAction(Button_B, ETriggerEvent::Started, this, &ThisClass::OpenDoor);
 		EIC->BindAction(Button_B, ETriggerEvent::Completed, this, &ThisClass::CloseDoor);
 	}
-	if (IsValid(Button_C))
+	checkf(IsValid(Button_C) == true,TEXT("스크린 컨트롤러 버튼C 할당 안됨"));
 	{
 		EIC->BindAction(Button_C, ETriggerEvent::Started, this, &ThisClass::OpenDoor);
 		EIC->BindAction(Button_C, ETriggerEvent::Completed, this, &ThisClass::CloseDoor);
 	}
-	if (IsValid(Button_D))
+	checkf(IsValid(Button_D) == true,TEXT("스크린 컨트롤러 버튼D 할당 안됨"));
 	{
 		EIC->BindAction(Button_D, ETriggerEvent::Started, this, &ThisClass::OpenDoor);
 		EIC->BindAction(Button_D, ETriggerEvent::Completed, this, &ThisClass::CloseDoor);

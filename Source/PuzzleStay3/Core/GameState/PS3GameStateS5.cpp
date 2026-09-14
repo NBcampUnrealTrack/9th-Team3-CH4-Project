@@ -3,6 +3,7 @@
 #include "Core/GameMode/PS3GameModeS5.h"
 #include "Data/DataAsset/S5_GameRuleDataAsset.h"
 #include "Data/Delegates/UIDelegatesSubsystem.h"
+#include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
 
 
@@ -21,6 +22,8 @@ void APS3GameStateS5::BeginPlay()
 	FTimerHandle BroadCastToUITimerHandle;
 	GetWorld()->GetTimerManager().SetTimer(BroadCastToUITimerHandle, this, 
 		&ThisClass::BroadcastToTimerManager, 0.1, false);
+	
+	NoneReceivedDecalFloor();
 	
 }
 
@@ -186,6 +189,22 @@ void APS3GameStateS5::OnQuitGame()
 }
 
 
+void APS3GameStateS5::NoneReceivedDecalFloor()
+{
+	TArray<AActor*> FloorActors;
+	UGameplayStatics::GetAllActorsWithTag(GetWorld(), FName("Floor"), FloorActors);
 
+	checkf(FloorActors.Num() > 0, TEXT("바닥 메쉬 ActorTag 배열에 [Floor] Tag를 추가해주세요."));
+		
+	for (AActor* Actor : FloorActors)
+	{
+		if (IsValid(Actor) == false) continue;
+		
+		UStaticMeshComponent* FloorMeshComp = Actor->FindComponentByClass<UStaticMeshComponent>();
+		if (IsValid(FloorMeshComp) == false) continue;
+		
+		FloorMeshComp->SetReceivesDecals(false);
+	}		
+}
 
 

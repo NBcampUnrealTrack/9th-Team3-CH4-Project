@@ -42,7 +42,7 @@ public:
 	float MaxGameLimitTime = 60.0f;
 	
 	UPROPERTY(EditAnywhere, Category = "GameRule")
-	float WaitingTime = 1.0f;
+	float WaitingTime = 0.5f;
 	
 	UPROPERTY(EditDefaultsOnly, Category = "SwapController")
 	TSubclassOf<APS3PlayerCharacter> FieldCharacterClass;

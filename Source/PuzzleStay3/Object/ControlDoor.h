@@ -67,7 +67,7 @@ protected:
 	TObjectPtr<UCurveFloat> DoorTimeLineCurve;
 	
 	UPROPERTY(EditAnywhere, Category = "ControlDoor|Settings")
-	FVector TargetLocation = FVector(0.f, 0.f, -200.f);
+	FVector TargetLocation = FVector(0.f, 0.f, -300.f);
 	
 	FVector StartLocation;
 	
