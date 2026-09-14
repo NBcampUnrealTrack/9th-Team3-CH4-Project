@@ -11,13 +11,6 @@ APS3GameStateBase::APS3GameStateBase()
 	bReplicates = true;
 }
 
-void APS3GameStateBase::BeginPlay()
-{
-	Super::BeginPlay();
-	
-	InitializeToDataAssets();
-}
-
 void APS3GameStateBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
