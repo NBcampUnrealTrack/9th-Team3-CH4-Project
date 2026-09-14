@@ -9,8 +9,6 @@
 void APS3GameStateS2::BeginPlay()
 {
 	Super::BeginPlay();
-
-	InitializeToDataAssets();
 	
 	SetUIMacroTimerHandle(
 		StageType_UI_DelayTime,
