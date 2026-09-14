@@ -103,6 +103,7 @@ public:
 
 
 #pragma region Broadcast & Binding Macro
+
 #define PS3_BROADCAST_TO_MVVM_TwoParams(DelegateVar, OneParams, TwoParms)\
 	{\
 		auto* UIManager = UUIDelegatesSubsystem::GetUIDelegateManager(this);\
