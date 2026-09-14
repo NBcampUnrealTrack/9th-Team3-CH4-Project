@@ -12,6 +12,8 @@ void APS3GameStateS4::BeginPlay()
 {
 	Super::BeginPlay();
 	
+	InitializeToDataAssets();
+	
 	SetUIMacroTimerHandle(
 	StageType_UI_DelayTime,
 	[this]() { PS3_BROADCAST_TO_MVVM_OneParams(OnStageType_UI, S4_GameRuleDataAsset->StageType_S4); });
@@ -23,8 +25,6 @@ void APS3GameStateS4::BeginPlay()
 
 void APS3GameStateS4::InitializeToDataAssets()
 {
-	Super::InitializeToDataAssets();
-	
 	checkf(IsValid(S4_GameRuleDataAsset) == true, TEXT("[APS3GameModeS4]의 데이터에셋이 비어있습니다."));
 }
 

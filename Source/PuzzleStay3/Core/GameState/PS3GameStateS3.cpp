@@ -10,6 +10,8 @@
 void APS3GameStateS3::BeginPlay()
 {
 	Super::BeginPlay();
+
+	InitializeToDataAssets();
 	
 	SetUIMacroTimerHandle(
 		StageType_UI_DelayTime,
@@ -22,8 +24,6 @@ void APS3GameStateS3::BeginPlay()
 
 void APS3GameStateS3::InitializeToDataAssets()
 {
-	Super::InitializeToDataAssets();
-	
 	checkf(IsValid(S3_GameRuleDataAsset) == true, TEXT("[APS3GameModeS3]의 데이터에셋이 비어있습니다."));
 	
 }
