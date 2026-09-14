@@ -220,8 +220,8 @@ void AControlDoor::OnTimelineUpdate(float Value)
 {
 	if (IsValid(ControlDoorMesh) == false) return;
 	
-	FVector DistanceToMovement = StartLocation + TargetLocation;
-	FVector MovementLocation = FMath::Lerp(StartLocation, DistanceToMovement, Value);
+	FVector EndLoacation = StartLocation + TargetLocation;
+	FVector MovementLocation = FMath::Lerp(StartLocation, EndLoacation, Value);
 
 	ControlDoorMesh->SetRelativeLocation(MovementLocation);
 	
