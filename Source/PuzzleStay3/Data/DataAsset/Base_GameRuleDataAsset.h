@@ -24,5 +24,8 @@ public:
 	
 	UPROPERTY(EditAnywhere, Category = "GameRule")
 	float TextNotify_UI_DelayTime = 0.5f;
+	
+	UPROPERTY(EditAnywhere, Category = "GameRule")
+	TSoftObjectPtr<UWorld> TitleLevel;
 
 };

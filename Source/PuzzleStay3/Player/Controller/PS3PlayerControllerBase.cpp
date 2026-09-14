@@ -26,7 +26,7 @@ void APS3PlayerControllerBase::OnClickedRestartGameButton()
 }
 
 
-void APS3PlayerControllerBase::OnClickedMainMenuButton()
+void APS3PlayerControllerBase::OnClickedTitleMenuButton()
 {
 	auto* UIManager = UUIDelegatesSubsystem::GetUIDelegateManager(GetWorld());
 	UIManager->OnIsGameOver_UI.Broadcast(false);
@@ -46,7 +46,10 @@ void APS3PlayerControllerBase::ServerRPC_OnClickedMainMenuButton_Implementation(
 
 void APS3PlayerControllerBase::ServerRPC_OnClickedRestartGameButton_Implementation()
 {
-	//TODO 타이틀레벨로 가는 로직 구현하기 (이때 호스트 게스트 연결 끊어짐?)
+	auto* PS3GameModeS5 = Cast<APS3GameModeS5>(GetWorld()->GetAuthGameMode());
+	if (IsValid(PS3GameModeS5) == false) return;
+	
+	PS3GameModeS5->GotoTitleLevel();
 }
 
 
@@ -64,20 +67,8 @@ void APS3PlayerControllerBase::ConfigureInputMapping()
 
 	
 	PS3ViewModel->OnGameRestartRequested_UI.AddDynamic(this, &ThisClass::OnClickedRestartGameButton);
-	PS3ViewModel->OnExitToMainRequested_UI.AddDynamic(this, &ThisClass::OnClickedMainMenuButton);
+	PS3ViewModel->OnExitToMainRequested_UI.AddDynamic(this, &ThisClass::OnClickedTitleMenuButton);
 	
-	auto* PS3GameState = Cast<APS3GameStateS5>(GetWorld()->GetGameState());	
-	if (IsValid(PS3GameState) == false) return;
-	
-	PS3GameState->OnSpawnedScreenPlayerUIReAssign.AddUObject(this, &ThisClass::OnScreenPlayerSpawned);
 }
 
 
-void APS3PlayerControllerBase::OnScreenPlayerSpawned()
-{
-	if (IsLocalController() == true)
-	{
-		PS3_BROADCAST_TO_MVVM_OneParams(OnScreenPlayer_UI, false);
-		PS3_BROADCAST_TO_MVVM_OneParams(OnFieldPlayer_UI, true);
-	}
-}

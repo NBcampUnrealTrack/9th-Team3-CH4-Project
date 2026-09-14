@@ -64,7 +64,11 @@ protected:
 
 	// 플레이어 전방에 생성할 상호작용 구체의 반경
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PS3|Character|Interaction", meta = (ClampMin = "0.0"))
-	float InteractionSphereRadius = 200.0f;
+	float InteractionSphereRadius = 70.0f;
+
+	// 플레이어 캡슐 앞면과 상호작용 구체 표면 사이의 거리
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PS3|Character|Interaction")
+	float InteractionSphereForwardOffset = 0.0f;
 	
 	// 플레이어 중심을 기준으로 한 구체 높이
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PS3|Character|Interaction", meta = (ClampMin = "0.0"))

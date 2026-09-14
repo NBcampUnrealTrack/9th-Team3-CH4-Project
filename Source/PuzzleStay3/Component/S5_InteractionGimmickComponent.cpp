@@ -48,6 +48,7 @@ bool US5_InteractionGimmickComponent::Interact_Implementation(AActor* Requestor)
 	
 	if (bIsInteractedGimmick == true) return false;
 	
+	OnCosmeticInteractionSuccessed.Broadcast();
 	OnInteractionGimmick.Broadcast(bIsInteractedGimmick);
 	bIsInteractedGimmick = true;
 	
