@@ -24,6 +24,9 @@ public:
 
 	UFUNCTION(BlueprintPure, Category = "PS3|Character")
 	bool CanUseFieldControls() const;
+
+	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category = "PS3|Character")
+	void SetCanUseFieldControls(bool bEnable);
 	
 	UFUNCTION(BlueprintPure, Category = "PS3|Character|Interaction")
 	USceneComponent* GetCarryAnchor() const
@@ -49,8 +52,12 @@ public:
 	
 
 protected:
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual void PossessedBy(AController* NewController) override;
 	virtual void OnRep_PlayerState() override;
+
+	UPROPERTY(Replicated)
+	bool bCanUseFieldControls = true;
 
 	// 실제 메시/Cosmetic 적용은 Character Blueprint에서 구현
 	UFUNCTION(BlueprintImplementableEvent, Category = "PS3|Character|Visual", meta = (DisplayName = "Apply Player Identity Visual"))
@@ -68,11 +75,11 @@ protected:
 
 	// 플레이어 캡슐 앞면과 상호작용 구체 표면 사이의 거리
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PS3|Character|Interaction")
-	float InteractionSphereForwardOffset = 0.0f;
+	float InteractionSphereForwardOffset = -20.0f;
 	
 	// 플레이어 중심을 기준으로 한 구체 높이
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PS3|Character|Interaction", meta = (ClampMin = "0.0"))
-	float InteractionSphereHeight = 60.0f;
+	float InteractionSphereHeight = 0.0f;
 
 	// 에디터와 개발 빌드에서 서버 판정 구체 범위를 로컬 플레이어 화면에 표시
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PS3|Character|Interaction|Debug")

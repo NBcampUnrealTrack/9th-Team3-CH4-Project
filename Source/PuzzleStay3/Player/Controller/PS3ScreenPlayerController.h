@@ -30,6 +30,8 @@ protected:
 	virtual void BeginPlay() override;
 	virtual void SetupInputComponent() override;
 	virtual void ReceivedPlayer() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+	
 	
 	EControlDoorType CurrentOpenedDoorType = EControlDoorType::None;
 	
@@ -67,7 +69,12 @@ protected:
 	
 	void SetCameraView();
 	
+	void ShowToCeiling();
+	void HideToCeiling();
+	
+	
 	void OnScreenPlayerUI_Show() const;
+	
 	
 	
 };

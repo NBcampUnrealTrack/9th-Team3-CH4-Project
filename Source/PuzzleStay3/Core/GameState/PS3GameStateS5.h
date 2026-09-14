@@ -71,6 +71,8 @@ private:
 	void BroadcastToTimerManager();
 	APS3GameModeS5* GetCastPS3GameModeS5();
 	
+	void NoneReceivedDecalFloor();
+	
 public:
 	FOnSpawnedScreenPlayerUIReAssign OnSpawnedScreenPlayerUIReAssign;
 

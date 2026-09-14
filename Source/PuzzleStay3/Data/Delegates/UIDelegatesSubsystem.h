@@ -127,6 +127,22 @@ public:
 		auto* UIManager = UUIDelegatesSubsystem::GetUIDelegateManager(this); \
 		if (IsValid(UIManager) == true) { UIManager->DelegateVar.AddUObject(this, &ThisClass::BindingFunc); } \
 	}
+
+
+#define PS3_UIDELEGATE_TIMER_FOR_MACRO(PS3_UIDelegateMacro)\
+	{\
+		FTimerHandle TempTimerHandle;\
+		\
+		GetWorld()->GetTimerManager().SetTimer(\
+			TempTimerHandle,\
+			FTimerDelegate::CreateLambda([this, &TempTimerHandle]()\
+			{\
+				PS3_UIDelegateMacro;\
+				GetWorld()->GetTimerManager().ClearTimer(TempTimerHandle);\
+			}),\
+		0.1f, false);\
+	}
+
 #pragma endregion 
 	
 
