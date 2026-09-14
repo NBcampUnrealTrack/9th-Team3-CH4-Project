@@ -23,6 +23,8 @@ void APS3GameStateS4::BeginPlay()
 
 void APS3GameStateS4::InitializeToDataAssets()
 {
+	Super::InitializeToDataAssets();
+	
 	checkf(IsValid(S4_GameRuleDataAsset) == true, TEXT("[APS3GameModeS4]의 데이터에셋이 비어있습니다."));
 }
 
