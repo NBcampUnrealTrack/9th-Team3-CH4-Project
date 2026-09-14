@@ -14,6 +14,7 @@
 #include "Components/ActorComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Engine/OverlapResult.h"
+#include "Net/UnrealNetwork.h"
 
 
 
@@ -41,6 +42,12 @@ APS3PlayerCharacter::APS3PlayerCharacter()
 	CarryAnchor->SetupAttachment(GetMesh(), TEXT("hand_r"));
 }
 
+void APS3PlayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(APS3PlayerCharacter, bCanUseFieldControls);
+}
+
 void APS3PlayerCharacter::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);
@@ -66,7 +73,18 @@ void APS3PlayerCharacter::RefreshPlayerIdentityVisual()
 
 bool APS3PlayerCharacter::CanUseFieldControls() const
 {
-	return IsValid(Cast<APS3PlayerController>(GetController()));
+	return bCanUseFieldControls && IsValid(Cast<APS3PlayerController>(GetController()));
+}
+
+void APS3PlayerCharacter::SetCanUseFieldControls(const bool bEnable)
+{
+	if (!HasAuthority() || bCanUseFieldControls == bEnable)
+	{
+		return;
+	}
+
+	bCanUseFieldControls = bEnable;
+	ForceNetUpdate();
 }
 
 
