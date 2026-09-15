@@ -23,6 +23,7 @@ void APS3PlayerControllerBase::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	if (PS3ViewModel == nullptr) return;
 	PS3ViewModel->OnGameRestartRequested_UI.RemoveDynamic(this, &ThisClass::OnClickedRestartGameButton);
 	PS3ViewModel->OnExitToMainRequested_UI.RemoveDynamic(this, &ThisClass::OnClickedTitleMenuButton);
+	
 	Super::EndPlay(EndPlayReason);
 }
 
@@ -41,10 +42,10 @@ void APS3PlayerControllerBase::ConfigureInputMapping()
 	
 	GetWorld()->GetTimerManager().ClearTimer(InitTimerHandle);
 	
+	/*
 	FInputModeUIOnly InputMode;
 	SetInputMode(InputMode);
-	bShowMouseCursor = true;
-	
+	bShowMouseCursor = true;*/
 	
 	auto* HUD = Cast<APlayerHUD>(GetHUD());
 	if (HUD == nullptr) return;
