@@ -1,7 +1,7 @@
 ﻿#pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/PlayerController.h"
+#include "PS3PlayerController.h"
 #include "PS3ChoiceController.generated.h"
 
 enum class EPS3PlayerRole : uint8;
@@ -11,7 +11,7 @@ enum class EPS3PlayerRole : uint8;
  * 
  */
 UCLASS()
-class PUZZLESTAY3_API APS3ChoiceController : public APlayerController
+class PUZZLESTAY3_API APS3ChoiceController : public APS3PlayerController
 {
 	GENERATED_BODY()
 	

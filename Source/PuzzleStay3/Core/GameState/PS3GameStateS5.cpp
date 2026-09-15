@@ -5,6 +5,7 @@
 #include "Data/Delegates/UIDelegatesSubsystem.h"
 #include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
+#include "Player/Controller/PS3PlayerControllerBase.h"
 
 
 APS3GameStateS5::APS3GameStateS5()
@@ -19,11 +20,14 @@ void APS3GameStateS5::BeginPlay()
 	
 	InitializeToDataAssets();
 	
-	FTimerHandle BroadCastToUITimerHandle;
-	GetWorld()->GetTimerManager().SetTimer(BroadCastToUITimerHandle, this, 
-		&ThisClass::BroadcastToTimerManager, 0.1, false);
+	PS3_UIDELEGATE_TIMER_FOR_MACRO(PS3_BROADCAST_TO_MVVM_OneParams(OnStageType_UI, S5_GameRuleDataAsset->StageType_S5));
 	
 	NoneReceivedDecalFloor();
+	
+	auto* PS3GameModeS5 = Cast<APS3GameModeS5>(GetWorld()->GetAuthGameMode());
+	if (IsValid(PS3GameModeS5) == false) return;
+	PS3GameModeS5->OnIsGameStart.AddUObject(this, &ThisClass::OnGameStart);
+	
 	
 }
 
@@ -35,12 +39,6 @@ void APS3GameStateS5::InitializeToDataAssets()
 		checkf(IsValid(S5_GameRuleDataAsset) == true, TEXT("[APS3GameStateS5]의 데이터어셋이 비어있습니다."));
 		GameLimitTime = S5_GameRuleDataAsset->MaxGameLimitTime;
 	}
-}
-
-
-void APS3GameStateS5::BroadcastToTimerManager()
-{
-	PS3_BROADCAST_TO_MVVM_OneParams(OnStageType_UI, S5_GameRuleDataAsset->StageType_S5);
 }
 
 
@@ -82,6 +80,7 @@ void APS3GameStateS5::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutL
 	
 	DOREPLIFETIME(ThisClass, GameLimitTime);
 	DOREPLIFETIME(ThisClass, bIsGameOver);
+	DOREPLIFETIME(ThisClass, bIsGameStarted);
 	DOREPLIFETIME(ThisClass, bIsSelectedFieldType);
 	DOREPLIFETIME(ThisClass, bIsSelectedScreenType);
 }
@@ -104,11 +103,14 @@ void APS3GameStateS5::OnRep_IsGameOver()
 	if (bIsGameOver == false) return;
 	
 	APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
-	if (IsValid(PlayerController))
+	
+	auto* PS3PlayerControllerBase = Cast<APS3PlayerControllerBase>(PlayerController);
+	if (IsValid(PS3PlayerControllerBase))
 	{
 		FInputModeUIOnly InputMode;
-		PlayerController->SetInputMode(InputMode);
-		PlayerController->bShowMouseCursor = true;
+		PS3PlayerControllerBase->SetInputMode(InputMode);
+		PS3PlayerControllerBase->bShowMouseCursor = true;
+		PS3PlayerControllerBase->ConfigureInputMapping();
 	}
 	
 	PS3_BROADCAST_TO_MVVM_OneParams(OnVoiceChatIcon_UI, false);
@@ -121,6 +123,7 @@ void APS3GameStateS5::OnRep_IsGameOver()
 
 void APS3GameStateS5::OnRep_GameLimitTime()
 {
+	if (bIsGameStarted == false) return;
 	
 	PS3_BROADCAST_TO_MVVM_TwoParams(OnGameTimer_UI, S5_GameRuleDataAsset->GameStartTimerUIType, GameLimitTime);
 	UE_LOG(LogTemp, Error, TEXT("(UI표시 업데이트 예정) 남은 제한시간: %f"), GameLimitTime);
@@ -135,6 +138,11 @@ void APS3GameStateS5::SetDeductGameLimitTime_AuthorityOnRep(float TimeToDeducted
 		OnRep_GameLimitTime(); //서버가 읽을때는 수동으로 OnRep를 써야함
 	}
 	
+}
+
+void APS3GameStateS5::OnGameStart(bool bIsGameStart)
+{
+	bIsGameStarted = bIsGameStart;
 }
 
 

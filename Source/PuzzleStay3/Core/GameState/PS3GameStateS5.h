@@ -51,6 +51,9 @@ public:
 	UPROPERTY(Replicated)
 	bool bIsSelectedScreenType = false;
 	
+	UPROPERTY(Replicated)
+	bool bIsGameStarted = false;
+	
 	UPROPERTY(ReplicatedUsing = OnRep_IsGameOver)
 	bool bIsGameOver = false;
 	
@@ -66,9 +69,10 @@ protected:
 	void OnRep_GameLimitTime();
 	void SetDeductGameLimitTime_AuthorityOnRep(float TimeToDeducted);
 	
+	void OnGameStart(bool bIsGameStart);
+	
 private:
 	void InitializeToDataAssets();
-	void BroadcastToTimerManager();
 	APS3GameModeS5* GetCastPS3GameModeS5();
 	
 	void NoneReceivedDecalFloor();

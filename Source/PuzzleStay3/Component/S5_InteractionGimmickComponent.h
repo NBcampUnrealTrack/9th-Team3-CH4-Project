@@ -39,7 +39,7 @@ public:
 	bool bIsStartedGame = false;
 	
 	UPROPERTY(EditAnywhere, Category = "Interaction|Settings")
-	float TargetFOVAngle = 90.0f;
+	float TargetFOVAngle = 120.0f;
 	
 protected:
 	UFUNCTION()
