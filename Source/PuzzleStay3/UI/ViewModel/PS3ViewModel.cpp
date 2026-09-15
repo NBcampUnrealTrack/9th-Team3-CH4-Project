@@ -14,8 +14,28 @@ namespace
 void UPS3ViewModel::SetPlayerHUD(APlayerHUD* InPlayerHUD)
 {
 	PlayerHUD = InPlayerHUD;
-	BindRoleSelectionUIDelegate();
-	BindGameplayUIDelegates();
+	if (IsValid(PlayerHUD))
+	{
+		BindRoleSelectionUIDelegate();
+		BindGameplayUIDelegates();
+	}
+	else
+	{
+		UnbindRoleSelectionUIDelegate();
+		UnbindGameplayUIDelegates();
+	}
+}
+
+void UPS3ViewModel::ClearPlayerHUD(APlayerHUD* InPlayerHUD)
+{
+	if (PlayerHUD != InPlayerHUD)
+	{
+		return;
+	}
+
+	PlayerHUD = nullptr;
+	UnbindRoleSelectionUIDelegate();
+	UnbindGameplayUIDelegates();
 }
 
 void UPS3ViewModel::BeginDestroy()
