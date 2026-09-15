@@ -15,6 +15,7 @@ enum class EPS3StageType : uint8;
 
 
 #pragma region TwoParms_Declare_Delegate
+DECLARE_MULTICAST_DELEGATE_TwoParams(FOnInteractRequestS5_UI, EPS3InteractionNotifyType, bool)
 DECLARE_MULTICAST_DELEGATE_TwoParams(FOnButtonEnabled_UI, EControlDoorType, bool)
 DECLARE_MULTICAST_DELEGATE_TwoParams(FOnGameTimer_UI, EPS3TimerUIType, float)
 DECLARE_MULTICAST_DELEGATE_TwoParams(FOnTimeDeductUI, EPS3TimerUIType, float)
@@ -69,6 +70,7 @@ public:
 	
 public:
 #pragma region TwoParms_Delegate
+	FOnInteractRequestS5_UI OnInteractRequestS5_UI;
 	FOnButtonEnabled_UI OnButtonEnabled_UI;
 	FOnGameTimer_UI OnGameTimer_UI;
 	FOnTimeDeductUI OnTimeDeduct_UI;
@@ -136,10 +138,9 @@ public:
 		\
 		GetWorld()->GetTimerManager().SetTimer(\
 			TempTimerHandle,\
-			FTimerDelegate::CreateLambda([this, &TempTimerHandle]()\
+			FTimerDelegate::CreateLambda([this]()\
 			{\
 				PS3_UIDelegateMacro;\
-				GetWorld()->GetTimerManager().ClearTimer(TempTimerHandle);\
 			}),\
 		0.1f, false);\
 	}
