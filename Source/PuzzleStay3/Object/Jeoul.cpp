@@ -484,10 +484,8 @@ void AJeoul::Server_CheckBalance_Implementation()
 
 	CurrentState = EJeoulState::Checking;
 
-	// ★ [수정] 플레이어 콜리전이 비활성화(Align)되기 전에 "무게 계산"을 먼저 수행
 	const float TotalWeight = CalculateWeightOnPlate(OverlapTrigger);
 
-	// 1. 카메라 전환 RPC 실행
 	TArray<AActor*> PlayersOnPlate;
 	OverlapTrigger->GetOverlappingActors(PlayersOnPlate, APS3PlayerCharacter::StaticClass());
 
@@ -503,7 +501,6 @@ void AJeoul::Server_CheckBalance_Implementation()
 		}
 	}
 
-	// 2. 더미 메쉬 교체 및 덤벨 더미에 부착
 	AlignPlayersAndDumbbells();
 
 	Multicast_OnJeoulCheckStarted();
@@ -522,14 +519,18 @@ void AJeoul::Server_CheckBalance_Implementation()
 	}
 	else if (WeightDifference > 0.0f)
 	{
-		CurrentTiltState = EJeoulTiltState::TiltLeft;
+		CurrentTiltState = EJeoulTiltState::TiltRight;
 	}
 	else
 	{
-		CurrentTiltState = EJeoulTiltState::TiltRight;
+		CurrentTiltState = EJeoulTiltState::TiltLeft;
 	}
 
-	Multicast_PlayTiltAnimation(CurrentTiltState);
+	FTimerHandle AnimDelayTimer;
+	GetWorldTimerManager().SetTimer(AnimDelayTimer, [this]()
+	{
+		Multicast_PlayTiltAnimation(CurrentTiltState);
+	}, TiltAnimDelay, false);
 
 	UE_LOG(LogTemp, Warning, TEXT("[Jeoul] 무게 차이: %f, 현재 무게: %f, 목표 무게: %f"), WeightDifference, TotalWeight, JudgeWeight);
 
