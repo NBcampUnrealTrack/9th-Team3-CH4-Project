@@ -29,7 +29,7 @@ void APS3ScreenPlayerController::ReceivedPlayer()
 
 void APS3ScreenPlayerController::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-	ShowToCeiling();
+	//ShowToCeiling();
 	
 	Super::EndPlay(EndPlayReason);
 }
@@ -49,9 +49,9 @@ void APS3ScreenPlayerController::BeginPlay()
 
 void APS3ScreenPlayerController::OnScreenPlayerUI_Show() const
 {	
-	if (IsLocalController() == true)
+	if (HasAuthority() == true || IsLocalController() == true)
 	{
-		PS3_BROADCAST_TO_MVVM_OneParams(OnScreenPlayer_UI, true);
+		PS3_UIDELEGATE_TIMER_FOR_MACRO(PS3_BROADCAST_TO_MVVM_OneParams(OnScreenPlayer_UI, true));
 	}
 }
 
@@ -186,27 +186,27 @@ void APS3ScreenPlayerController::SetCameraView()
 	
 	SetViewTargetWithBlend(PS3CameraActor, 0.0f);
 	
-	HideToCeiling();
+	//HideToCeiling();
 }
 
 
 void APS3ScreenPlayerController::ShowToCeiling()
-{
+{	
 	if (IsLocalPlayerController() == true)
-	{
+	{	
 		TArray<AActor*> CeilingActors;
 		UGameplayStatics::GetAllActorsWithTag(GetWorld(), FName("Ceiling"), CeilingActors);
-
+		
 		for (AActor* Actor : CeilingActors)
 		{
 			if (IsValid(Actor) == false) continue;
-		
+			
 			UStaticMeshComponent* MeshComp = Actor->FindComponentByClass<UStaticMeshComponent>();
 			if (IsValid(MeshComp) == false) continue;
-		
+			
 			MeshComp->SetVisibility(true);
 			MeshComp->SetCastHiddenShadow(false);	
-		}	
+		}
 	}
 }
 
