@@ -47,7 +47,6 @@ AJeoul::AJeoul()
 	Player2Spot = CreateDefaultSubobject<USceneComponent>(TEXT("Player2Spot"));
 	Player2Spot->SetupAttachment(PlateTrigger);
 
-	// 더미 메쉬 생성 및 Spot에 기본 부착
 	DummyPlayer1Mesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("DummyPlayer1Mesh"));
 	DummyPlayer1Mesh->SetupAttachment(Player1Spot);
 	DummyPlayer1Mesh->SetVisibility(false);
@@ -73,7 +72,6 @@ void AJeoul::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// ★ [수정] joint5 소켓 존재 검사 및 KeepWorldTransform을 통한 올바른 위치/회전 부착
 	if (JeoulSkeletalMesh && JeoulSkeletalMesh->DoesSocketExist(TEXT("joint5")))
 	{
 		if (PlateTrigger)
@@ -171,39 +169,60 @@ void AJeoul::Multicast_AlignPlayerCharacter_Implementation(APS3PlayerCharacter* 
 	}
 	TargetCharacter->SetActorHiddenInGame(true);
 
-	// 2. 더미 메쉬 선택
+	// 2. 더미 메쉬 선택 및 트랜스폼/애니메이션 복사
 	USkeletalMeshComponent* TargetDummy = (AttachTarget == Player1Spot) ? DummyPlayer1Mesh : DummyPlayer2Mesh;
 
 	if (TargetDummy && TargetCharacter->GetMesh())
 	{
 		USkeletalMeshComponent* RealMesh = TargetCharacter->GetMesh();
 
-		// 부모 뼈대의 비정상 스케일 상속 방지
 		TargetDummy->SetAbsolute(false, false, true); 
 	
-		// 진짜 캐릭터의 정상 스케일, 상대 위치/회전 오프셋 복사
 		TargetDummy->SetWorldScale3D(RealMesh->GetComponentScale());
 		TargetDummy->SetRelativeLocation(RealMesh->GetRelativeLocation());
-		
-		// ★ [수정] 기본 메쉬 회전에 DummyYawOffset 오프셋을 더해 보는 방향 제어
+
 		FRotator TargetMeshRotation = RealMesh->GetRelativeRotation();
 		TargetMeshRotation.Yaw += DummyYawOffset;
 		TargetDummy->SetRelativeRotation(TargetMeshRotation);
 
-		// 메쉬 및 머티리얼 복사
 		TargetDummy->SetSkeletalMesh(RealMesh->GetSkeletalMeshAsset());
 		for (int32 i = 0; i < RealMesh->GetNumMaterials(); ++i)
 		{
 			TargetDummy->SetMaterial(i, RealMesh->GetMaterial(i));
 		}
 
-		// 애니메이션 블루프린트 복사
 		if (UClass* AnimClass = RealMesh->GetAnimClass())
 		{
 			TargetDummy->SetAnimInstanceClass(AnimClass);
 		}
 
 		TargetDummy->SetVisibility(true);
+
+		if (ADumbbell* HeldDumbbell = TargetCharacter->GetHeldDumbbell())
+		{
+			FName AttachSocket = HeldDumbbell->GetRootComponent()->GetAttachSocketName();
+
+			if (AttachSocket == NAME_None || !TargetDummy->DoesSocketExist(AttachSocket))
+			{
+				if (TargetDummy->DoesSocketExist(HandSocketName))
+				{
+					AttachSocket = HandSocketName;
+				}
+				else if (TargetDummy->DoesSocketExist(TEXT("hand_r")))
+				{
+					AttachSocket = TEXT("hand_r");
+				}
+			}
+
+			if (AttachSocket != NAME_None)
+			{
+				HeldDumbbell->AttachToComponent(
+					TargetDummy,
+					FAttachmentTransformRules::SnapToTargetNotIncludingScale,
+					AttachSocket
+				);
+			}
+		}
 	}
 
 	if (AController* Controller = TargetCharacter->GetController())
@@ -216,11 +235,9 @@ void AJeoul::Multicast_RestorePlayerCharacter_Implementation(APS3PlayerCharacter
 {
 	if (!IsValid(TargetCharacter)) return;
 
-	// 1. 더미 메쉬 모두 숨기기
 	if (DummyPlayer1Mesh) DummyPlayer1Mesh->SetVisibility(false);
 	if (DummyPlayer2Mesh) DummyPlayer2Mesh->SetVisibility(false);
 
-	// 2. 현재 저울판(PlayerSpot)의 최종 위치로 진짜 캐릭터 위치 텔레포트
 	USceneComponent* TargetSpot = Player1Spot;
 	if (Player1Spot && Player2Spot)
 	{
@@ -250,7 +267,6 @@ void AJeoul::Multicast_RestorePlayerCharacter_Implementation(APS3PlayerCharacter
 		}
 	}
 
-	// 3. 진짜 캐릭터 외형 및 콜리전/무브먼트 원복
 	TargetCharacter->SetActorHiddenInGame(false);
 
 	if (UCapsuleComponent* Capsule = TargetCharacter->GetCapsuleComponent())
@@ -262,6 +278,33 @@ void AJeoul::Multicast_RestorePlayerCharacter_Implementation(APS3PlayerCharacter
 	if (UCharacterMovementComponent* MovementComp = TargetCharacter->GetCharacterMovement())
 	{
 		MovementComp->SetMovementMode(MOVE_Walking);
+	}
+
+	if (ADumbbell* HeldDumbbell = TargetCharacter->GetHeldDumbbell())
+	{
+		USkeletalMeshComponent* RealMesh = TargetCharacter->GetMesh();
+		FName AttachSocket = HeldDumbbell->GetRootComponent()->GetAttachSocketName();
+
+		if (AttachSocket == NAME_None || !RealMesh->DoesSocketExist(AttachSocket))
+		{
+			if (RealMesh->DoesSocketExist(HandSocketName))
+			{
+				AttachSocket = HandSocketName;
+			}
+			else if (RealMesh->DoesSocketExist(TEXT("hand_r")))
+			{
+				AttachSocket = TEXT("hand_r");
+			}
+		}
+
+		if (AttachSocket != NAME_None)
+		{
+			HeldDumbbell->AttachToComponent(
+				RealMesh,
+				FAttachmentTransformRules::SnapToTargetNotIncludingScale,
+				AttachSocket
+			);
+		}
 	}
 
 	TargetCharacter->SetCanUseFieldControls(true);
@@ -441,6 +484,10 @@ void AJeoul::Server_CheckBalance_Implementation()
 
 	CurrentState = EJeoulState::Checking;
 
+	// ★ [수정] 플레이어 콜리전이 비활성화(Align)되기 전에 "무게 계산"을 먼저 수행
+	const float TotalWeight = CalculateWeightOnPlate(OverlapTrigger);
+
+	// 1. 카메라 전환 RPC 실행
 	TArray<AActor*> PlayersOnPlate;
 	OverlapTrigger->GetOverlappingActors(PlayersOnPlate, APS3PlayerCharacter::StaticClass());
 
@@ -456,11 +503,10 @@ void AJeoul::Server_CheckBalance_Implementation()
 		}
 	}
 
+	// 2. 더미 메쉬 교체 및 덤벨 더미에 부착
 	AlignPlayersAndDumbbells();
 
 	Multicast_OnJeoulCheckStarted();
-
-	const float TotalWeight = CalculateWeightOnPlate(OverlapTrigger);
 
 	float JudgeWeight = 0.0f;
 	if (APS3GameStateS4* GS = GetWorld()->GetGameState<APS3GameStateS4>())
