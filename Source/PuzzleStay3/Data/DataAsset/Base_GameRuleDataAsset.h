@@ -3,7 +3,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Data/Enum/PS3StageType.h"
 #include "Engine/DataAsset.h"
 #include "Base_GameRuleDataAsset.generated.h"
 

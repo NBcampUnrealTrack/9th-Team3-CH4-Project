@@ -26,6 +26,7 @@ void APS3ScreenPlayerController::ReceivedPlayer()
 	World->GetTimerManager().SetTimer(PS3CameraTimerHandle, this, &ThisClass::SetCameraView, 0.1f, false);
 }
 
+
 void APS3ScreenPlayerController::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	ShowToCeiling();
@@ -143,8 +144,6 @@ EControlDoorType APS3ScreenPlayerController::GetDoorTypeFromAction(const UInputA
 }
 
 
-
-
 void APS3ScreenPlayerController::ServerRPC_OperateDoor_Implementation(EControlDoorType DoorType, bool bIsOpen)
 {
 	for (AControlDoor* ControlDoor : ControlDoorArray)
@@ -190,6 +189,7 @@ void APS3ScreenPlayerController::SetCameraView()
 	HideToCeiling();
 }
 
+
 void APS3ScreenPlayerController::ShowToCeiling()
 {
 	if (IsLocalPlayerController() == true)
@@ -209,6 +209,7 @@ void APS3ScreenPlayerController::ShowToCeiling()
 		}	
 	}
 }
+
 
 void APS3ScreenPlayerController::HideToCeiling()
 {

@@ -8,6 +8,7 @@
 
 class AJeoul;
 class AControlDoor;
+class ADoor;
 class APawn;
 class UFakeDeathTrapComponent;
 class UInteractionSwitchComponent;
@@ -16,6 +17,7 @@ class UParticleSystem;
 class UParticleSystemComponent;
 class UPointLightComponent;
 class URandomCollisionTrapComponent;
+class US5_InteractionGimmickComponent;
 class UTimelineComponent;
 class UMaterialInstanceDynamic;
 
@@ -93,6 +95,7 @@ private:
 	void UnbindOwnerJudgementDelegates();
 	void UnbindOwnerDoorDelegate();
 	void HandleToggleActivationChanged(bool bActive);
+	void HandleSwitchOnInteractionSucceeded();
 	void HandleTimedInteractionSucceeded();
 	void HandleTimedOverlapStateChanged(bool bOverlapped);
 	UFUNCTION()
@@ -129,6 +132,9 @@ private:
 	TArray<TWeakObjectPtr<UOverlapSwitchComponent>> BoundOverlapSwitchComponents;
 
 	UPROPERTY(Transient)
+	TArray<TWeakObjectPtr<US5_InteractionGimmickComponent>> BoundS5InteractionGimmickComponents;
+
+	UPROPERTY(Transient)
 	TWeakObjectPtr<UFakeDeathTrapComponent> BoundFakeDeathTrapComponent;
 
 	UPROPERTY(Transient)
@@ -139,6 +145,9 @@ private:
 
 	UPROPERTY(Transient)
 	TWeakObjectPtr<AControlDoor> BoundControlDoorOwner;
+
+	UPROPERTY(Transient)
+	TWeakObjectPtr<ADoor> BoundDoorOwner;
 
 	UPROPERTY(Transient)
 	TObjectPtr<UTimelineComponent> DoorOpacityTimelineComponent;
