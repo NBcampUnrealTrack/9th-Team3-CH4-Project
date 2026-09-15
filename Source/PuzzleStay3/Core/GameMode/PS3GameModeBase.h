@@ -28,6 +28,11 @@ public:
 
 	void SetPlayerIdentity(APS3PlayerState* NewPlayerState);
 
+	virtual AActor* FindPlayerStart_Implementation(
+		AController* Player,
+		const FString& IncomingName
+	) override;
+	
 protected:
 	virtual void InitializeToDataAssets();
 
