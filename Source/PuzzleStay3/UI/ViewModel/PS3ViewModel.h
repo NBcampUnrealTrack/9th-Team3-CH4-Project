@@ -58,6 +58,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "UI|InteractionNotify")
 	void RequestHideAllInteractionNotifies();
 
+	UFUNCTION(BlueprintCallable, Category = "UI|InteractionNotify")
+	void RequestSetInteractionNotifyS5(EPS3InteractionNotifyType NotifyType, bool bVisible);
+
 	UFUNCTION(BlueprintCallable, Category = "UI|TimerNotify")
 	void RequestSetTimerNotifyVisible(bool bVisible);
 
@@ -236,6 +239,7 @@ private:
 	void HandleInteractionNotifyAddRequested_UI(EPS3InteractionNotifyType NotifyType);
 	void HandleInteractionNotifyRemoveRequested_UI(EPS3InteractionNotifyType NotifyType);
 	void HandleInteractionNotifyResetRequested_UI();
+	void HandleInteractRequestS5_UI(EPS3InteractionNotifyType NotifyType, bool bVisible);
 	void HandleTextNotifyVisible_UI(bool bVisible);
 	void HandleTextNotify_UI(EPS3TextNotifyType NotifyType);
 	float ResolveTimerMaxTime(EPS3TimerUIType TimerUIType) const;
