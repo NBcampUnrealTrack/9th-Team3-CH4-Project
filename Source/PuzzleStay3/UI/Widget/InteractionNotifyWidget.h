@@ -29,6 +29,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "UI|InteractionNotify")
 	void HideAllInteractionNotifies();
 
+	UFUNCTION(BlueprintCallable, Category = "UI|InteractionNotify")
+	void SetInteractionNotifyS5(EPS3InteractionNotifyType NotifyType, bool bVisible);
+
 protected:
 	UPROPERTY(BlueprintReadOnly, meta = (BindWidget))
 	TObjectPtr<UImage> InteractionImage;
@@ -44,4 +47,6 @@ private:
 
 	int32 InteractCount = 0;
 	int32 DropCount = 0;
+	bool bS5InteractVisible = false;
+	bool bS5DropVisible = false;
 };

@@ -104,6 +104,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "UI|InteractionNotify")
 	void HideAllInteractionNotifies();
 
+	UFUNCTION(BlueprintCallable, Category = "UI|InteractionNotify")
+	void SetInteractionNotifyS5(EPS3InteractionNotifyType NotifyType, bool bVisible);
+
 	UFUNCTION(BlueprintCallable, Category = "UI|TimerNotify")
 	void SetTimerNotifyVisible(bool bVisible);
 

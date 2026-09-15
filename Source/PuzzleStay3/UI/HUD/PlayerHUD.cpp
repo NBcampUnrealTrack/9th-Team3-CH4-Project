@@ -221,6 +221,16 @@ void APlayerHUD::HideAllInteractionNotifies()
 	Widgets.InteractionNotifyWidget->HideAllInteractionNotifies();
 }
 
+void APlayerHUD::SetInteractionNotifyS5(EPS3InteractionNotifyType NotifyType, bool bVisible)
+{
+	if (!Widgets.InteractionNotifyWidget)
+	{
+		return;
+	}
+
+	Widgets.InteractionNotifyWidget->SetInteractionNotifyS5(NotifyType, bVisible);
+}
+
 void APlayerHUD::SetTimerNotifyVisible(bool bVisible)
 {
 	if (!Widgets.TimerNotifyWidget)
