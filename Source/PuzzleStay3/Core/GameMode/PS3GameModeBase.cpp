@@ -6,6 +6,7 @@
 #include "Component/InteractionSwitchComponent.h"
 #include "Core/GameState/PS3GameStateBase.h"
 #include "Data/DataAsset/Base_GameRuleDataAsset.h"
+#include "Data/Delegates/UIDelegatesSubsystem.h"
 #include "Player/PlayerState/PS3PlayerState.h"
 
 
@@ -159,8 +160,12 @@ void APS3GameModeBase::HandlePlayerDeadState(bool bNewIsDead)
 	// bStageRestartRequested = true 일 경우 재시작하지 X
 	if (bStageRestartRequested) return;
 	bStageRestartRequested = true;
+	
+	APS3GameStateBase* GS = GetGameState<APS3GameStateBase>();
+	if (!IsValid(GS)) return;
 
-	StageRestart();
+	GS->NotifyPlayerDeadGameOver();
+	//StageRestart();ㄴ
 }
 
 void APS3GameModeBase::StageRestart()
