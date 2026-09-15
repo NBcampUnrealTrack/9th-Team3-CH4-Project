@@ -2,3 +2,5 @@
 * text=auto
 Content/Resource/Asset_Player/Textures/BackPack/T_Backpack_Normal.uasset filter=lfs diff=lfs merge=lfs -text
 Content/Resource/Asset_Player/Textures/Jacket/T_Jacket_Normal.uasset filter=lfs diff=lfs merge=lfs -text
+Content/PuzzleStay3/Dev/Asset/PS3_PlayerCharacterMesh/Textures/BackPack/T_Backpack_Normal.uasset filter=lfs diff=lfs merge=lfs -text
+Content/PuzzleStay3/Dev/Asset/PS3_PlayerCharacterMesh/Textures/Jacket/T_Jacket_Normal.uasset filter=lfs diff=lfs merge=lfs -text
