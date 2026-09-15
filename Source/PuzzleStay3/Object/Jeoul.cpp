@@ -47,6 +47,17 @@ AJeoul::AJeoul()
 	Player2Spot = CreateDefaultSubobject<USceneComponent>(TEXT("Player2Spot"));
 	Player2Spot->SetupAttachment(PlateTrigger);
 
+	// ★ 더미 메쉬 생성 및 Spot에 기본 부착 (기본값 숨김)
+	DummyPlayer1Mesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("DummyPlayer1Mesh"));
+	DummyPlayer1Mesh->SetupAttachment(Player1Spot);
+	DummyPlayer1Mesh->SetVisibility(false);
+	DummyPlayer1Mesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	DummyPlayer2Mesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("DummyPlayer2Mesh"));
+	DummyPlayer2Mesh->SetupAttachment(Player2Spot);
+	DummyPlayer2Mesh->SetVisibility(false);
+	DummyPlayer2Mesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
 	for (int32 i = 0; i < 3; ++i)
 	{
 		FName SpotName = *FString::Printf(TEXT("DumbbellSpot_%d"), i + 1);
@@ -61,6 +72,19 @@ AJeoul::AJeoul()
 void AJeoul::BeginPlay()
 {
 	Super::BeginPlay();
+
+	// ★ 정확한 저울판 본(joint5 또는 ikHandle1) 존재 여부 검사 후 부착
+	if (JeoulSkeletalMesh && JeoulSkeletalMesh->DoesSocketExist(TEXT("joint5")))
+	{
+		if (PlateTrigger)
+		{
+			PlateTrigger->AttachToComponent(
+				JeoulSkeletalMesh, 
+				FAttachmentTransformRules::SnapToTargetNotIncludingScale, 
+				TEXT("joint5") // 왼쪽 저울판 위치에 정확히 마운트
+			);
+		}
+	}
 
 	if (ExternalSwitchActor)
 	{
@@ -128,50 +152,115 @@ void AJeoul::OnCheckButtonPressed(bool bActivated)
 	}
 }
 
-void AJeoul::Multicast_RestorePlayerCharacter_Implementation(APS3PlayerCharacter* TargetCharacter)
-{
-	if (!IsValid(TargetCharacter)) return;
-
-	TargetCharacter->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
-
-	FRotator CurrentRot = TargetCharacter->GetActorRotation();
-	FRotator UprightRot = FRotator(0.0f, CurrentRot.Yaw, 0.0f);
-	TargetCharacter->SetActorRotation(UprightRot);
-
-	if (AController* Controller = TargetCharacter->GetController())
-	{
-		Controller->SetControlRotation(UprightRot);
-	}
-
-	TargetCharacter->SetCanUseFieldControls(true);
-}
-
 void AJeoul::Multicast_AlignPlayerCharacter_Implementation(APS3PlayerCharacter* TargetCharacter, FVector TargetLocation,
-                                                           FRotator TargetRotation, USceneComponent* AttachTarget)
+														   FRotator TargetRotation, USceneComponent* AttachTarget)
 {
 	if (!IsValid(TargetCharacter)) return;
 
 	TargetCharacter->SetCanUseFieldControls(false);
 
+	// 1. 진짜 캐릭터 숨기기 및 이동 비활성화
 	if (UCharacterMovementComponent* MovementComp = TargetCharacter->GetCharacterMovement())
 	{
 		MovementComp->StopMovementImmediately();
+		MovementComp->DisableMovement();
 	}
-
-	FRotator UprightTargetRotation = FRotator(0.0f, TargetRotation.Yaw, 0.0f);
-
-	TargetCharacter->SetActorLocationAndRotation(TargetLocation, UprightTargetRotation, false, nullptr,
-	                                             ETeleportType::TeleportPhysics);
-
-	if (AttachTarget)
+	if (UCapsuleComponent* Capsule = TargetCharacter->GetCapsuleComponent())
 	{
-		TargetCharacter->AttachToComponent(AttachTarget, FAttachmentTransformRules::KeepWorldTransform);
+		Capsule->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	}
+	TargetCharacter->SetActorHiddenInGame(true);
+
+	// 2. 더미 메쉬 선택
+	USkeletalMeshComponent* TargetDummy = (AttachTarget == Player1Spot) ? DummyPlayer1Mesh : DummyPlayer2Mesh;
+
+	if (TargetDummy && TargetCharacter->GetMesh())
+	{
+		USkeletalMeshComponent* RealMesh = TargetCharacter->GetMesh();
+
+		// ★ [핵심] 부모(저울 뼈대)의 비정상 스케일을 무시하고 독립적인 절대 스케일 유지
+		TargetDummy->SetAbsolute(false, false, true); 
+	
+		// ★ [핵심] 진짜 캐릭터의 정상 스케일, 상대 위치/회전 오프셋 복사
+		TargetDummy->SetWorldScale3D(RealMesh->GetComponentScale());
+		TargetDummy->SetRelativeLocation(RealMesh->GetRelativeLocation());
+		TargetDummy->SetRelativeRotation(RealMesh->GetRelativeRotation());
+
+		// 메쉬 및 머티리얼 복사
+		TargetDummy->SetSkeletalMesh(RealMesh->GetSkeletalMeshAsset());
+		for (int32 i = 0; i < RealMesh->GetNumMaterials(); ++i)
+		{
+			TargetDummy->SetMaterial(i, RealMesh->GetMaterial(i));
+		}
+
+		// 애니메이션 블루프린트 복사
+		if (UClass* AnimClass = RealMesh->GetAnimClass())
+		{
+			TargetDummy->SetAnimInstanceClass(AnimClass);
+		}
+
+		TargetDummy->SetVisibility(true);
 	}
 
 	if (AController* Controller = TargetCharacter->GetController())
 	{
-		Controller->SetControlRotation(UprightTargetRotation);
+		Controller->SetControlRotation(TargetRotation);
 	}
+}
+
+void AJeoul::Multicast_RestorePlayerCharacter_Implementation(APS3PlayerCharacter* TargetCharacter)
+{
+	if (!IsValid(TargetCharacter)) return;
+
+	// 1. 더미 메쉬 모두 숨기기
+	if (DummyPlayer1Mesh) DummyPlayer1Mesh->SetVisibility(false);
+	if (DummyPlayer2Mesh) DummyPlayer2Mesh->SetVisibility(false);
+
+	// 2. 현재 저울판(PlayerSpot)의 최종 위치로 진짜 캐릭터 위치 텔레포트
+	USceneComponent* TargetSpot = Player1Spot;
+	if (Player1Spot && Player2Spot)
+	{
+		float Dist1 = FVector::DistSquared(TargetCharacter->GetActorLocation(), Player1Spot->GetComponentLocation());
+		float Dist2 = FVector::DistSquared(TargetCharacter->GetActorLocation(), Player2Spot->GetComponentLocation());
+		if (Dist2 < Dist1)
+		{
+			TargetSpot = Player2Spot;
+		}
+	}
+
+	if (TargetSpot)
+	{
+		FVector FinalLocation = TargetSpot->GetComponentLocation();
+		FRotator FinalRotation = TargetSpot->GetComponentRotation();
+
+		if (UCapsuleComponent* Capsule = TargetCharacter->GetCapsuleComponent())
+		{
+			FinalLocation.Z += Capsule->GetScaledCapsuleHalfHeight();
+		}
+
+		TargetCharacter->SetActorLocationAndRotation(FinalLocation, FRotator(0.0f, FinalRotation.Yaw, 0.0f), false, nullptr, ETeleportType::TeleportPhysics);
+
+		if (AController* Controller = TargetCharacter->GetController())
+		{
+			Controller->SetControlRotation(FRotator(0.0f, FinalRotation.Yaw, 0.0f));
+		}
+	}
+
+	// 3. 진짜 캐릭터 외형 및 콜리전/무브먼트 원복
+	TargetCharacter->SetActorHiddenInGame(false);
+
+	if (UCapsuleComponent* Capsule = TargetCharacter->GetCapsuleComponent())
+	{
+		Capsule->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		Capsule->SetCollisionResponseToChannel(ECC_Pawn, ECR_Block);
+	}
+
+	if (UCharacterMovementComponent* MovementComp = TargetCharacter->GetCharacterMovement())
+	{
+		MovementComp->SetMovementMode(MOVE_Walking);
+	}
+
+	TargetCharacter->SetCanUseFieldControls(true);
 }
 
 void AJeoul::AlignPlayersAndDumbbells()
@@ -203,8 +292,9 @@ void AJeoul::AlignPlayersAndDumbbells()
 					TargetLocation.Z += Capsule->GetScaledCapsuleHalfHeight();
 				}
 
+				// ★ PlateTrigger 대신 TargetSpot을 넘겨주어야 DummyPlayer1 / DummyPlayer2가 정상 구분됨
 				Multicast_AlignPlayerCharacter(Cast<APS3PlayerCharacter>(Character), TargetLocation, TargetRotation,
-				                               PlateTrigger);
+											   TargetSpot);
 			}
 		}
 		else if (ADumbbell* Dumbbell = Cast<ADumbbell>(Actor))
@@ -349,8 +439,7 @@ void AJeoul::Server_CheckBalance_Implementation()
 
 	CurrentState = EJeoulState::Checking;
 
-	AlignPlayersAndDumbbells();
-
+	// ★ 1. 콜리전이 켜져 있는 상태에서 플레이어를 구하고 카메라 전환(Client_BeginJeoulCutscene) RPC를 먼저 실행
 	TArray<AActor*> PlayersOnPlate;
 	OverlapTrigger->GetOverlappingActors(PlayersOnPlate, APS3PlayerCharacter::StaticClass());
 
@@ -365,6 +454,9 @@ void AJeoul::Server_CheckBalance_Implementation()
 			PlayerController->Client_BeginJeoulCutscene(this);
 		}
 	}
+
+	// ★ 2. 카메라 전환 요청 직후 플레이어 비활성화 및 더미 메쉬 교체 진행
+	AlignPlayersAndDumbbells();
 
 	Multicast_OnJeoulCheckStarted();
 

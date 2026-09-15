@@ -67,6 +67,13 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components|Spots")
 	TObjectPtr<USceneComponent> Player2Spot;
+	
+	// ★ 컷씬 전용 더미 플레이어 메쉬 2개 추가
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components|Spots")
+	TObjectPtr<USkeletalMeshComponent> DummyPlayer1Mesh;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components|Spots")
+	TObjectPtr<USkeletalMeshComponent> DummyPlayer2Mesh;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components|Spots")
 	TArray<TObjectPtr<USceneComponent>> DumbbellSpots;
