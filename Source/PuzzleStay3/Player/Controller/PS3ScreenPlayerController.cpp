@@ -24,6 +24,11 @@ void APS3ScreenPlayerController::ReceivedPlayer()
 	UWorld* World = GetWorld();
 	if (IsValid(World) == false) return;
 	World->GetTimerManager().SetTimer(PS3CameraTimerHandle, this, &ThisClass::SetCameraView, 0.1f, false);
+	
+	if (IsLocalPlayerController() == true)
+	{
+		OnScreenPlayerUI_Show();
+	}
 }
 
 
@@ -42,14 +47,14 @@ void APS3ScreenPlayerController::BeginPlay()
 	checkf(IsValid(InputMappingContext) == true, TEXT("스크린 컨트롤러 IMC 할당 안됨"));
 	
 	ContainDoorArray();
-	OnScreenPlayerUI_Show();
+	
 
 }
 
 
 void APS3ScreenPlayerController::OnScreenPlayerUI_Show() const
 {	
-	if (HasAuthority() == true || IsLocalController() == true)
+	if (IsLocalPlayerController() == true)
 	{
 		PS3_UIDELEGATE_TIMER_FOR_MACRO(PS3_BROADCAST_TO_MVVM_OneParams(OnScreenPlayer_UI, true));
 	}
@@ -111,7 +116,7 @@ void APS3ScreenPlayerController::OpenDoor(const FInputActionInstance& Instance)
 	if (CurrentOpenedDoorType == EControlDoorType::None)
 	{
 		CurrentOpenedDoorType = PressedDoorType;
-		PS3_BROADCAST_TO_MVVM_TwoParams(OnButtonEnabled_UI, PressedDoorType, false);
+		PS3_BROADCAST_TO_MVVM_TwoParams(OnButtonEnabled_UI, PressedDoorType, true);
 		ServerRPC_OperateDoor(PressedDoorType, true);
 	}
 	
@@ -127,7 +132,7 @@ void APS3ScreenPlayerController::CloseDoor(const FInputActionInstance& Instance)
 	{
 		CurrentOpenedDoorType = EControlDoorType::None;
 		
-		PS3_BROADCAST_TO_MVVM_TwoParams(OnButtonEnabled_UI, CurrentOpenedDoorType, true);
+		PS3_BROADCAST_TO_MVVM_TwoParams(OnButtonEnabled_UI, CurrentOpenedDoorType, false);
 		ServerRPC_OperateDoor(PressedDoorType, false);
 	}
 }
