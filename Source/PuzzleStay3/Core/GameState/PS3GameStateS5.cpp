@@ -113,7 +113,7 @@ void APS3GameStateS5::OnRep_IsGameOver()
 		PS3PlayerControllerBase->ConfigureInputMapping();
 	}
 	
-	PS3_BROADCAST_TO_MVVM_OneParams(OnVoiceChatIcon_UI, false);
+	//PS3_BROADCAST_TO_MVVM_OneParams(OnVoiceChatIcon_UI, false);
 	PS3_BROADCAST_TO_MVVM_OneParams(OnFieldPlayer_UI, false);
 	PS3_BROADCAST_TO_MVVM_OneParams(OnScreenPlayer_UI, false);
 	

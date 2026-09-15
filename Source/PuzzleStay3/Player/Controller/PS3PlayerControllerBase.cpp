@@ -4,7 +4,6 @@
 #include "PS3PlayerControllerBase.h"
 
 #include "Core/GameMode/PS3GamemodeBase.h"
-#include "Core/GameMode/PS3GameModeS5.h"
 #include "Core/GameState/PS3GameStateS5.h"
 #include "UI/HUD/PlayerHUD.h"
 #include "UI/ViewModel/PS3ViewModel.h"
@@ -65,7 +64,7 @@ void APS3PlayerControllerBase::ConfigureViewModelBindings(UPS3ViewModel* InViewM
 		PS3ViewModel->OnGameRestartRequested_UI.RemoveDynamic(this,&ThisClass::OnClickedRestartGameButton);
 		PS3ViewModel->OnExitToMainRequested_UI.RemoveDynamic(this,&ThisClass::OnClickedTitleMenuButton);
 	}
-
+	
 	PS3ViewModel = InViewModel;
 
 	PS3ViewModel->OnGameRestartRequested_UI.AddUniqueDynamic(this,&ThisClass::OnClickedRestartGameButton);
