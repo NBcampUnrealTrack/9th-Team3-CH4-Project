@@ -19,6 +19,10 @@ void APS3GameStateS4::BeginPlay()
 	SetUIMacroTimerHandle(
 	TextNotify_UI_DelayTime,
 	[this]() {PS3_BROADCAST_TO_MVVM_OneParams(OnTextNotify_UI, S4_GameRuleDataAsset->TextNotifyTypeForUI_S4);});
+	
+	SetUIMacroTimerHandle(
+	S4_GameRuleDataAsset->TextNotify_RadioUI_DelayTime,
+	[this]() {PS3_BROADCAST_TO_MVVM_OneParams(OnTextNotify_UI, S4_GameRuleDataAsset->TextNotifyTypeForRadioUI_S4);});
 }
 
 void APS3GameStateS4::InitializeToDataAssets()

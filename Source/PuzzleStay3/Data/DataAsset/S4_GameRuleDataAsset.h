@@ -24,6 +24,12 @@ public:
 	EPS3TextNotifyType TextNotifyTypeForUI_S4 = EPS3TextNotifyType::Stage4;
 	
 	UPROPERTY(EditAnywhere, Category = "GameRule")
+	EPS3TextNotifyType TextNotifyTypeForRadioUI_S4 = EPS3TextNotifyType::RadioRepair;
+	
+	UPROPERTY(EditAnywhere, Category = "GameRule")
+	float TextNotify_RadioUI_DelayTime = 3;
+	
+	UPROPERTY(EditAnywhere, Category = "GameRule")
 	TSoftObjectPtr<UWorld> NextStageLevel;
 	
 	UPROPERTY(EditDefaultsOnly, Category = "GameRule|Stage4")
