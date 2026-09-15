@@ -78,11 +78,14 @@ public:
 
 #pragma region StageRestart
 	//게임오버 시 해당 스테이지 재오픈
+public:
+	virtual void StageRestart();
+	
 protected:
 	//스테이지 재시작을 사용하는 스테이지에서 해당 함수 true반환 override
 	virtual bool StageRestartIfPlayerDead() const { return false; }
 
-	virtual void StageRestart();
+	
 	void ResetAllPlayersDeadState();
 
 private:
