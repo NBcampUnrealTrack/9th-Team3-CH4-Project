@@ -104,6 +104,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "UI|InteractionNotify")
 	void HideAllInteractionNotifies();
 
+	UFUNCTION(BlueprintCallable, Category = "UI|InteractionNotify")
+	void SetInteractionNotifyS5(EPS3InteractionNotifyType NotifyType, bool bVisible);
+
 	UFUNCTION(BlueprintCallable, Category = "UI|TimerNotify")
 	void SetTimerNotifyVisible(bool bVisible);
 
@@ -128,6 +131,14 @@ public:
 		bool bInDoor2Unlocked,
 		bool bInDoor3Unlocked,
 		bool bInDoor4Unlocked
+	);
+
+	UFUNCTION(BlueprintCallable, Category = "UI|DoorOpenButton")
+	void SetDoorPressedFilters(
+		bool bDoor1Pressed,
+		bool bDoor2Pressed,
+		bool bDoor3Pressed,
+		bool bDoor4Pressed
 	);
 
 	UFUNCTION(BlueprintCallable, Category = "UI|DoorOpenButton")

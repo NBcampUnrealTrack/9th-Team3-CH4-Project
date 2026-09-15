@@ -4,52 +4,34 @@
 #include "PS3PlayerControllerBase.h"
 
 #include "Core/GameMode/PS3GamemodeBase.h"
-#include "Core/GameMode/PS3GameModeS5.h"
 #include "Core/GameState/PS3GameStateS5.h"
-#include "Data/Delegates/UIDelegatesSubsystem.h"
 #include "UI/HUD/PlayerHUD.h"
 #include "UI/ViewModel/PS3ViewModel.h"
+
 
 void APS3PlayerControllerBase::BeginPlay()
 {
 	Super::BeginPlay();
+	//GetWorld()->GetTimerManager().SetTimer(InitTimerHandle, this, &ThisClass::ServerRPC_OnClickedRestartGameButton, 5.0f, false);
 	
 	GetWorld()->GetTimerManager().SetTimer(InitTimerHandle, this, &ThisClass::ConfigureInputMapping, 0.01f, false);
-	
 }
 
-void APS3PlayerControllerBase::OnClickedRestartGameButton()
+void APS3PlayerControllerBase::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-	PS3_BROADCAST_TO_MVVM_OneParams(OnIsGameOver_UI, true);
+	if (PS3ViewModel == nullptr) return;
+	PS3ViewModel->OnGameRestartRequested_UI.RemoveDynamic(this, &ThisClass::OnClickedRestartGameButton);
+	PS3ViewModel->OnExitToMainRequested_UI.RemoveDynamic(this, &ThisClass::OnClickedTitleMenuButton);
 	
-	ServerRPC_OnClickedMainMenuButton();
-}
-
-
-void APS3PlayerControllerBase::OnClickedTitleMenuButton()
-{
-	auto* UIManager = UUIDelegatesSubsystem::GetUIDelegateManager(GetWorld());
-	UIManager->OnIsGameOver_UI.Broadcast(false);
-	
-	ServerRPC_OnClickedRestartGameButton();
-	
+	Super::EndPlay(EndPlayReason);
 }
 
 
-void APS3PlayerControllerBase::ServerRPC_OnClickedMainMenuButton_Implementation()
+void APS3PlayerControllerBase::ReceivedPlayer()
 {
-	auto* PS3GameModeS5 = Cast<APS3GameModeS5>(GetWorld()->GetAuthGameMode());
-	if (IsValid(PS3GameModeS5) == false) return;
-	
-	PS3GameModeS5->StageRestart();
-}
-
-void APS3PlayerControllerBase::ServerRPC_OnClickedRestartGameButton_Implementation()
-{
-	auto* PS3GameModeS5 = Cast<APS3GameModeS5>(GetWorld()->GetAuthGameMode());
-	if (IsValid(PS3GameModeS5) == false) return;
-	
-	PS3GameModeS5->GotoTitleLevel();
+	Super::ReceivedPlayer();
+	ConfigureInputMapping();
+	//GetWorld()->GetTimerManager().SetTimer(InitTimerHandle, this, &ThisClass::ConfigureInputMapping, 0.01f, false);
 }
 
 
@@ -59,16 +41,74 @@ void APS3PlayerControllerBase::ConfigureInputMapping()
 	
 	GetWorld()->GetTimerManager().ClearTimer(InitTimerHandle);
 	
+	/*
+	FInputModeUIOnly InputMode;
+	SetInputMode(InputMode);
+	bShowMouseCursor = true;*/
+	
 	auto* HUD = Cast<APlayerHUD>(GetHUD());
 	if (HUD == nullptr) return;
-
-	PS3ViewModel = Cast<UPS3ViewModel>(HUD->GetViewModel());
-	if (PS3ViewModel == nullptr) return;
-
 	
-	PS3ViewModel->OnGameRestartRequested_UI.AddDynamic(this, &ThisClass::OnClickedRestartGameButton);
-	PS3ViewModel->OnExitToMainRequested_UI.AddDynamic(this, &ThisClass::OnClickedTitleMenuButton);
-	
+	ConfigureViewModelBindings(HUD->GetViewModel());
 }
+
+
+void APS3PlayerControllerBase::ConfigureViewModelBindings(UPS3ViewModel* InViewModel)
+{
+	if (IsLocalController() == false) return;
+	
+	if (IsValid(InViewModel) == false) return;
+
+	if (IsValid(PS3ViewModel) && (PS3ViewModel.Get() == InViewModel) == false)
+	{
+		PS3ViewModel->OnGameRestartRequested_UI.RemoveDynamic(this,&ThisClass::OnClickedRestartGameButton);
+		PS3ViewModel->OnExitToMainRequested_UI.RemoveDynamic(this,&ThisClass::OnClickedTitleMenuButton);
+	}
+	
+	PS3ViewModel = InViewModel;
+
+	PS3ViewModel->OnGameRestartRequested_UI.AddUniqueDynamic(this,&ThisClass::OnClickedRestartGameButton);
+	PS3ViewModel->OnExitToMainRequested_UI.AddUniqueDynamic(this,&ThisClass::OnClickedTitleMenuButton);
+
+	if (UWorld* World = GetWorld())
+	{
+		World->GetTimerManager().ClearTimer(InitTimerHandle);
+	}
+}
+
+
+void APS3PlayerControllerBase::OnClickedRestartGameButton()
+{
+	UE_LOG(LogTemp, Error, TEXT("플레이어컨트롤러베이스 들어옴!!!!!!"));
+	ServerRPC_OnClickedRestartGameButton();
+}
+
+
+void APS3PlayerControllerBase::OnClickedTitleMenuButton()
+{
+	ServerRPC_OnClickedTitleButton();
+}
+
+
+void APS3PlayerControllerBase::ServerRPC_OnClickedRestartGameButton_Implementation()
+{
+	auto* PS3GameModeBase = Cast<APS3GameModeBase>(GetWorld()->GetAuthGameMode());
+	if (IsValid(PS3GameModeBase) == false) return;
+	
+	PS3GameModeBase->StageRestart();
+}
+
+
+void APS3PlayerControllerBase::ServerRPC_OnClickedTitleButton_Implementation()
+{
+	auto* PS3GameModeBase = Cast<APS3GameModeBase>(GetWorld()->GetAuthGameMode());
+	if (IsValid(PS3GameModeBase) == false) return;
+	
+	PS3GameModeBase->GotoTitleLevel();
+}
+
+
+
+
 
 

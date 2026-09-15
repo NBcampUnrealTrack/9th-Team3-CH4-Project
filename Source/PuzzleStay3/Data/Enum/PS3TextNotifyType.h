@@ -16,5 +16,6 @@ enum class EPS3TextNotifyType : uint8
 	DoorClosedSound,
 	RadioBroken,
 	RadioAcquired,
+	RadioRepair,
 	BlockVolume
 };

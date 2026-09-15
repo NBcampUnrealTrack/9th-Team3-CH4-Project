@@ -23,7 +23,7 @@ void APS3ChoiceController::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	GetWorld()->GetTimerManager().SetTimer(InitTimerHandle, this, &ThisClass::ConfigureInputMapping, 0.01f, false);
+	GetWorld()->GetTimerManager().SetTimer(InitTimerHandle, this, &ThisClass::ConfigureInputMapping, 0.1f, false);
 	
 	SetViewTarget(this);
 }
@@ -52,7 +52,7 @@ void APS3ChoiceController::ConfigureInputMapping()
 	auto* HUD = Cast<APlayerHUD>(GetHUD());
 	if (HUD == nullptr) return;
 
-	auto* PS3ViewModel = Cast<UPS3ViewModel>(HUD->GetViewModel());
+	PS3ViewModel = Cast<UPS3ViewModel>(HUD->GetViewModel());
 	if (PS3ViewModel == nullptr) return;
 
 	PS3ViewModel->OnStage5RoleSelectionRequested_UI.AddDynamic(this, &ThisClass::OnClickedFieldTypeButton);
@@ -64,6 +64,7 @@ void APS3ChoiceController::ConfigureInputMapping()
 	SetInputMode(UIOnlyMode);
 	bShowMouseCursor = true;
 }
+
 
 
 void APS3ChoiceController::ServerRPC_SelectedControllerType_Implementation(EPS3PlayerRole SelectedPlayerRoleType)

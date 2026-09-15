@@ -17,25 +17,27 @@ class PUZZLESTAY3_API APS3PlayerControllerBase : public APlayerController
 protected:
 	
 	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+	virtual void ReceivedPlayer() override;
 	
 protected:
 	UPROPERTY()
 	TObjectPtr<class UPS3ViewModel> PS3ViewModel;
-	
-	void ConfigureInputMapping();
 	
 	UFUNCTION()
 	void OnClickedRestartGameButton();
 	UFUNCTION()
 	void OnClickedTitleMenuButton();
 	
-	UFUNCTION(Server, Unreliable)
+	UFUNCTION(Server, Reliable)
 	void ServerRPC_OnClickedRestartGameButton();
-	UFUNCTION(Server, Unreliable)
-	void ServerRPC_OnClickedMainMenuButton();
+	UFUNCTION(Server, Reliable)
+	void ServerRPC_OnClickedTitleButton();
 	
 public:
+	void ConfigureInputMapping();
 	
+	void ConfigureViewModelBindings(UPS3ViewModel* InViewModel);
 	
 private:
 	FTimerHandle InitTimerHandle;

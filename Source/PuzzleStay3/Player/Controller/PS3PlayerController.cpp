@@ -67,9 +67,11 @@ void APS3PlayerController::BeginPlay()
 			&ThisClass::RefreshLifeStateBinding,
 			0.5f,
 			false);
+		
+		PS3_BROADCAST_TO_MVVM_OneParams(OnFieldPlayer_UI, true);
 	}
 	
-	PS3_BROADCAST_TO_MVVM_OneParams(OnFieldPlayer_UI, true);
+	
 }
 
 void APS3PlayerController::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -570,6 +572,13 @@ void APS3PlayerController::EndJeoulCutscene()
 	if (!IsValid(RestoreTarget)) RestoreTarget = GetPawn();
 	if (IsValid(RestoreTarget)) SetViewTargetWithBlend(RestoreTarget, JeoulCameraBlendTime);
 	PreviousCutsceneViewTarget.Reset();
+}
+
+void APS3PlayerController::Client_ShowTextNotify_Implementation(EPS3TextNotifyType NotifyType)
+{
+	if (!IsLocalController()) return;
+
+	PS3_BROADCAST_TO_MVVM_OneParams(OnTextNotify_UI, NotifyType);
 }
 
 void APS3PlayerController::HandleJeoulCheckFinished(bool bIsSuccess)

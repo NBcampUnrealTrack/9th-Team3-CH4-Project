@@ -5,6 +5,10 @@
 #include "GameFramework/PlayerController.h"
 #include "Player/PlayerState/PS3PlayerState.h"
 #include "VoicePluginControlComponent.h"
+#include "Data/Enum/PS3TextNotifyType.h"
+#include "Player/Controller/PS3PlayerController.h"
+#include "Data/Delegates/UIDelegatesSubsystem.h"
+
 
 
 UCustomVoiceComponent::UCustomVoiceComponent()
@@ -107,6 +111,14 @@ bool UCustomVoiceComponent::SetVoiceObjectHeld(
 		return false;
 	}
 
+	if (bNewIsHeld)
+	{
+		if (APS3PlayerController* PC = Cast<APS3PlayerController>(GetOwner()))
+		{
+			PC->Client_ShowTextNotify(EPS3TextNotifyType::RadioAcquired);
+		}
+	}
+	
 	BoundPlayerState->SetVoiceObjectHeld(bNewIsHeld);
 
 	// 서버에서 변경된 보유 상태를 반영한 뒤 Stage 3 진행 조건을 재평가합니다.
@@ -218,6 +230,11 @@ void UCustomVoiceComponent::UpdateTransmission()
 	bTransmissionRequested = bShouldTransmit;
 
 	OnTransmissionRequestedChanged.Broadcast(
+		bTransmissionRequested);
+	
+	// UI에 송신 상태 전달
+	PS3_BROADCAST_TO_MVVM_OneParams(
+		OnVoiceChatSpeaking_UI,
 		bTransmissionRequested);
 }
 

@@ -13,6 +13,7 @@
 #include "../Widget/TutorialNotifyWidget.h"
 #include "../Widget/VoiceChatIconWidget.h"
 #include "../ViewModel/PS3ViewModel.h"
+#include "Player/Controller/PS3PlayerControllerBase.h"
 #include "View/MVVMView.h"
 
 APlayerHUD::APlayerHUD()
@@ -58,6 +59,20 @@ void APlayerHUD::BeginPlay()
 
 void APlayerHUD::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
+	if (ViewModel)
+	{
+		ViewModel->ClearPlayerHUD(this);
+	}
+
+	if (RootHUDWidget)
+	{
+		RootHUDWidget->RemoveFromParent();
+	}
+
+	RootHUDWidget = nullptr;
+	ViewModel = nullptr;
+	bIsUIReady = false;
+
 	Super::EndPlay(EndPlayReason);
 }
 
@@ -105,6 +120,12 @@ void APlayerHUD::SetViewModel(UPS3ViewModel* InViewModel)
 	if (ViewModel)
 	{
 		ViewModel->SetPlayerHUD(this);
+
+		APS3PlayerControllerBase* PS3PlayerController = Cast<APS3PlayerControllerBase>(GetOwningPlayerController());
+		if (PS3PlayerController)
+		{
+			PS3PlayerController->ConfigureViewModelBindings(ViewModel);
+		}
 	}
 
 	ApplyViewModelToWidgets();
@@ -221,6 +242,16 @@ void APlayerHUD::HideAllInteractionNotifies()
 	Widgets.InteractionNotifyWidget->HideAllInteractionNotifies();
 }
 
+void APlayerHUD::SetInteractionNotifyS5(EPS3InteractionNotifyType NotifyType, bool bVisible)
+{
+	if (!Widgets.InteractionNotifyWidget)
+	{
+		return;
+	}
+
+	Widgets.InteractionNotifyWidget->SetInteractionNotifyS5(NotifyType, bVisible);
+}
+
 void APlayerHUD::SetTimerNotifyVisible(bool bVisible)
 {
 	if (!Widgets.TimerNotifyWidget)
@@ -319,6 +350,26 @@ void APlayerHUD::UpdateDoorOpenButtons(
 		bInDoor2Unlocked,
 		bInDoor3Unlocked,
 		bInDoor4Unlocked
+	);
+}
+
+void APlayerHUD::SetDoorPressedFilters(
+	bool bDoor1Pressed,
+	bool bDoor2Pressed,
+	bool bDoor3Pressed,
+	bool bDoor4Pressed
+)
+{
+	if (!Widgets.DoorOpenButtonWidget)
+	{
+		return;
+	}
+
+	Widgets.DoorOpenButtonWidget->SetDoorPressedFilters(
+		bDoor1Pressed,
+		bDoor2Pressed,
+		bDoor3Pressed,
+		bDoor4Pressed
 	);
 }
 

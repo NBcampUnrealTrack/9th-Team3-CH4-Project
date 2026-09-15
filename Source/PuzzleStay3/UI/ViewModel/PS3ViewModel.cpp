@@ -8,13 +8,34 @@
 namespace
 {
 	constexpr float DefaultTimerMaxTime = 7.0f;
+	constexpr float InteractionSwitchTimerMaxTime = 20.0f;
 }
 
 void UPS3ViewModel::SetPlayerHUD(APlayerHUD* InPlayerHUD)
 {
 	PlayerHUD = InPlayerHUD;
-	BindRoleSelectionUIDelegate();
-	BindGameplayUIDelegates();
+	if (IsValid(PlayerHUD))
+	{
+		BindRoleSelectionUIDelegate();
+		BindGameplayUIDelegates();
+	}
+	else
+	{
+		UnbindRoleSelectionUIDelegate();
+		UnbindGameplayUIDelegates();
+	}
+}
+
+void UPS3ViewModel::ClearPlayerHUD(APlayerHUD* InPlayerHUD)
+{
+	if (PlayerHUD != InPlayerHUD)
+	{
+		return;
+	}
+
+	PlayerHUD = nullptr;
+	UnbindRoleSelectionUIDelegate();
+	UnbindGameplayUIDelegates();
 }
 
 void UPS3ViewModel::BeginDestroy()
@@ -151,6 +172,11 @@ void UPS3ViewModel::BindGameplayUIDelegates()
 		this,
 		&ThisClass::HandleInteractionNotifyResetRequested_UI);
 
+	UIDelegatesSubsystem->OnInteractRequestS5_UI.RemoveAll(this);
+	UIDelegatesSubsystem->OnInteractRequestS5_UI.AddUObject(
+		this,
+		&ThisClass::HandleInteractRequestS5_UI);
+
 	UIDelegatesSubsystem->OnTextNotifyVisible_UI.RemoveAll(this);
 	UIDelegatesSubsystem->OnTextNotifyVisible_UI.AddUObject(
 		this,
@@ -160,6 +186,9 @@ void UPS3ViewModel::BindGameplayUIDelegates()
 	UIDelegatesSubsystem->OnTextNotify_UI.AddUObject(
 		this,
 		&ThisClass::HandleTextNotify_UI);
+	
+	UIDelegatesSubsystem->OnVoiceChatSpeaking_UI.RemoveAll(this);
+	UIDelegatesSubsystem->OnVoiceChatSpeaking_UI.AddUObject(this,&ThisClass::RequestVoiceChatSpeaking);
 }
 
 void UPS3ViewModel::UnbindGameplayUIDelegates()
@@ -188,8 +217,10 @@ void UPS3ViewModel::UnbindGameplayUIDelegates()
 	UIDelegatesSubsystem->OnInteractionNotifyAddRequested_UI.RemoveAll(this);
 	UIDelegatesSubsystem->OnInteractionNotifyRemoveRequested_UI.RemoveAll(this);
 	UIDelegatesSubsystem->OnInteractionNotifyResetRequested_UI.RemoveAll(this);
+	UIDelegatesSubsystem->OnInteractRequestS5_UI.RemoveAll(this);
 	UIDelegatesSubsystem->OnTextNotifyVisible_UI.RemoveAll(this);
 	UIDelegatesSubsystem->OnTextNotify_UI.RemoveAll(this);
+	UIDelegatesSubsystem->OnVoiceChatSpeaking_UI.RemoveAll(this);
 }
 
 void UPS3ViewModel::HandleStageType_UI(EPS3StageType StageType)
@@ -261,21 +292,44 @@ void UPS3ViewModel::HandleLifeCount_UI(int32 InCurrentLifeCount, int32 InMaxLife
 	RequestUpdateLifeCount(InCurrentLifeCount, InMaxLifeCount);
 }
 
-void UPS3ViewModel::HandleButtonEnabled_UI(EControlDoorType DoorType, bool bEnabled)
+void UPS3ViewModel::HandleButtonEnabled_UI(EControlDoorType DoorType, bool)
 {
 	switch (DoorType)
 	{
+	case EControlDoorType::None:
+		SetIsDoor1Unlocked(true);
+		SetIsDoor2Unlocked(true);
+		SetIsDoor3Unlocked(true);
+		SetIsDoor4Unlocked(true);
+		RequestSetDoorPressedFilters(false, false, false, false);
+		break;
 	case EControlDoorType::Door_A:
-		SetIsDoor1Unlocked(bEnabled);
+		SetIsDoor1Unlocked(false);
+		SetIsDoor2Unlocked(true);
+		SetIsDoor3Unlocked(true);
+		SetIsDoor4Unlocked(true);
+		RequestSetDoorPressedFilters(true, false, false, false);
 		break;
 	case EControlDoorType::Door_B:
-		SetIsDoor2Unlocked(bEnabled);
+		SetIsDoor1Unlocked(true);
+		SetIsDoor2Unlocked(false);
+		SetIsDoor3Unlocked(true);
+		SetIsDoor4Unlocked(true);
+		RequestSetDoorPressedFilters(false, true, false, false);
 		break;
 	case EControlDoorType::Door_C:
-		SetIsDoor3Unlocked(bEnabled);
+		SetIsDoor1Unlocked(true);
+		SetIsDoor2Unlocked(true);
+		SetIsDoor3Unlocked(false);
+		SetIsDoor4Unlocked(true);
+		RequestSetDoorPressedFilters(false, false, true, false);
 		break;
 	case EControlDoorType::Door_D:
-		SetIsDoor4Unlocked(bEnabled);
+		SetIsDoor1Unlocked(true);
+		SetIsDoor2Unlocked(true);
+		SetIsDoor3Unlocked(true);
+		SetIsDoor4Unlocked(false);
+		RequestSetDoorPressedFilters(false, false, false, true);
 		break;
 	default:
 		break;
@@ -324,6 +378,11 @@ void UPS3ViewModel::HandleInteractionNotifyResetRequested_UI()
 	RequestHideAllInteractionNotifies();
 }
 
+void UPS3ViewModel::HandleInteractRequestS5_UI(EPS3InteractionNotifyType NotifyType, bool bVisible)
+{
+	RequestSetInteractionNotifyS5(NotifyType, bVisible);
+}
+
 void UPS3ViewModel::HandleTextNotifyVisible_UI(bool bVisible)
 {
 	bTextNotifyEnabled = bVisible;
@@ -346,6 +405,14 @@ void UPS3ViewModel::HandleTextNotify_UI(EPS3TextNotifyType NotifyType)
 
 float UPS3ViewModel::ResolveTimerMaxTime(EPS3TimerUIType TimerUIType) const
 {
+	if (TimerUIType == EPS3TimerUIType::GimmickB_1 ||
+		TimerUIType == EPS3TimerUIType::GimmickB_2 ||
+		TimerUIType == EPS3TimerUIType::GimmickB_3 ||
+		TimerUIType == EPS3TimerUIType::GimmickB_4)
+	{
+		return InteractionSwitchTimerMaxTime;
+	}
+
 	const UWorld* World = GetWorld();
 	if (!World)
 	{
@@ -479,6 +546,14 @@ void UPS3ViewModel::RequestHideAllInteractionNotifies()
 	}
 }
 
+void UPS3ViewModel::RequestSetInteractionNotifyS5(EPS3InteractionNotifyType NotifyType, bool bVisible)
+{
+	if (PlayerHUD)
+	{
+		PlayerHUD->SetInteractionNotifyS5(NotifyType, bVisible);
+	}
+}
+
 void UPS3ViewModel::RequestSetTimerNotifyVisible(bool bVisible)
 {
 	if (PlayerHUD)
@@ -524,6 +599,19 @@ void UPS3ViewModel::RequestSetDoorOpenButtonVisible(bool bVisible)
 	if (PlayerHUD)
 	{
 		PlayerHUD->SetDoorOpenButtonVisible(bVisible);
+	}
+}
+
+void UPS3ViewModel::RequestSetDoorPressedFilters(
+	bool bDoor1Pressed,
+	bool bDoor2Pressed,
+	bool bDoor3Pressed,
+	bool bDoor4Pressed
+)
+{
+	if (PlayerHUD)
+	{
+		PlayerHUD->SetDoorPressedFilters(bDoor1Pressed, bDoor2Pressed, bDoor3Pressed, bDoor4Pressed);
 	}
 }
 

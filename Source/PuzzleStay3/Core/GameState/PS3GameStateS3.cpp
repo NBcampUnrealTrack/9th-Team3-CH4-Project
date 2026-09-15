@@ -18,6 +18,10 @@ void APS3GameStateS3::BeginPlay()
 	SetUIMacroTimerHandle(
 		TextNotify_UI_DelayTime,
 		[this]() { PS3_BROADCAST_TO_MVVM_OneParams(OnTextNotify_UI, S3_GameRuleDataAsset->TextNotifyTypeForUI_S3); });
+	
+	SetUIMacroTimerHandle(
+		S3_GameRuleDataAsset->TextNotify_RadioUI_DelayTime,
+		[this]() { PS3_BROADCAST_TO_MVVM_OneParams(OnTextNotify_UI, S3_GameRuleDataAsset->TextNotifyTypeForRadioUI_S3); });
 }
 
 void APS3GameStateS3::InitializeToDataAssets()
@@ -34,6 +38,7 @@ void APS3GameStateS3::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutL
 
 	DOREPLIFETIME(APS3GameStateS3, bStage3BlockingVolumeDisabled);
 	DOREPLIFETIME(APS3GameStateS3, bStage3VoiceChatActivated);
+	DOREPLIFETIME(APS3GameStateS3, bPlayerDeadGameOver);
 }
 
 void APS3GameStateS3::SetStage3BlockingVolumeDisabled(bool bDisabled)
@@ -62,4 +67,20 @@ void APS3GameStateS3::SetStage3VoiceChatActivated(bool bActivated)
 void APS3GameStateS3::OnRep_Stage3VoiceChatActivated()
 {
 	OnStage3VoiceChatActivated.Broadcast(bStage3VoiceChatActivated);
+}
+
+void APS3GameStateS3::NotifyPlayerDeadGameOver()
+{
+	if (!HasAuthority()) return;
+	if (bPlayerDeadGameOver) return;
+
+	bPlayerDeadGameOver = true;
+	OnRep_PlayerDeadGameOver();
+}
+
+void APS3GameStateS3::OnRep_PlayerDeadGameOver()
+{
+	if (!bPlayerDeadGameOver) return;
+
+	PS3_BROADCAST_TO_MVVM_OneParams(OnIsGameOver_UI, true);
 }
