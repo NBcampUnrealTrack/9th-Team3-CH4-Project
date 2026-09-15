@@ -240,6 +240,12 @@ private:
 	void HandleTextNotify_UI(EPS3TextNotifyType NotifyType);
 	float ResolveTimerMaxTime(EPS3TimerUIType TimerUIType) const;
 	void ApplyStageUI();
+	void RequestSetDoorPressedFilters(
+		bool bDoor1Pressed,
+		bool bDoor2Pressed,
+		bool bDoor3Pressed,
+		bool bDoor4Pressed
+	);
 
 	UPROPERTY(BlueprintReadOnly, Category = "UI|HUD", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<APlayerHUD> PlayerHUD;
