@@ -18,6 +18,7 @@ class UParticleSystemComponent;
 class UPointLightComponent;
 class URandomCollisionTrapComponent;
 class US5_InteractionGimmickComponent;
+class USoundBase; // 현준 수정
 class UTimelineComponent;
 class UMaterialInstanceDynamic;
 
@@ -73,6 +74,18 @@ protected:
 		meta = (EditCondition = "EffectType == ECosmeticEffectType::Smoke"))
 	TObjectPtr<UParticleSystem> SmokeTemplate;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Cosmetic|Sound") // 현준 수정
+	TObjectPtr<USoundBase> StageClearSound; // 현준 수정
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Cosmetic|Sound") // 현준 수정
+	TObjectPtr<USoundBase> DoorOpenSound; // 현준 수정
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Cosmetic|Sound") // 현준 수정
+	TObjectPtr<USoundBase> DoorCloseSound; // 현준 수정
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Cosmetic|Sound") // 현준 수정
+	TObjectPtr<USoundBase> InteractionSound; // 현준 수정
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Cosmetic")
 	bool bIsCosmeticActive = false;
 
@@ -94,6 +107,7 @@ private:
 	void UnbindOwnerTrapDelegates();
 	void UnbindOwnerJudgementDelegates();
 	void UnbindOwnerDoorDelegate();
+	void PlayInteractionSound(); // 현준 수정
 	void HandleToggleActivationChanged(bool bActive);
 	void HandleSwitchOnInteractionSucceeded();
 	void HandleTimedInteractionSucceeded();
@@ -104,6 +118,7 @@ private:
 	void HandleFakePlatformOverlapped(APawn* PlayerPawn);
 	void HandleJudgementFinished(bool bIsSuccess);
 	void HandleDoorOpenStateChanged(bool bIsOpen);
+	void HandleExitDoorOpenStateChanged(bool bIsOpen); // 현준 수정
 	void UpdateDoorProgressToNow();
 	UFUNCTION()
 	void HandleDoorOpacityTimelineUpdate();
@@ -162,6 +177,7 @@ private:
 	float DoorProgressTime = 0.0f;
 	double TrapTimedStartTime = 0.0;
 	double LastDoorStateChangeTime = 0.0;
+	double LastInteractionSoundPlayTime = -1.0; // 현준 수정
 	bool bIsTrapTimedActive = false;
 	bool bHasCompletedTrapTimed = false;
 	bool bHasHiddenTrapMesh = false;

@@ -14,6 +14,7 @@
 #include "Object/Jeoul.h"
 #include "Particles/ParticleSystem.h"
 #include "Particles/ParticleSystemComponent.h"
+#include "Kismet/GameplayStatics.h" // 현준 수정
 #include "TimerManager.h"
 
 UCosmeticComponent::UCosmeticComponent()
@@ -431,6 +432,9 @@ void UCosmeticComponent::BindOwnerDoorDelegate()
 		DoorOwner->OnIsDoorOpen.AddUObject(
 			this,
 			&UCosmeticComponent::HandleDoorOpenStateChanged);
+		DoorOwner->OnIsExitDoorOpen.AddUObject( // 현준 수정
+			this, // 현준 수정
+			&UCosmeticComponent::HandleExitDoorOpenStateChanged); // 현준 수정
 
 		BoundDoorOwner = DoorOwner;
 	}
@@ -502,22 +506,63 @@ void UCosmeticComponent::UnbindOwnerDoorDelegate()
 	if (BoundDoorOwner.IsValid())
 	{
 		BoundDoorOwner->OnIsDoorOpen.RemoveAll(this);
+		BoundDoorOwner->OnIsExitDoorOpen.RemoveAll(this); // 현준 수정
 		BoundDoorOwner = nullptr;
 	}
 }
 
+void UCosmeticComponent::PlayInteractionSound() // 현준 수정
+{ // 현준 수정
+	if (GetNetMode() == NM_DedicatedServer) // 현준 수정
+	{ // 현준 수정
+		return; // 현준 수정
+	} // 현준 수정
+
+	if (!IsValid(InteractionSound)) // 현준 수정
+	{ // 현준 수정
+		return; // 현준 수정
+	} // 현준 수정
+
+	AActor* Owner = GetOwner(); // 현준 수정
+	if (!IsValid(Owner)) // 현준 수정
+	{ // 현준 수정
+		return; // 현준 수정
+	} // 현준 수정
+
+	const UWorld* World = GetWorld(); // 현준 수정
+	if (IsValid(World)) // 현준 수정
+	{ // 현준 수정
+		const double CurrentTime = World->GetTimeSeconds(); // 현준 수정
+		if (FMath::IsNearlyEqual(CurrentTime, LastInteractionSoundPlayTime)) // 현준 수정
+		{ // 현준 수정
+			return; // 현준 수정
+		} // 현준 수정
+
+		LastInteractionSoundPlayTime = CurrentTime; // 현준 수정
+	} // 현준 수정
+
+	UGameplayStatics::PlaySoundAtLocation(this, InteractionSound, Owner->GetActorLocation()); // 현준 수정
+} // 현준 수정
+
 void UCosmeticComponent::HandleToggleActivationChanged(bool bActive)
 {
+	if (bActive) // 현준 수정
+	{ // 현준 수정
+		PlayInteractionSound(); // 현준 수정
+	} // 현준 수정
+
 	SetCosmeticActive(bActive);
 }
 
 void UCosmeticComponent::HandleSwitchOnInteractionSucceeded()
 {
+	PlayInteractionSound(); // 현준 수정
 	SetCosmeticActive(true);
 }
 
 void UCosmeticComponent::HandleTimedInteractionSucceeded()
 {
+	PlayInteractionSound(); // 현준 수정
 	StartTimedActivation();
 }
 
@@ -560,6 +605,16 @@ void UCosmeticComponent::HandleJudgementFinished(bool bIsSuccess)
 
 void UCosmeticComponent::HandleDoorOpenStateChanged(bool bIsOpen)
 {
+	AActor* Owner = GetOwner(); // 현준 수정
+	if (IsValid(Owner) && IsValid(Cast<ADoor>(Owner)) && GetNetMode() != NM_DedicatedServer) // 현준 수정
+	{
+		USoundBase* DoorSound = bIsOpen ? DoorOpenSound : DoorCloseSound; // 현준 수정
+		if (IsValid(DoorSound)) // 현준 수정
+		{
+			UGameplayStatics::PlaySoundAtLocation(this, DoorSound, Owner->GetActorLocation()); // 현준 수정
+		}
+	}
+
 	DoorTravelDuration = FMath::Max(0.0f, DoorTravelDuration);
 	UpdateDoorProgressToNow();
 
@@ -616,6 +671,26 @@ void UCosmeticComponent::HandleDoorOpenStateChanged(bool bIsOpen)
 	{
 		FinishDoorTravelImmediately(bOpening);
 	}
+}
+
+void UCosmeticComponent::HandleExitDoorOpenStateChanged(bool bIsOpen) // 현준 수정
+{
+	if (!bIsOpen) // 현준 수정
+	{
+		return; // 현준 수정
+	}
+
+	if (GetNetMode() == NM_DedicatedServer) // 현준 수정
+	{
+		return; // 현준 수정
+	}
+
+	if (!IsValid(StageClearSound)) // 현준 수정
+	{
+		return; // 현준 수정
+	}
+
+	UGameplayStatics::PlaySound2D(this, StageClearSound); // 현준 수정
 }
 
 void UCosmeticComponent::UpdateDoorProgressToNow()
@@ -770,6 +845,13 @@ void UCosmeticComponent::StartTrapTimedActivation()
 
 	bIsTrapTimedActive = true;
 	bHasHiddenTrapMesh = false;
+	// 현준 수정: 트랩 Cosmetic 수신 즉시 Mesh 숨김
+	if (AGimmickBase* GimmickOwner = Cast<AGimmickBase>(GetOwner()))
+	{
+		GimmickOwner->HideGimmickMesh();
+	}
+	bHasHiddenTrapMesh = true;
+
 	SetCosmeticActive(true);
 
 	UWorld* World = GetWorld();

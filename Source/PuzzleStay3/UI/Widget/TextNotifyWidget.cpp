@@ -2,6 +2,7 @@
 
 #include "Components/TextBlock.h"
 #include "Engine/World.h"
+#include "Kismet/GameplayStatics.h" // 현준 수정
 
 namespace
 {
@@ -67,6 +68,11 @@ void UTextNotifyWidget::ShowTextNotifyInternal(const FText& InDisplayText, float
 		FontInfo.Size = static_cast<int32>(InFontSize);
 		TextNotifyText->SetFont(FontInfo);
 		TextNotifyText->SetVisibility(ESlateVisibility::Visible);
+
+		if (IsValid(TextNotifySound)) // 현준 수정
+		{ // 현준 수정
+			UGameplayStatics::PlaySound2D(this, TextNotifySound); // 현준 수정
+		} // 현준 수정
 	}
 
 	UWorld* World = GetWorld();

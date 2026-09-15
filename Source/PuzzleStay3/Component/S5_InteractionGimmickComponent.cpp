@@ -41,6 +41,8 @@ void US5_InteractionGimmickComponent::GetLifetimeReplicatedProps(
 	DOREPLIFETIME(ThisClass, bIsInteractionGimmick);
 	DOREPLIFETIME(ThisClass, bIsInteracted);
 	DOREPLIFETIME(ThisClass, bIsStartedGame);
+	// 현준 수정: Client Cosmetic 이벤트 전달용 RepNotify 시퀀스 등록
+	DOREPLIFETIME(ThisClass, CosmeticInteractionSuccessSequence);
 }
 
 
@@ -58,6 +60,13 @@ void US5_InteractionGimmickComponent::OnStartedGame(bool bIsGameStart)
 }
 
 
+// 현준 수정: Client Cosmetic 이벤트 전달용 RepNotify 콜백
+void US5_InteractionGimmickComponent::OnRep_CosmeticInteractionSuccessSequence()
+{
+	OnCosmeticInteractionSuccessed.Broadcast();
+}
+
+
 bool US5_InteractionGimmickComponent::Interact_Implementation(AActor* Requestor)
 {
 	if (bIsInteractionGimmick == false) return false;
@@ -65,6 +74,8 @@ bool US5_InteractionGimmickComponent::Interact_Implementation(AActor* Requestor)
 	if (bIsInteracted == true) return false;
 	
 	OnCosmeticInteractionSuccessed.Broadcast();
+	// 현준 수정: Client Cosmetic 이벤트 전달용
+	++CosmeticInteractionSuccessSequence;
 	OnInteractionGimmick.Broadcast(bIsInteracted);
 	bIsInteracted = true;
 	
