@@ -152,6 +152,11 @@ void UPS3ViewModel::BindGameplayUIDelegates()
 		this,
 		&ThisClass::HandleInteractionNotifyResetRequested_UI);
 
+	UIDelegatesSubsystem->OnInteractRequestS5_UI.RemoveAll(this);
+	UIDelegatesSubsystem->OnInteractRequestS5_UI.AddUObject(
+		this,
+		&ThisClass::HandleInteractRequestS5_UI);
+
 	UIDelegatesSubsystem->OnTextNotifyVisible_UI.RemoveAll(this);
 	UIDelegatesSubsystem->OnTextNotifyVisible_UI.AddUObject(
 		this,
@@ -189,6 +194,7 @@ void UPS3ViewModel::UnbindGameplayUIDelegates()
 	UIDelegatesSubsystem->OnInteractionNotifyAddRequested_UI.RemoveAll(this);
 	UIDelegatesSubsystem->OnInteractionNotifyRemoveRequested_UI.RemoveAll(this);
 	UIDelegatesSubsystem->OnInteractionNotifyResetRequested_UI.RemoveAll(this);
+	UIDelegatesSubsystem->OnInteractRequestS5_UI.RemoveAll(this);
 	UIDelegatesSubsystem->OnTextNotifyVisible_UI.RemoveAll(this);
 	UIDelegatesSubsystem->OnTextNotify_UI.RemoveAll(this);
 }
@@ -346,6 +352,11 @@ void UPS3ViewModel::HandleInteractionNotifyRemoveRequested_UI(EPS3InteractionNot
 void UPS3ViewModel::HandleInteractionNotifyResetRequested_UI()
 {
 	RequestHideAllInteractionNotifies();
+}
+
+void UPS3ViewModel::HandleInteractRequestS5_UI(EPS3InteractionNotifyType NotifyType, bool bVisible)
+{
+	RequestSetInteractionNotifyS5(NotifyType, bVisible);
 }
 
 void UPS3ViewModel::HandleTextNotifyVisible_UI(bool bVisible)
@@ -508,6 +519,14 @@ void UPS3ViewModel::RequestHideAllInteractionNotifies()
 	if (PlayerHUD)
 	{
 		PlayerHUD->HideAllInteractionNotifies();
+	}
+}
+
+void UPS3ViewModel::RequestSetInteractionNotifyS5(EPS3InteractionNotifyType NotifyType, bool bVisible)
+{
+	if (PlayerHUD)
+	{
+		PlayerHUD->SetInteractionNotifyS5(NotifyType, bVisible);
 	}
 }
 
