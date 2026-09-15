@@ -36,6 +36,8 @@ public:
 	UPROPERTY(BlueprintAssignable)
 	FOnEscapeDoorOpened OnEscapeDoorOpened;
 
+	virtual void NotifyPlayerDeadGameOver() { };
+	
 protected:
 	UPROPERTY(ReplicatedUsing = OnRep_EscapeDoorOpened)
 	bool bEscapeDoorOpened = false;

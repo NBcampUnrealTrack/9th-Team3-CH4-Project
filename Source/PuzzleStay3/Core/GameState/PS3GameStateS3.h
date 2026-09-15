@@ -59,4 +59,14 @@ protected:
 
 	UFUNCTION()
 	void OnRep_Stage3VoiceChatActivated();
+	
+public:
+	virtual void NotifyPlayerDeadGameOver() override;
+
+protected:
+	UPROPERTY(ReplicatedUsing = OnRep_PlayerDeadGameOver)
+	bool bPlayerDeadGameOver = false;
+
+	UFUNCTION()
+	void OnRep_PlayerDeadGameOver();
 };
