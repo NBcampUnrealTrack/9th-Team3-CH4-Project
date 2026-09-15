@@ -11,9 +11,7 @@
 US5_InteractionGimmickComponent::US5_InteractionGimmickComponent()
 {
 	InteractionUIOverlapComponent = CreateDefaultSubobject<UBoxComponent>("InteractionUIOverlapComponent");
-	InteractionUIOverlapComponent->SetupAttachment(GetOwner()->GetRootComponent());
-	InteractionUIOverlapComponent->SetBoxExtent(FVector(70.0f, 70.0f, 0.0f));
-	
+	InteractionUIOverlapComponent->SetBoxExtent(FVector(70.0f, 70.0f, 70.0f));
 }
 
 
@@ -23,7 +21,6 @@ void US5_InteractionGimmickComponent::BeginPlay()
 	
 	InteractionUIOverlapComponent->OnComponentBeginOverlap.AddDynamic(this, &ThisClass::OnCharacterBeginOverlapForUI);
 	InteractionUIOverlapComponent->OnComponentEndOverlap.AddDynamic(this, &ThisClass::OnCharacterEndOverlapForUI);
-	
 	
 	auto* PS3GameModeS5 = Cast<APS3GameModeS5>(GetWorld()->GetAuthGameMode());
 	if (IsValid(PS3GameModeS5) == false) return;
@@ -38,7 +35,7 @@ void US5_InteractionGimmickComponent::GetLifetimeReplicatedProps(
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	
 	DOREPLIFETIME(ThisClass, bIsInteractionGimmick);
-	DOREPLIFETIME(ThisClass, bIsInteractedGimmick);
+	DOREPLIFETIME(ThisClass, bIsInteracted);
 	DOREPLIFETIME(ThisClass, bIsStartedGame);
 }
 
@@ -61,11 +58,11 @@ bool US5_InteractionGimmickComponent::Interact_Implementation(AActor* Requestor)
 {
 	if (bIsInteractionGimmick == false) return false;
 	
-	if (bIsInteractedGimmick == true) return false;
+	if (bIsInteracted == true) return false;
 	
 	OnCosmeticInteractionSuccessed.Broadcast();
-	OnInteractionGimmick.Broadcast(bIsInteractedGimmick);
-	bIsInteractedGimmick = true;
+	OnInteractionGimmick.Broadcast(bIsInteracted);
+	bIsInteracted = true;
 	
 	return true;
 }
@@ -74,6 +71,8 @@ bool US5_InteractionGimmickComponent::Interact_Implementation(AActor* Requestor)
 void US5_InteractionGimmickComponent::OnCharacterBeginOverlapForUI(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
+	if (bIsInteractionGimmick == false) return;
+	
 	if (GetOwner() == nullptr) return;
 	
 	auto* PS3PlayerCharacter = Cast<APS3PlayerCharacter>(OtherActor);
@@ -112,6 +111,8 @@ void US5_InteractionGimmickComponent::OnCharacterBeginOverlapForUI(UPrimitiveCom
 void US5_InteractionGimmickComponent::OnCharacterEndOverlapForUI(UPrimitiveComponent* OverlappedComp,
 	AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
+	if (bIsInteractionGimmick == false) return;
+	
 	if (GetOwner() == nullptr) return;
 	
 	auto* PS3PlayerCharacter = Cast<APS3PlayerCharacter>(OtherActor);

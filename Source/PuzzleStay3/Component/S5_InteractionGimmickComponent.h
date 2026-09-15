@@ -33,7 +33,7 @@ public:
 	bool bIsInteractionGimmick = false;
 	
 	UPROPERTY(Replicated)
-	bool bIsInteractedGimmick = false;
+	bool bIsInteracted = false;
 	
 	UPROPERTY(Replicated)
 	bool bIsStartedGame = false;
