@@ -117,7 +117,7 @@ void UOverlapVolumeTimeDeductionComponent::ReSpawnPlayer(APlayerController* Targ
 	PS3GameStateS5->ReSpawnPlayer(TargetPlayerController);
 }
 
-void UOverlapVolumeTimeDeductionComponent::OnColletedGimmickBase(const UActorComponent* CurrentComponent,
+void UOverlapVolumeTimeDeductionComponent::OnColletedGimmickBase(const UBoxComponent* CurrentComponent,
 	bool bIsInteractable)
 {
 	if (this == CurrentComponent)
