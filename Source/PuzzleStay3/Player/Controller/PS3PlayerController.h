@@ -48,6 +48,9 @@ public:
 	UFUNCTION(BlueprintPure, Category = "PS3|Cutscene")
 	EJeoulCutsceneState GetJeoulCutsceneState() const { return JeoulCutsceneState; }
 
+	UFUNCTION(Client, Reliable)
+	void Client_ShowTextNotify(EPS3TextNotifyType NotifyType);
+	
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "PS3|Cutscene", meta = (ClampMin = "0.0"))
 	float JeoulCameraBlendTime = 0.35f;

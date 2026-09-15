@@ -43,9 +43,5 @@ public:
 	
 protected:
 	FTimerHandle InitTimerHandle;
-	
-public:
-	UFUNCTION(Client, Reliable)
-	void Client_ShowTextNotify(EPS3TextNotifyType NotifyType);
 };
 
