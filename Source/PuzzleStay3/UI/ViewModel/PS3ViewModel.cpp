@@ -236,7 +236,7 @@ void UPS3ViewModel::RefreshStageUI()
 
 void UPS3ViewModel::HandleScreenPlayer_UI(bool bVisible)
 {
-	if (CurrentStageType == EPS3StageType::Stage5 && bVisible)
+	if (bVisible)
 	{
 		RequestSetDoorOpenButtonVisible(true);
 		RequestSetInteractionNotifyVisible(false);
@@ -245,7 +245,7 @@ void UPS3ViewModel::HandleScreenPlayer_UI(bool bVisible)
 
 void UPS3ViewModel::HandleFieldPlayer_UI(bool bVisible)
 {
-	if (CurrentStageType == EPS3StageType::Stage5 && bVisible)
+	if (bVisible)
 	{
 		RequestSetDoorOpenButtonVisible(false);
 		RequestSetInteractionNotifyVisible(true);
@@ -472,10 +472,8 @@ void UPS3ViewModel::ApplyStageUI()
 	case EPS3StageType::Stage5:
 		RequestSetLifeCountVisible(false);
 		bVoiceChatIconEnabled = true;
-		RequestSetInteractionNotifyVisible(true);
 		bTextNotifyEnabled = true;
 		RequestSetTimerNotifyVisible(true);
-		RequestSetDoorOpenButtonVisible(false);
 		break;
 	default:
 		break;

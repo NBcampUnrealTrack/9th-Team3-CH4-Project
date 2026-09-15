@@ -17,5 +17,6 @@ enum class EPS3TextNotifyType : uint8
 	RadioBroken,
 	RadioAcquired,
 	RadioRepair,
-	BlockVolume
+	BlockVolume,
+	S5Collision
 };
