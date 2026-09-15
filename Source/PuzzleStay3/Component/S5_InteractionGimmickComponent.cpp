@@ -104,12 +104,12 @@ void US5_InteractionGimmickComponent::CheckCanDisplayedUIForTimer()
 	
 	if (bIsCanDisplayedUI == true && bIsUIVisible == false)
 	{
-		PS3_BROADCAST_TO_MVVM_OneParams(OnInteractionNotifyAddRequested_UI,EPS3InteractionNotifyType::Interact);
+		PS3_BROADCAST_TO_MVVM_TwoParams(OnInteractRequestS5_UI,EPS3InteractionNotifyType::Interact, true);
 		bIsUIVisible = true;
 	}
-	else if (bIsCanDisplayedUI == false && bIsUIVisible == true)
+	else if (bIsCanDisplayedUI == false  && bIsUIVisible == true)
 	{
-		PS3_BROADCAST_TO_MVVM_OneParams(OnInteractionNotifyRemoveRequested_UI,EPS3InteractionNotifyType::Interact);
+		PS3_BROADCAST_TO_MVVM_TwoParams(OnInteractRequestS5_UI,EPS3InteractionNotifyType::Interact, false);
 		bIsUIVisible = false;
 	}
 }
@@ -159,7 +159,7 @@ void US5_InteractionGimmickComponent::OnCharacterEndOverlapForUI(UPrimitiveCompo
 		GetWorld()->GetTimerManager().ClearTimer(CheckPlayerTimerHandle);
 		if (bIsUIVisible == true)
 		{
-			PS3_BROADCAST_TO_MVVM_OneParams(OnInteractionNotifyRemoveRequested_UI,EPS3InteractionNotifyType::Interact);
+			PS3_BROADCAST_TO_MVVM_TwoParams(OnInteractRequestS5_UI,EPS3InteractionNotifyType::Interact, false);
 			bIsUIVisible = false;
 		}
 	}

@@ -306,7 +306,9 @@ void APS3GameModeS5::ConfigureControllerAndSpawn(APlayerController* OldControlle
 	if (IsValid(NewController) == false) return;
 	
 	SwapPlayerControllers(OldController, NewController);
-	OldController->Destroy();
+	InitializeHUDForPlayer(NewController);
+	
+	//OldController->Destroy();
 	
 	AActor* TargetPlayerStart = FindPlayerStart(NewController);
 	if (IsValid(TargetPlayerStart) == true)

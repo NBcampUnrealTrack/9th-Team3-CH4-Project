@@ -37,6 +37,8 @@ protected:
 public:
 	void ConfigureInputMapping();
 	
+	void ConfigureViewModelBindings(UPS3ViewModel* InViewModel);
+	
 private:
 	FTimerHandle InitTimerHandle;
 	
