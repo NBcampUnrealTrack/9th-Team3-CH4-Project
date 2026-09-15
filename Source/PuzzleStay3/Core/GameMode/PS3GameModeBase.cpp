@@ -33,16 +33,19 @@ void APS3GameModeBase::BeginPlay()
 
 void APS3GameModeBase::PostLogin(APlayerController* NewPlayer)
 {
+	if (IsValid(NewPlayer))
+	{
+		if (APS3PlayerState* NewPlayerState = NewPlayer->GetPlayerState<APS3PlayerState>(); IsValid(NewPlayerState))
+		{
+			// Super::PostLogin에서 스폰하기 전에 시작점 선택에 사용할 P1/P2를 지정한다.
+			SetPlayerIdentity(NewPlayerState);
+
+			// 새 플레이어 접속 시 해당 플레이어의 사망 상태 변경 이벤트를 구독
+			RegisterPlayerDeadState(NewPlayerState);
+		}
+	}
+
 	Super::PostLogin(NewPlayer);
-	if (!IsValid(NewPlayer)) return;
-
-	APS3PlayerState* NewPlayerState = NewPlayer->GetPlayerState<APS3PlayerState>();
-	if (!IsValid(NewPlayerState)) return;
-
-	// 새 플레이어 접속 시 해당 플레이어의 사망 상태 변경 이벤트를 구독
-	RegisterPlayerDeadState(NewPlayerState);
-
-	SetPlayerIdentity(NewPlayerState);
 }
 
 void APS3GameModeBase::InitializeToDataAssets()
