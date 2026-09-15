@@ -4,14 +4,16 @@
 #include "Core/GameMode/PS3GameModeS5.h"
 #include "Core/GameState/PS3GameStateS5.h"
 #include "Data/Delegates/UIDelegatesSubsystem.h"
+#include "Data/Enum/PS3InteractionNotifyType.h"
 #include "Net/UnrealNetwork.h"
 #include "Player/Character/PS3PlayerCharacter.h"
 
 
 US5_InteractionGimmickComponent::US5_InteractionGimmickComponent()
 {
-	InteractionUIOverlapComponent = CreateDefaultSubobject<UBoxComponent>("InteractionUIOverlapComponent");
-	InteractionUIOverlapComponent->SetBoxExtent(FVector(70.0f, 70.0f, 70.0f));
+	//if (GetOwner() == nullptr) return;
+	
+	InitBoxExtent(FVector(140.0f, 140.0f, 140.0f));
 }
 
 
@@ -19,8 +21,8 @@ void US5_InteractionGimmickComponent::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	InteractionUIOverlapComponent->OnComponentBeginOverlap.AddDynamic(this, &ThisClass::OnCharacterBeginOverlapForUI);
-	InteractionUIOverlapComponent->OnComponentEndOverlap.AddDynamic(this, &ThisClass::OnCharacterEndOverlapForUI);
+	this->OnComponentBeginOverlap.AddDynamic(this, &ThisClass::OnCharacterBeginOverlapForUI);
+	this->OnComponentEndOverlap.AddDynamic(this, &ThisClass::OnCharacterEndOverlapForUI);
 	
 	auto* PS3GameModeS5 = Cast<APS3GameModeS5>(GetWorld()->GetAuthGameMode());
 	if (IsValid(PS3GameModeS5) == false) return;
@@ -78,38 +80,68 @@ void US5_InteractionGimmickComponent::OnCharacterBeginOverlapForUI(UPrimitiveCom
 	auto* PS3PlayerCharacter = Cast<APS3PlayerCharacter>(OtherActor);
 	if (IsValid(PS3PlayerCharacter) == false) return;
 	
-	if (GetOwner()->HasAuthority() == true)
-	{
-		if (OverlappedCharacters.Contains(PS3PlayerCharacter) == true) return;
-		OverlappedCharacters.Add(PS3PlayerCharacter);
-	}
+	
+	if (OverlappedCharacters.Contains(PS3PlayerCharacter) == true) return;
+	OverlappedCharacters.Add(PS3PlayerCharacter);
+	
 	
 	if (PS3PlayerCharacter->IsLocallyControlled() == true)
 	{
-		FVector DirectionToGimmick = GetOwner()->GetActorLocation() - PS3PlayerCharacter->GetActorLocation();
-		DirectionToGimmick.Z = 0.0f;
-		DirectionToGimmick.Normalize();
-		
-		FVector PlayerForwardVector = PS3PlayerCharacter->GetActorForwardVector();
-		PlayerForwardVector.Z = 0.0f;
-		PlayerForwardVector.Normalize();
-		
-		float PlayerDotValue = FVector::DotProduct(PlayerForwardVector, DirectionToGimmick);
-		float HalfFOVAngle = FMath::RadiansToDegrees(FMath::Acos(FMath::Clamp(PlayerDotValue, -1.0f, 1.0f)));
-	
-		float CurrentFOVAngle = HalfFOVAngle * 2.0f;
-		
-		if (CurrentFOVAngle >= TargetFOVAngle)
-		{
-			PS3_BROADCAST_TO_MVVM_OneParams(OnTutorial_UI, true);
-		}
+		GetWorld()->GetTimerManager().SetTimer(CheckPlayerTimerHandle, this, 
+			&US5_InteractionGimmickComponent::CheckCanDisplayedUIForTimer, 0.1f, true);
 	}
 	
 }
 
 
+void US5_InteractionGimmickComponent::CheckCanDisplayedUIForTimer()
+{
+	if (bIsInteractionGimmick == false) return;
+	
+	bool bIsCanDisplayedUI = CheckCanDisplayedUI();
+	
+	if (bIsCanDisplayedUI == true && bIsUIVisible == false)
+	{
+		PS3_BROADCAST_TO_MVVM_OneParams(OnInteractionNotifyAddRequested_UI,EPS3InteractionNotifyType::Interact);
+		bIsUIVisible = true;
+	}
+	else if (bIsCanDisplayedUI == false && bIsUIVisible == true)
+	{
+		PS3_BROADCAST_TO_MVVM_OneParams(OnInteractionNotifyRemoveRequested_UI,EPS3InteractionNotifyType::Interact);
+		bIsUIVisible = false;
+	}
+}
+
+
+bool US5_InteractionGimmickComponent::CheckCanDisplayedUI()
+{
+	APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
+	if (IsValid(PlayerController) == false) return false;
+	
+	auto* PS3PlayerCharacter = Cast<APS3PlayerCharacter>(PlayerController->GetPawn());
+	if (IsValid(PS3PlayerCharacter) == false) return false;
+	
+	if (GetOwner() == nullptr) return false;
+	
+	if (OverlappedCharacters.Contains(PS3PlayerCharacter) == false) return false;
+	
+	FVector DirectionToGimmick = GetOwner()->GetActorLocation() - PS3PlayerCharacter->GetActorLocation();
+	DirectionToGimmick.Z = 0.0f;
+	DirectionToGimmick.Normalize();
+		
+	FVector PlayerForwardVector = PS3PlayerCharacter->GetActorForwardVector();
+	PlayerForwardVector.Z = 0.0f;
+	PlayerForwardVector.Normalize();
+		
+	float PlayerDotValue = FVector::DotProduct(PlayerForwardVector, DirectionToGimmick);
+	float GimmickFOVAngle = FMath::RadiansToDegrees(FMath::Acos(FMath::Clamp(PlayerDotValue, -1.0f, 1.0f)));
+	
+	return GimmickFOVAngle <= (TargetFOVAngle * 0.5f);
+}
+
+
 void US5_InteractionGimmickComponent::OnCharacterEndOverlapForUI(UPrimitiveComponent* OverlappedComp,
-	AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+                                                                 AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
 	if (bIsInteractionGimmick == false) return;
 	
@@ -118,21 +150,21 @@ void US5_InteractionGimmickComponent::OnCharacterEndOverlapForUI(UPrimitiveCompo
 	auto* PS3PlayerCharacter = Cast<APS3PlayerCharacter>(OtherActor);
 	if (IsValid(PS3PlayerCharacter) == false) return;
 	
-	if (GetOwner()->HasAuthority() == true)
-	{
-		if (IsValid(OtherActor) == false) return;
-		if (OverlappedCharacters.Contains(OtherActor) == false) return;
-		OverlappedCharacters.Remove(OtherActor);
-	}
+	OverlappedCharacters.Remove(PS3PlayerCharacter);
 	
 	if (PS3PlayerCharacter->IsLocallyControlled() == true)
 	{
-		PS3_BROADCAST_TO_MVVM_OneParams(OnTutorial_UI, false);
+		GetWorld()->GetTimerManager().ClearTimer(CheckPlayerTimerHandle);
+		if (bIsUIVisible == true)
+		{
+			PS3_BROADCAST_TO_MVVM_OneParams(OnInteractionNotifyRemoveRequested_UI,EPS3InteractionNotifyType::Interact);
+			bIsUIVisible = false;
+		}
 	}
 }
 
 
-void US5_InteractionGimmickComponent::OnColletedGimmickBase(const UActorComponent* CurrentComponent, bool bIsInteractable)
+void US5_InteractionGimmickComponent::OnColletedGimmickBase(const UBoxComponent* CurrentComponent, bool bIsInteractable)
 {
 	if (this == CurrentComponent)
 	{

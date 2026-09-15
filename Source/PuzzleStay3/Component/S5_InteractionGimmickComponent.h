@@ -1,7 +1,7 @@
 ﻿#pragma once
 
 #include "CoreMinimal.h"
-#include "Components/ActorComponent.h"
+#include "Components/BoxComponent.h"
 #include "Data/Delegates/CosmeticDelegates.h"
 #include "Player/Interaction/PS3InteractableInterface.h"
 #include "S5_InteractionGimmickComponent.generated.h"
@@ -9,7 +9,7 @@
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnInteractionGimmick_S5, bool);
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
-class PUZZLESTAY3_API US5_InteractionGimmickComponent : public UActorComponent , public IPS3InteractableInterface
+class PUZZLESTAY3_API US5_InteractionGimmickComponent : public UBoxComponent , public IPS3InteractableInterface
 {
 	GENERATED_BODY()
 
@@ -23,7 +23,7 @@ public:
 	virtual bool Interact_Implementation(AActor* Requestor) override;
 	
 	void OnStartedGame(bool bIsGameStart);
-	void OnColletedGimmickBase(const UActorComponent* CurrentComponent, bool bIsInteractable);
+	void OnColletedGimmickBase(const UBoxComponent* CurrentComponent, bool bIsInteractable);
 	
 	FOnInteractionGimmick_S5 OnInteractionGimmick;
 	FOnCosmeticInteractionSuccessed OnCosmeticInteractionSuccessed;
@@ -39,10 +39,7 @@ public:
 	bool bIsStartedGame = false;
 	
 	UPROPERTY(EditAnywhere, Category = "Interaction|Settings")
-	TObjectPtr<class UBoxComponent> InteractionUIOverlapComponent;
-	
-	UPROPERTY(EditAnywhere, Category = "Interaction|Settings")
-	float TargetFOVAngle = 60.0f;
+	float TargetFOVAngle = 90.0f;
 	
 protected:
 	UFUNCTION()
@@ -53,8 +50,15 @@ protected:
 	void OnCharacterEndOverlapForUI(UPrimitiveComponent* OverlappedComp,
 	AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 	
+	bool CheckCanDisplayedUI();
+	void CheckCanDisplayedUIForTimer();
+	
 	UPROPERTY()
 	TArray<TObjectPtr<AActor>> OverlappedCharacters;
+	
+	FTimerHandle CheckPlayerTimerHandle;
+	
+	bool bIsUIVisible = false;
 	
 	
 };
