@@ -1,5 +1,6 @@
 ﻿#include "PS3GameModeBase.h"
 
+#include "EngineUtils.h"
 #include "GameFramework/GameStateBase.h"
 #include "GameFramework/PlayerState.h"
 #include "Kismet/GameplayStatics.h"
@@ -7,6 +8,8 @@
 #include "Core/GameState/PS3GameStateBase.h"
 #include "Data/DataAsset/Base_GameRuleDataAsset.h"
 #include "Data/Delegates/UIDelegatesSubsystem.h"
+#include "Data/Enum/PlayerStartType.h"
+#include "Object/PS3PlayerStartBase.h"
 #include "Player/PlayerState/PS3PlayerState.h"
 
 
@@ -79,6 +82,42 @@ void APS3GameModeBase::SetPlayerIdentity(APS3PlayerState* NewPlayerState)
 	{
 		NewPlayerState->SetPlayerIdentity(EPS3PlayerIdentity::Player1);
 	}	
+}
+
+AActor* APS3GameModeBase::FindPlayerStart_Implementation(AController* Player, const FString& IncomingName)
+{
+	if (!IsValid(Player))
+	{
+		return Super::FindPlayerStart_Implementation(Player, IncomingName);
+	}
+
+	APS3PlayerState* PS3PlayerState = Player->GetPlayerState<APS3PlayerState>();
+	if (!IsValid(PS3PlayerState))
+	{
+		return Super::FindPlayerStart_Implementation(Player, IncomingName);
+	}
+
+	EPlayerStartType TargetStartType = EPlayerStartType::None;
+
+	if (PS3PlayerState->GetPlayerIdentity() == EPS3PlayerIdentity::Player1)
+	{
+		TargetStartType = EPlayerStartType::Player1;
+	}
+	else if (PS3PlayerState->GetPlayerIdentity() == EPS3PlayerIdentity::Player2)
+	{
+		TargetStartType = EPlayerStartType::Player2;
+	}
+
+	for (TActorIterator<APS3PlayerStartBase> It(GetWorld()); It; ++It)
+	{
+		APS3PlayerStartBase* PlayerStart = *It;
+
+		if (IsValid(PlayerStart) && PlayerStart->PlayerStartType == TargetStartType)
+		{
+			return PlayerStart;
+		}
+	}
+	return Super::FindPlayerStart_Implementation(Player, IncomingName);
 }
 
 void APS3GameModeBase::RegisterInteractionSwitch(UInteractionSwitchComponent* SwitchComp)
