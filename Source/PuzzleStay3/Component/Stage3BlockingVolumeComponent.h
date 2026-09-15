@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "Components/BoxComponent.h"
-#include "Core/GameMode/PS3GameModeBase.h"
 #include "Stage3BlockingVolumeComponent.generated.h"
 
 //모드한테 명령받아서 콜리전을 nocollision으로 전환 -> 구현예정
@@ -26,4 +25,21 @@ protected:
 	void HandleStage3BlockingDisabledChanged(bool bDisabled);
 
 	void ApplyBlockingDisabled(bool bDisabled);
+	
+	UFUNCTION()
+	void HandleBlockingVolumeHit(
+		UPrimitiveComponent* HitComponent,
+		AActor* OtherActor,
+		UPrimitiveComponent* OtherComp,
+		FVector NormalImpulse,
+		const FHitResult& Hit
+	);
+	
+private:
+	bool bCanShowBlockNotify = true;
+
+	UPROPERTY(EditAnywhere, Category = "UI")
+	float BlockNotifyCooldown = 1.5f;
+
+	FTimerHandle BlockNotifyCooldownTimerHandle;
 };

@@ -32,6 +32,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "UI|HUD")
 	void SetPlayerHUD(APlayerHUD* InPlayerHUD);
 
+	UFUNCTION(BlueprintCallable, Category = "UI|HUD")
+	void ClearPlayerHUD(APlayerHUD* InPlayerHUD);
+
 	virtual void BeginDestroy() override;
 
 	UFUNCTION(BlueprintCallable, Category = "UI|TextNotify")
