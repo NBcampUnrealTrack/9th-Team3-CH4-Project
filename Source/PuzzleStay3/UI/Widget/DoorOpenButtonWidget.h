@@ -6,6 +6,7 @@
 
 class APlayerHUD;
 class UButton;
+class UImage;
 class UPS3ViewModel;
 
 UCLASS()
@@ -35,6 +36,14 @@ public:
 	);
 
 	UFUNCTION(BlueprintCallable, Category = "UI|DoorOpenButton")
+	void SetDoorPressedFilters(
+		bool bDoor1Pressed,
+		bool bDoor2Pressed,
+		bool bDoor3Pressed,
+		bool bDoor4Pressed
+	);
+
+	UFUNCTION(BlueprintCallable, Category = "UI|DoorOpenButton")
 	void RequestDoorActivation(int32 InDoorIndex, bool bIsActive);
 
 protected:
@@ -59,7 +68,20 @@ protected:
 	UPROPERTY(BlueprintReadOnly, meta = (BindWidget))
 	TObjectPtr<UButton> DoorButton4;
 
+	UPROPERTY(BlueprintReadOnly, meta = (BindWidgetOptional))
+	TObjectPtr<UImage> DoorButton1PressedFilter;
+
+	UPROPERTY(BlueprintReadOnly, meta = (BindWidgetOptional))
+	TObjectPtr<UImage> DoorButton2PressedFilter;
+
+	UPROPERTY(BlueprintReadOnly, meta = (BindWidgetOptional))
+	TObjectPtr<UImage> DoorButton3PressedFilter;
+
+	UPROPERTY(BlueprintReadOnly, meta = (BindWidgetOptional))
+	TObjectPtr<UImage> DoorButton4PressedFilter;
+
 private:
+	void SetPressedFilterVisible(UImage* PressedFilter, bool bVisible);
 	void BindDoorButtonDelegates();
 	void UnbindDoorButtonDelegates();
 

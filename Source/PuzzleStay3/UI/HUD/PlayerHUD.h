@@ -131,6 +131,14 @@ public:
 	);
 
 	UFUNCTION(BlueprintCallable, Category = "UI|DoorOpenButton")
+	void SetDoorPressedFilters(
+		bool bDoor1Pressed,
+		bool bDoor2Pressed,
+		bool bDoor3Pressed,
+		bool bDoor4Pressed
+	);
+
+	UFUNCTION(BlueprintCallable, Category = "UI|DoorOpenButton")
 	void RequestDoorActivation(int32 InDoorIndex, bool bIsActive);
 
 	UFUNCTION(BlueprintCallable, Category = "UI|VoiceChatIcon")
