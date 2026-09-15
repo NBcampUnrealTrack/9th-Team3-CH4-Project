@@ -186,6 +186,9 @@ void UPS3ViewModel::BindGameplayUIDelegates()
 	UIDelegatesSubsystem->OnTextNotify_UI.AddUObject(
 		this,
 		&ThisClass::HandleTextNotify_UI);
+	
+	UIDelegatesSubsystem->OnVoiceChatSpeaking_UI.RemoveAll(this);
+	UIDelegatesSubsystem->OnVoiceChatSpeaking_UI.AddUObject(this,&ThisClass::RequestVoiceChatSpeaking);
 }
 
 void UPS3ViewModel::UnbindGameplayUIDelegates()
@@ -217,6 +220,7 @@ void UPS3ViewModel::UnbindGameplayUIDelegates()
 	UIDelegatesSubsystem->OnInteractRequestS5_UI.RemoveAll(this);
 	UIDelegatesSubsystem->OnTextNotifyVisible_UI.RemoveAll(this);
 	UIDelegatesSubsystem->OnTextNotify_UI.RemoveAll(this);
+	UIDelegatesSubsystem->OnVoiceChatSpeaking_UI.RemoveAll(this);
 }
 
 void UPS3ViewModel::HandleStageType_UI(EPS3StageType StageType)
@@ -232,7 +236,7 @@ void UPS3ViewModel::RefreshStageUI()
 
 void UPS3ViewModel::HandleScreenPlayer_UI(bool bVisible)
 {
-	if (CurrentStageType == EPS3StageType::Stage5 && bVisible)
+	if (bVisible)
 	{
 		RequestSetDoorOpenButtonVisible(true);
 		RequestSetInteractionNotifyVisible(false);
@@ -241,7 +245,7 @@ void UPS3ViewModel::HandleScreenPlayer_UI(bool bVisible)
 
 void UPS3ViewModel::HandleFieldPlayer_UI(bool bVisible)
 {
-	if (CurrentStageType == EPS3StageType::Stage5 && bVisible)
+	if (bVisible)
 	{
 		RequestSetDoorOpenButtonVisible(false);
 		RequestSetInteractionNotifyVisible(true);
@@ -468,10 +472,8 @@ void UPS3ViewModel::ApplyStageUI()
 	case EPS3StageType::Stage5:
 		RequestSetLifeCountVisible(false);
 		bVoiceChatIconEnabled = true;
-		RequestSetInteractionNotifyVisible(true);
 		bTextNotifyEnabled = true;
 		RequestSetTimerNotifyVisible(true);
-		RequestSetDoorOpenButtonVisible(false);
 		break;
 	default:
 		break;

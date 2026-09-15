@@ -65,12 +65,7 @@ void APS3ChoiceController::ConfigureInputMapping()
 	bShowMouseCursor = true;
 }
 
-void APS3ChoiceController::Client_ShowTextNotify_Implementation(EPS3TextNotifyType NotifyType)
-{
-	if (!IsLocalController()) return;
 
-	PS3_BROADCAST_TO_MVVM_OneParams(OnTextNotify_UI, NotifyType);
-}
 
 void APS3ChoiceController::ServerRPC_SelectedControllerType_Implementation(EPS3PlayerRole SelectedPlayerRoleType)
 {

@@ -144,10 +144,13 @@ private:
 	EJeoulTiltState CurrentTiltState = EJeoulTiltState::Balanced;
 
 	UPROPERTY(EditAnywhere, Category = "Jeoul Settings")
-	float CutSceneTime = 3.0f;
+	float CutSceneTime = 5.0f;
 
 	UPROPERTY(EditAnywhere, Category = "Jeoul Settings")
 	float ResetBeamTime = 1.5f;
+	
+	UPROPERTY(EditAnywhere, Category = "Jeoul Settings")
+	float TiltAnimDelay = 2.f;
 
 	TArray<TWeakObjectPtr<APS3PlayerController>> CutsceneParticipants;
 };

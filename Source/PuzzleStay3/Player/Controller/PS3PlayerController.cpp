@@ -574,6 +574,13 @@ void APS3PlayerController::EndJeoulCutscene()
 	PreviousCutsceneViewTarget.Reset();
 }
 
+void APS3PlayerController::Client_ShowTextNotify_Implementation(EPS3TextNotifyType NotifyType)
+{
+	if (!IsLocalController()) return;
+
+	PS3_BROADCAST_TO_MVVM_OneParams(OnTextNotify_UI, NotifyType);
+}
+
 void APS3PlayerController::HandleJeoulCheckFinished(bool bIsSuccess)
 {
 	if (JeoulCutsceneState == EJeoulCutsceneState::Playing)

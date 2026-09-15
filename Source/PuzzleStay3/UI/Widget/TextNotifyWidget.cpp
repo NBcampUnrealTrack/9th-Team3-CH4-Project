@@ -41,11 +41,14 @@ void UTextNotifyWidget::ShowTextNotify(EPS3TextNotifyType NotifyType)
 	case EPS3TextNotifyType::RadioAcquired:
 		ShowTextNotifyInternal(FText::FromString(TEXT("무전기를 얻었다. 하지만 상태가 좋지 않은 것 같다.")), DefaultTextNotifyFontSize, StageTextNotifyDuration);
 		break;
-	case EPS3TextNotifyType::Radiorepair:
+	case EPS3TextNotifyType::RadioRepair:
 		ShowTextNotifyInternal(FText::FromString(TEXT("무전기 상태가 좋아진 것 같다.")), DefaultTextNotifyFontSize, StageTextNotifyDuration);
 		break;
 	case EPS3TextNotifyType::BlockVolume:
 		ShowTextNotifyInternal(FText::FromString(TEXT("가기 전에 먼저 해야 할 일이 있는 것 같다.")), DefaultTextNotifyFontSize, StageTextNotifyDuration);
+		break;
+	case EPS3TextNotifyType::S5Collision:
+		ShowTextNotifyInternal(FText::FromString(TEXT("가짜 석상이었다. 잠시 기절했던 것 같다.")), DefaultTextNotifyFontSize, StageTextNotifyDuration);
 		break;
 	case EPS3TextNotifyType::None:
 	default:
