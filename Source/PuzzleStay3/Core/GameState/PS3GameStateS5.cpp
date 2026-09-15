@@ -116,8 +116,8 @@ void APS3GameStateS5::OnRep_IsGameOver()
 	PS3_BROADCAST_TO_MVVM_OneParams(OnVoiceChatIcon_UI, false);
 	PS3_BROADCAST_TO_MVVM_OneParams(OnFieldPlayer_UI, false);
 	PS3_BROADCAST_TO_MVVM_OneParams(OnScreenPlayer_UI, false);
-	PS3_BROADCAST_TO_MVVM_OneParams(OnIsGameOver_UI, true);
 	
+	PS3_BROADCAST_TO_MVVM_OneParams(OnIsGameOver_UI, true);
 }
 
 
@@ -200,9 +200,9 @@ void APS3GameStateS5::OnQuitGame()
 void APS3GameStateS5::NoneReceivedDecalFloor()
 {
 	TArray<AActor*> FloorActors;
-	UGameplayStatics::GetAllActorsWithTag(GetWorld(), FName("Floor"), FloorActors);
+	UGameplayStatics::GetAllActorsWithTag(GetWorld(), FName("NotDecalReceivedFloor"), FloorActors);
 
-	checkf(FloorActors.Num() > 0, TEXT("바닥 메쉬 ActorTag 배열에 [Floor] Tag를 추가해주세요."));
+	checkf(FloorActors.Num() > 0, TEXT("바닥 메쉬 ActorTag 배열에 [NotDecalReceivedFloor] Tag를 추가해주세요."));
 		
 	for (AActor* Actor : FloorActors)
 	{
