@@ -34,6 +34,8 @@ AJeoul::AJeoul()
 	PlateTrigger = CreateDefaultSubobject<UBoxComponent>(TEXT("PlateTrigger"));
 	PlateTrigger->SetupAttachment(JeoulSkeletalMesh, TEXT("ikHandle1"));
 	PlateTrigger->SetCollisionProfileName(TEXT("BlockAllDynamic"));
+	
+	PlateTrigger->SetRelativeRotation(FRotator(180.0f, 0.0f, 0.0f));
 
 	CutsceneCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("CutsceneCamera"));
 	CutsceneCamera->SetupAttachment(RootComponent);
@@ -131,12 +133,10 @@ void AJeoul::Multicast_RestorePlayerCharacter_Implementation(APS3PlayerCharacter
 
 	TargetCharacter->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
 	
-	// 2. ★ 핵심: 저울에 의해 기울어졌던 캐릭터 액터의 Pitch/Roll을 0으로 만들어 똑바로 세움
 	FRotator CurrentRot = TargetCharacter->GetActorRotation();
 	FRotator UprightRot = FRotator(0.0f, CurrentRot.Yaw, 0.0f);
 	TargetCharacter->SetActorRotation(UprightRot);
 
-	// 3. ★ 핵심: 컨트롤러 카메라 시점도 Pitch/Roll을 제거하여 수평 복구
 	if (AController* Controller = TargetCharacter->GetController())
 	{
 		Controller->SetControlRotation(UprightRot);
@@ -157,7 +157,9 @@ void AJeoul::Multicast_AlignPlayerCharacter_Implementation(APS3PlayerCharacter* 
 		MovementComp->StopMovementImmediately();
 	}
 
-	TargetCharacter->SetActorLocationAndRotation(TargetLocation, TargetRotation, false, nullptr,
+	FRotator UprightTargetRotation = FRotator(0.0f, TargetRotation.Yaw, 0.0f);
+
+	TargetCharacter->SetActorLocationAndRotation(TargetLocation, UprightTargetRotation, false, nullptr,
 	                                             ETeleportType::TeleportPhysics);
 
 	if (AttachTarget)
@@ -167,9 +169,7 @@ void AJeoul::Multicast_AlignPlayerCharacter_Implementation(APS3PlayerCharacter* 
 
 	if (AController* Controller = TargetCharacter->GetController())
 	{
-		// ★ 핵심: ControlRotation에는 Pitch와 Roll을 0으로 만들어 Yaw(좌우 바라보는 방향)만 설정
-		FRotator CleanCameraRotation = FRotator(0.0f, TargetRotation.Yaw, 0.0f);
-		Controller->SetControlRotation(CleanCameraRotation);
+		Controller->SetControlRotation(UprightTargetRotation);
 	}
 }
 
@@ -201,8 +201,9 @@ void AJeoul::AlignPlayersAndDumbbells()
 				{
 					TargetLocation.Z += Capsule->GetScaledCapsuleHalfHeight();
 				}
+
 				Multicast_AlignPlayerCharacter(Cast<APS3PlayerCharacter>(Character), TargetLocation, TargetRotation,
-				                               JeoulSkeletalMesh);
+				                               PlateTrigger);
 			}
 		}
 		else if (ADumbbell* Dumbbell = Cast<ADumbbell>(Actor))
@@ -213,7 +214,7 @@ void AJeoul::AlignPlayersAndDumbbells()
 				if (SlotSpot)
 				{
 					Dumbbell->AttachToComponent(
-						JeoulSkeletalMesh,
+						PlateTrigger,
 						FAttachmentTransformRules::SnapToTargetNotIncludingScale
 					);
 					Dumbbell->SetActorRelativeLocation(SlotSpot->GetRelativeLocation());
@@ -246,7 +247,6 @@ void AJeoul::RequestCutsceneReturn(APS3PlayerController* RequestingController)
 	}
 }
 
-
 float AJeoul::CalculateWeightOnPlate(UBoxComponent* InOverlapTrigger)
 {
 	if (!InOverlapTrigger) return 0.0f;
@@ -271,7 +271,7 @@ float AJeoul::CalculateWeightOnPlate(UBoxComponent* InOverlapTrigger)
 				if (HasAuthority())
 				{
 					Dumbbell->AttachToComponent(
-						JeoulSkeletalMesh,
+						PlateTrigger,
 						FAttachmentTransformRules::KeepWorldTransform
 					);
 				}
@@ -300,6 +300,28 @@ void AJeoul::Multicast_OnJeoulCheckStarted_Implementation()
 void AJeoul::Multicast_OnJeoulCheckFinished_Implementation(bool bIsSuccess)
 {
 	OnJeoulCheckFinished.Broadcast(bIsSuccess);
+}
+
+void AJeoul::Multicast_PlayTiltAnimation_Implementation(EJeoulTiltState TiltState)
+{
+	if (!JeoulSkeletalMesh) return;
+
+	UAnimInstance* AnimInstance = JeoulSkeletalMesh->GetAnimInstance();
+	if (!AnimInstance) return;
+
+	if (TiltState == EJeoulTiltState::TiltLeft && LeftTiltMontage)
+	{
+		AnimInstance->Montage_Play(LeftTiltMontage);
+	}
+	else if (TiltState == EJeoulTiltState::TiltRight && RightTiltMontage)
+	{
+		AnimInstance->Montage_Play(RightTiltMontage);
+	}
+	else if (TiltState == EJeoulTiltState::Balanced)
+	{
+		// 정답이거나 리셋 상태일 경우 진행 중인 몽타주 중단 (원위치 평형 유지)
+		AnimInstance->Montage_Stop(0.2f);
+	}
 }
 
 void AJeoul::Server_CheckBalance_Implementation()
@@ -356,7 +378,6 @@ void AJeoul::Server_CheckBalance_Implementation()
 
 	float WeightDifference = JudgeWeight - TotalWeight;
 
-	// 무게 차이에 기반한 기울임 상태 결정 (리플리케이션되어 클라이언트 AnimBP에 연동)
 	if (FMath::IsNearlyEqual(TotalWeight, JudgeWeight, 0.01f) && TotalWeight > 0.0f)
 	{
 		CurrentTiltState = EJeoulTiltState::Balanced;
@@ -370,6 +391,8 @@ void AJeoul::Server_CheckBalance_Implementation()
 		CurrentTiltState = EJeoulTiltState::TiltRight;
 	}
 
+	Multicast_PlayTiltAnimation(CurrentTiltState);
+	
 	UE_LOG(LogTemp, Warning, TEXT("[Jeoul] 무게 차이: %f, 현재 무게: %f, 목표 무게: %f"), WeightDifference, TotalWeight, JudgeWeight);
 
 	FTimerHandle ResultTimer;

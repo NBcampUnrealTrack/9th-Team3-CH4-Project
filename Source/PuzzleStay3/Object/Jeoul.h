@@ -72,6 +72,13 @@ protected:
 
 	UPROPERTY(EditInstanceOnly, BlueprintReadWrite, Category = "Jeoul Settings")
 	TObjectPtr<AActor> ExternalSwitchActor;
+	
+	UPROPERTY(EditAnywhere, Category = "Jeoul Settings|Animation")
+	TObjectPtr<UAnimMontage> LeftTiltMontage;
+
+	UPROPERTY(EditAnywhere, Category = "Jeoul Settings|Animation")
+	TObjectPtr<UAnimMontage> RightTiltMontage;
+	
 private:
 	UPROPERTY()
 	TObjectPtr<UInteractionSwitchComponent> ExternalSwitch;
@@ -98,6 +105,9 @@ public:
 	UFUNCTION(NetMulticast, Reliable)
 	void Multicast_OnJeoulCheckFinished(bool bIsSuccess);
 
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_PlayTiltAnimation(EJeoulTiltState TiltState);
+	
 	void RequestCutsceneReturn(APS3PlayerController* RequestingController);
 	void AlignPlayersAndDumbbells();
 
