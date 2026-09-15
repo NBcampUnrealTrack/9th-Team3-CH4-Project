@@ -37,6 +37,7 @@ void UGameOverWidget::RequestGameRestart()
 		return;
 	}
 
+	UE_LOG(LogTemp, Error, TEXT("Requesting Game Restart!!!!!!"));
 	PlayerHUD->RequestGameRestart();
 }
 

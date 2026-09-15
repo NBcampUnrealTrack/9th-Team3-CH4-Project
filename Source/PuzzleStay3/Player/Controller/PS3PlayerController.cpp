@@ -67,9 +67,11 @@ void APS3PlayerController::BeginPlay()
 			&ThisClass::RefreshLifeStateBinding,
 			0.5f,
 			false);
+		
+		PS3_BROADCAST_TO_MVVM_OneParams(OnFieldPlayer_UI, true);
 	}
 	
-	PS3_BROADCAST_TO_MVVM_OneParams(OnFieldPlayer_UI, true);
+	
 }
 
 void APS3PlayerController::EndPlay(const EEndPlayReason::Type EndPlayReason)
