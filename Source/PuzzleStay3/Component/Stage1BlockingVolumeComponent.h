@@ -26,4 +26,20 @@ protected:
 
 	void ApplyBlockingDisabled(bool bDisabled);
 
+	UFUNCTION()
+	void HandleBlockingVolumeHit(
+		UPrimitiveComponent* HitComponent,
+		AActor* OtherActor,
+		UPrimitiveComponent* OtherComp,
+		FVector NormalImpulse,
+		const FHitResult& Hit
+	);
+	
+private:
+	bool bCanShowBlockNotify = true;
+
+	UPROPERTY(EditAnywhere, Category = "UI")
+	float BlockNotifyCooldown = 1.5f;
+
+	FTimerHandle BlockNotifyCooldownTimerHandle;
 };
