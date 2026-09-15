@@ -1,5 +1,6 @@
 #include "Object/Dumbbell.h"
 
+#include "Components/BoxComponent.h"
 #include "Data/Delegates/UIDelegatesSubsystem.h"
 #include "Data/Enum/PS3InteractionNotifyType.h"
 #include "Net/UnrealNetwork.h"
@@ -12,11 +13,54 @@ ADumbbell::ADumbbell()
 	DumbbellMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("DumbbellMesh"));
 	SetRootComponent(DumbbellMesh);
 
+	TriggerBox = CreateDefaultSubobject<UBoxComponent>(TEXT("TriggerBox"));
+	TriggerBox->SetupAttachment(RootComponent);
+	TriggerBox->SetCollisionProfileName(TEXT("Trigger"));
+	TriggerBox->SetBoxExtent(FVector(100.0f, 100.0f, 100.0f)); // 기본 감지 범위
+	
 	SetReplicatingMovement(true);
 	bReplicates = true;
 
 	DumbbellMesh->SetSimulatePhysics(false);
 	DumbbellMesh->SetCollisionProfileName(TEXT("BlockAllDynamic"));
+}
+
+void ADumbbell::BeginPlay()
+{
+	Super::BeginPlay();
+
+	if (TriggerBox)
+	{
+		TriggerBox->OnComponentBeginOverlap.AddDynamic(this, &ADumbbell::OnTriggerBeginOverlap);
+		TriggerBox->OnComponentEndOverlap.AddDynamic(this, &ADumbbell::OnTriggerEndOverlap);
+	}
+}
+
+void ADumbbell::OnTriggerBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if (APS3PlayerCharacter* PlayerCharacter = Cast<APS3PlayerCharacter>(OtherActor))
+	{
+		if (PlayerCharacter->IsLocallyControlled())
+		{
+			ShowInteractionUI(true);
+		}
+	}
+}
+
+void ADumbbell::OnTriggerEndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	if (APS3PlayerCharacter* PlayerCharacter = Cast<APS3PlayerCharacter>(OtherActor))
+	{
+		if (PlayerCharacter->IsLocallyControlled())
+		{
+			if (IsHeld() && HoldingPlayer == PlayerCharacter)
+			{
+				return;
+			}
+
+			ShowInteractionUI(false);
+		}
+	}
 }
 
 void ADumbbell::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -127,9 +171,26 @@ void ADumbbell::OnConstruction(const FTransform& Transform)
 }
 
 void ADumbbell::OnRep_HoldingPlayer()
-{
+{	
 	const bool bIsHeld = (HoldingPlayer != nullptr);
+
 	DumbbellMesh->SetCollisionEnabled(bIsHeld ? ECollisionEnabled::NoCollision : ECollisionEnabled::QueryAndProbe);
+
+	if (TriggerBox)
+	{
+		TriggerBox->SetCollisionEnabled(bIsHeld ? ECollisionEnabled::NoCollision : ECollisionEnabled::QueryOnly);
+	}
+
+	if (HoldingPlayer && HoldingPlayer->IsLocallyControlled())
+	{
+		ShowInteractionUI(true);
+	}
+	else if (!bIsHeld && PreviousHoldingPlayer && PreviousHoldingPlayer->IsLocallyControlled())
+	{
+		ShowInteractionUI(false);
+	}
+
+	PreviousHoldingPlayer = HoldingPlayer;
 }
 
 void ADumbbell::ShowInteractionUI(bool bShow)
@@ -138,20 +199,17 @@ void ADumbbell::ShowInteractionUI(bool bShow)
 	{
 		if (!IsHeld())
 		{
-			// 바닥에 위치 시: F키(Interact) 노출, G키(Drop) 제거
 			PS3_BROADCAST_TO_MVVM_OneParams(OnInteractionNotifyAddRequested_UI, EPS3InteractionNotifyType::Interact);
 			PS3_BROADCAST_TO_MVVM_OneParams(OnInteractionNotifyRemoveRequested_UI, EPS3InteractionNotifyType::Drop);
 		}
 		else
 		{
-			// 손에 들고 있을 시: F키(Interact) 제거, G키(Drop) 노출
 			PS3_BROADCAST_TO_MVVM_OneParams(OnInteractionNotifyRemoveRequested_UI, EPS3InteractionNotifyType::Interact);
 			PS3_BROADCAST_TO_MVVM_OneParams(OnInteractionNotifyAddRequested_UI, EPS3InteractionNotifyType::Drop);
 		}
 	}
 	else
 	{
-		// 포커스/영역 이탈 시 두 UI 모두 제거 요청
 		PS3_BROADCAST_TO_MVVM_OneParams(OnInteractionNotifyRemoveRequested_UI, EPS3InteractionNotifyType::Interact);
 		PS3_BROADCAST_TO_MVVM_OneParams(OnInteractionNotifyRemoveRequested_UI, EPS3InteractionNotifyType::Drop);
 	}

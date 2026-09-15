@@ -5,6 +5,7 @@
 #include "Player/Interaction/PS3InteractableInterface.h"
 #include "Dumbbell.generated.h"
 
+class UBoxComponent;
 class APS3PlayerCharacter;
 
 UENUM(BlueprintType)
@@ -44,11 +45,16 @@ public:
 	void ShowInteractionUI(bool bShow);
 	
 protected:
+	virtual void BeginPlay() override;
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<UStaticMeshComponent> DumbbellMesh;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	TObjectPtr<UBoxComponent> TriggerBox;
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dumbbell|Settings")
-	FVector GrabOffset = FVector(0.0f, 20.0f, 0.0f);
+	FVector GrabOffset = FVector(20.0f, 20.0f, 0.0f);
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dumbbell|Settings")
 	FRotator GrabRotationOffset = FRotator(0.0f, 0.0f, 0.0f);
@@ -64,7 +70,18 @@ protected:
 	
 	UPROPERTY(ReplicatedUsing = OnRep_HoldingPlayer)
 	TObjectPtr<APS3PlayerCharacter> HoldingPlayer = nullptr;
-
+	
+	UPROPERTY()
+	TObjectPtr<APS3PlayerCharacter> PreviousHoldingPlayer = nullptr;
+	
 	UFUNCTION()
 	void OnRep_HoldingPlayer();
+	
+private:
+	UFUNCTION()
+	void OnTriggerBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+	UFUNCTION()
+	void OnTriggerEndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
 };
