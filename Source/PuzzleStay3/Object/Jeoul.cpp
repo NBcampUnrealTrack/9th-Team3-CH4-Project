@@ -47,7 +47,7 @@ AJeoul::AJeoul()
 	Player2Spot = CreateDefaultSubobject<USceneComponent>(TEXT("Player2Spot"));
 	Player2Spot->SetupAttachment(PlateTrigger);
 
-	// ★ 더미 메쉬 생성 및 Spot에 기본 부착 (기본값 숨김)
+	// 더미 메쉬 생성 및 Spot에 기본 부착
 	DummyPlayer1Mesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("DummyPlayer1Mesh"));
 	DummyPlayer1Mesh->SetupAttachment(Player1Spot);
 	DummyPlayer1Mesh->SetVisibility(false);
@@ -73,15 +73,15 @@ void AJeoul::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// ★ 정확한 저울판 본(joint5 또는 ikHandle1) 존재 여부 검사 후 부착
+	// ★ [수정] joint5 소켓 존재 검사 및 KeepWorldTransform을 통한 올바른 위치/회전 부착
 	if (JeoulSkeletalMesh && JeoulSkeletalMesh->DoesSocketExist(TEXT("joint5")))
 	{
 		if (PlateTrigger)
 		{
 			PlateTrigger->AttachToComponent(
 				JeoulSkeletalMesh, 
-				FAttachmentTransformRules::SnapToTargetNotIncludingScale, 
-				TEXT("joint5") // 왼쪽 저울판 위치에 정확히 마운트
+				FAttachmentTransformRules::KeepWorldTransform, 
+				TEXT("joint5")
 			);
 		}
 	}
@@ -178,13 +178,17 @@ void AJeoul::Multicast_AlignPlayerCharacter_Implementation(APS3PlayerCharacter* 
 	{
 		USkeletalMeshComponent* RealMesh = TargetCharacter->GetMesh();
 
-		// ★ [핵심] 부모(저울 뼈대)의 비정상 스케일을 무시하고 독립적인 절대 스케일 유지
+		// 부모 뼈대의 비정상 스케일 상속 방지
 		TargetDummy->SetAbsolute(false, false, true); 
 	
-		// ★ [핵심] 진짜 캐릭터의 정상 스케일, 상대 위치/회전 오프셋 복사
+		// 진짜 캐릭터의 정상 스케일, 상대 위치/회전 오프셋 복사
 		TargetDummy->SetWorldScale3D(RealMesh->GetComponentScale());
 		TargetDummy->SetRelativeLocation(RealMesh->GetRelativeLocation());
-		TargetDummy->SetRelativeRotation(RealMesh->GetRelativeRotation());
+		
+		// ★ [수정] 기본 메쉬 회전에 DummyYawOffset 오프셋을 더해 보는 방향 제어
+		FRotator TargetMeshRotation = RealMesh->GetRelativeRotation();
+		TargetMeshRotation.Yaw += DummyYawOffset;
+		TargetDummy->SetRelativeRotation(TargetMeshRotation);
 
 		// 메쉬 및 머티리얼 복사
 		TargetDummy->SetSkeletalMesh(RealMesh->GetSkeletalMeshAsset());
@@ -292,9 +296,7 @@ void AJeoul::AlignPlayersAndDumbbells()
 					TargetLocation.Z += Capsule->GetScaledCapsuleHalfHeight();
 				}
 
-				// ★ PlateTrigger 대신 TargetSpot을 넘겨주어야 DummyPlayer1 / DummyPlayer2가 정상 구분됨
-				Multicast_AlignPlayerCharacter(Cast<APS3PlayerCharacter>(Character), TargetLocation, TargetRotation,
-											   TargetSpot);
+				Multicast_AlignPlayerCharacter(Cast<APS3PlayerCharacter>(Character), TargetLocation, TargetRotation, TargetSpot);
 			}
 		}
 		else if (ADumbbell* Dumbbell = Cast<ADumbbell>(Actor))
@@ -439,7 +441,6 @@ void AJeoul::Server_CheckBalance_Implementation()
 
 	CurrentState = EJeoulState::Checking;
 
-	// ★ 1. 콜리전이 켜져 있는 상태에서 플레이어를 구하고 카메라 전환(Client_BeginJeoulCutscene) RPC를 먼저 실행
 	TArray<AActor*> PlayersOnPlate;
 	OverlapTrigger->GetOverlappingActors(PlayersOnPlate, APS3PlayerCharacter::StaticClass());
 
@@ -455,7 +456,6 @@ void AJeoul::Server_CheckBalance_Implementation()
 		}
 	}
 
-	// ★ 2. 카메라 전환 요청 직후 플레이어 비활성화 및 더미 메쉬 교체 진행
 	AlignPlayersAndDumbbells();
 
 	Multicast_OnJeoulCheckStarted();

@@ -74,6 +74,10 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components|Spots")
 	TObjectPtr<USkeletalMeshComponent> DummyPlayer2Mesh;
+	
+	// ★ [추가] 컷씬 플레이어 더미의 보는 방향(Yaw) 오프셋 (에디터에서 0, 90, 180, -90 등 조정 가능)
+	UPROPERTY(EditAnywhere, Category = "Jeoul Settings|Cutscene")
+	float DummyYawOffset = 0.0f;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components|Spots")
 	TArray<TObjectPtr<USceneComponent>> DumbbellSpots;
