@@ -13,5 +13,8 @@ enum class EPS3TextNotifyType : uint8
 	Stage4,
 	Stage5,
 	DoorOpenedSound,
-	DoorClosedSound
+	DoorClosedSound,
+	RadioBroken,
+	RadioAcquired,
+	BlockVolume
 };
