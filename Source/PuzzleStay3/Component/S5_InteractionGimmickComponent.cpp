@@ -13,6 +13,8 @@ US5_InteractionGimmickComponent::US5_InteractionGimmickComponent()
 {
 	//if (GetOwner() == nullptr) return;
 	
+	SetIsReplicatedByDefault(true);
+	
 	InitBoxExtent(FVector(140.0f, 140.0f, 140.0f));
 }
 
