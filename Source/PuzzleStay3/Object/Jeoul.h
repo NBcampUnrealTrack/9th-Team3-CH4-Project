@@ -19,17 +19,17 @@ DECLARE_MULTICAST_DELEGATE_OneParam(FOnJeoulCheckFinished, bool);
 UENUM(BlueprintType)
 enum class EJeoulState : uint8
 {
-	Idle, // 대기 상태
+	Idle,     // 대기 상태
 	Checking, // 컷씬 및 기울기 연출 진행 중
-	Resolved // 정답 완료
+	Resolved  // 정답 완료
 };
 
 UENUM(BlueprintType)
 enum class EJeoulTiltState : uint8
 {
-	Balanced,   // 수평 (움직임 없음)
-	TiltLeft,   // 왼쪽으로 기울음
-	TiltRight   // 오른쪽으로 기울음
+	Balanced, // 수평
+	TiltLeft, // 왼쪽 기울음
+	TiltRight // 오른쪽 기울음
 };
 
 UCLASS()
@@ -41,7 +41,7 @@ public:
 	AJeoul();
 	FOnJeoulCheckStarted OnJeoulCheckStarted;
 	FOnJeoulCheckFinished OnJeoulCheckFinished;
-	
+
 protected:
 	virtual void BeginPlay() override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
@@ -55,7 +55,7 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<UBoxComponent> OverlapTrigger;
-	
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<UBoxComponent> PlateTrigger;
 
@@ -83,18 +83,18 @@ protected:
 private:
 	UPROPERTY()
 	TObjectPtr<UInteractionSwitchComponent> ExternalSwitch;
-	
+
 #pragma endregion
 
 public:
 	UCameraComponent* GetCutsceneCamera() const { return CutsceneCamera; }
-	
+
 	UFUNCTION(BlueprintCallable, Category = "Jeoul")
 	EJeoulTiltState GetTiltState() const { return CurrentTiltState; }
-	
+
 	UFUNCTION(BlueprintCallable, Category = "Jeoul")
 	EJeoulState GetJeoulState() const { return CurrentState; }
-	
+
 	float CalculateWeightOnPlate(UBoxComponent* InPlateTrigger);
 
 	UFUNCTION(Server, Reliable)
@@ -121,16 +121,13 @@ public:
 
 private:
 	void OnCheckButtonPressed(bool bActivated);
-
 	bool HasBothPlayersOnPlate() const;
-
-	FRotator InitialBeamRotation;
 
 	static void SetupBlockingMesh(UPrimitiveComponent* Mesh, ECollisionResponse VisibilityResponse);
 
 	UPROPERTY(Replicated)
 	EJeoulState CurrentState = EJeoulState::Idle;
-	
+
 	UPROPERTY(Replicated, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	EJeoulTiltState CurrentTiltState = EJeoulTiltState::Balanced;
 

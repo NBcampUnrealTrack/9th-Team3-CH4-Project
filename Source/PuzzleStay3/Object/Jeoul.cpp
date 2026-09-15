@@ -32,11 +32,10 @@ AJeoul::AJeoul()
 	OverlapTrigger->SetCollisionObjectType(ECC_GameTraceChannel2);
 	OverlapTrigger->SetCollisionResponseToAllChannels(ECR_Overlap);
 	OverlapTrigger->SetGenerateOverlapEvents(true);
-	
+
 	PlateTrigger = CreateDefaultSubobject<UBoxComponent>(TEXT("PlateTrigger"));
 	PlateTrigger->SetupAttachment(JeoulSkeletalMesh, TEXT("ikHandle1"));
 	PlateTrigger->SetCollisionProfileName(TEXT("BlockAllDynamic"));
-	
 	PlateTrigger->SetRelativeRotation(FRotator(180.0f, 0.0f, 0.0f));
 
 	CutsceneCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("CutsceneCamera"));
@@ -62,7 +61,7 @@ AJeoul::AJeoul()
 void AJeoul::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
 	if (ExternalSwitchActor)
 	{
 		ExternalSwitch = ExternalSwitchActor->FindComponentByClass<UInteractionSwitchComponent>();
@@ -110,8 +109,8 @@ void AJeoul::SetupBlockingMesh(UPrimitiveComponent* Mesh, ECollisionResponse Vis
 
 void AJeoul::OnCheckButtonPressed(bool bActivated)
 {
-	if (!HasAuthority() || !bActivated || !ExternalSwitch) return; 
-	
+	if (!HasAuthority() || !bActivated || !ExternalSwitch) return;
+
 	if (CurrentState == EJeoulState::Idle)
 	{
 		Server_CheckBalance();
@@ -134,7 +133,7 @@ void AJeoul::Multicast_RestorePlayerCharacter_Implementation(APS3PlayerCharacter
 	if (!IsValid(TargetCharacter)) return;
 
 	TargetCharacter->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
-	
+
 	FRotator CurrentRot = TargetCharacter->GetActorRotation();
 	FRotator UprightRot = FRotator(0.0f, CurrentRot.Yaw, 0.0f);
 	TargetCharacter->SetActorRotation(UprightRot);
@@ -143,7 +142,7 @@ void AJeoul::Multicast_RestorePlayerCharacter_Implementation(APS3PlayerCharacter
 	{
 		Controller->SetControlRotation(UprightRot);
 	}
-	
+
 	TargetCharacter->SetCanUseFieldControls(true);
 }
 
