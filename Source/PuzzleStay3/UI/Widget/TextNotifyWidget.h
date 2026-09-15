@@ -7,6 +7,7 @@
 #include "TextNotifyWidget.generated.h"
 
 class UTextBlock;
+class USoundBase; // 현준 수정
 
 UCLASS()
 class PUZZLESTAY3_API UTextNotifyWidget : public UUserWidget
@@ -26,6 +27,9 @@ public:
 protected:
 	UPROPERTY(BlueprintReadOnly, meta = (BindWidget))
 	TObjectPtr<UTextBlock> TextNotifyText;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "UI|TextNotify|Sound") // 현준 수정
+	TObjectPtr<USoundBase> TextNotifySound; // 현준 수정
 
 private:
 	void ShowTextNotifyInternal(const FText& InDisplayText, float InFontSize, float InDisplayDuration);

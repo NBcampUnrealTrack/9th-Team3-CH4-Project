@@ -37,6 +37,10 @@ public:
 	
 	UPROPERTY(Replicated)
 	bool bIsStartedGame = false;
+
+	// 현준 수정: Client Cosmetic 이벤트 전달용 RepNotify 시퀀스
+	UPROPERTY(ReplicatedUsing = OnRep_CosmeticInteractionSuccessSequence)
+	uint8 CosmeticInteractionSuccessSequence = 0;
 	
 	UPROPERTY(EditAnywhere, Category = "Interaction|Settings")
 	float TargetFOVAngle = 120.0f;
@@ -52,6 +56,10 @@ protected:
 	
 	bool CheckCanDisplayedUI();
 	void CheckCanDisplayedUIForTimer();
+
+	// 현준 수정: Client Cosmetic 이벤트 전달용 RepNotify 콜백
+	UFUNCTION()
+	void OnRep_CosmeticInteractionSuccessSequence();
 	
 	UPROPERTY()
 	TArray<TObjectPtr<AActor>> OverlappedCharacters;
