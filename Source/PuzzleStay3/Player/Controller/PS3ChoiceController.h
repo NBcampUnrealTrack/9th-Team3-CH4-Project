@@ -4,6 +4,7 @@
 #include "PS3PlayerController.h"
 #include "PS3ChoiceController.generated.h"
 
+enum class EPS3TextNotifyType : uint8;
 enum class EPS3PlayerRole : uint8;
 
 
@@ -43,9 +44,8 @@ public:
 protected:
 	FTimerHandle InitTimerHandle;
 	
-	
-	
-
-	
+public:
+	UFUNCTION(Client, Reliable)
+	void Client_ShowTextNotify(EPS3TextNotifyType NotifyType);
 };
 
