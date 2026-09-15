@@ -38,6 +38,7 @@ DECLARE_MULTICAST_DELEGATE_OneParam(FOnFieldPlayer_UI, bool)
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnIsGameOver_UI, bool)
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnTutorial_UI, bool)
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnTitle_UI, bool)
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnVoiceChatSpeaking_UI, bool)
 #pragma endregion 
 
 
@@ -93,6 +94,7 @@ public:
 	FOnIsGameOver_UI OnIsGameOver_UI;
 	FOnTutorial_UI OnTutorial_UI;
 	FOnTitle_UI OnTitle_UI;
+	FOnVoiceChatSpeaking_UI OnVoiceChatSpeaking_UI;
 #pragma endregion 
 		
 	
