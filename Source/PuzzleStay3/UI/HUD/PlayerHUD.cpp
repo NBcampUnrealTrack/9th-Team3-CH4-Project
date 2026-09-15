@@ -13,6 +13,7 @@
 #include "../Widget/TutorialNotifyWidget.h"
 #include "../Widget/VoiceChatIconWidget.h"
 #include "../ViewModel/PS3ViewModel.h"
+#include "Player/Controller/PS3PlayerControllerBase.h"
 #include "View/MVVMView.h"
 
 APlayerHUD::APlayerHUD()
@@ -58,6 +59,20 @@ void APlayerHUD::BeginPlay()
 
 void APlayerHUD::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
+	if (ViewModel)
+	{
+		ViewModel->ClearPlayerHUD(this);
+	}
+
+	if (RootHUDWidget)
+	{
+		RootHUDWidget->RemoveFromParent();
+	}
+
+	RootHUDWidget = nullptr;
+	ViewModel = nullptr;
+	bIsUIReady = false;
+
 	Super::EndPlay(EndPlayReason);
 }
 
@@ -105,6 +120,12 @@ void APlayerHUD::SetViewModel(UPS3ViewModel* InViewModel)
 	if (ViewModel)
 	{
 		ViewModel->SetPlayerHUD(this);
+
+		APS3PlayerControllerBase* PS3PlayerController = Cast<APS3PlayerControllerBase>(GetOwningPlayerController());
+		if (PS3PlayerController)
+		{
+			PS3PlayerController->ConfigureViewModelBindings(ViewModel);
+		}
 	}
 
 	ApplyViewModelToWidgets();
