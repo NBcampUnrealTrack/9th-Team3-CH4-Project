@@ -3,11 +3,13 @@
 #include "../HUD/PlayerHUD.h"
 #include "../ViewModel/PS3ViewModel.h"
 #include "Components/Button.h"
+#include "Components/Image.h"
 
 void UDoorOpenButtonWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
 	BindDoorButtonDelegates();
+	SetDoorPressedFilters(false, false, false, false);
 }
 
 void UDoorOpenButtonWidget::NativeDestruct()
@@ -52,7 +54,21 @@ void UDoorOpenButtonWidget::UpdateDoorOpenButtons(
 	ViewModel->SetIsDoor2Unlocked(bInDoor2Unlocked);
 	ViewModel->SetIsDoor3Unlocked(bInDoor3Unlocked);
 	ViewModel->SetIsDoor4Unlocked(bInDoor4Unlocked);
+	SetDoorPressedFilters(!bInDoor1Unlocked, !bInDoor2Unlocked, !bInDoor3Unlocked, !bInDoor4Unlocked);
 	ShowDoorOpenButton();
+}
+
+void UDoorOpenButtonWidget::SetDoorPressedFilters(
+	bool bDoor1Pressed,
+	bool bDoor2Pressed,
+	bool bDoor3Pressed,
+	bool bDoor4Pressed
+)
+{
+	SetPressedFilterVisible(DoorButton1PressedFilter, bDoor1Pressed);
+	SetPressedFilterVisible(DoorButton2PressedFilter, bDoor2Pressed);
+	SetPressedFilterVisible(DoorButton3PressedFilter, bDoor3Pressed);
+	SetPressedFilterVisible(DoorButton4PressedFilter, bDoor4Pressed);
 }
 
 void UDoorOpenButtonWidget::RequestDoorActivation(int32 InDoorIndex, bool bIsActive)
@@ -63,6 +79,16 @@ void UDoorOpenButtonWidget::RequestDoorActivation(int32 InDoorIndex, bool bIsAct
 	}
 
 	PlayerHUD->RequestDoorActivation(InDoorIndex, bIsActive);
+}
+
+void UDoorOpenButtonWidget::SetPressedFilterVisible(UImage* PressedFilter, bool bVisible)
+{
+	if (!PressedFilter)
+	{
+		return;
+	}
+
+	PressedFilter->SetVisibility(bVisible ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
 }
 
 void UDoorOpenButtonWidget::BindDoorButtonDelegates()

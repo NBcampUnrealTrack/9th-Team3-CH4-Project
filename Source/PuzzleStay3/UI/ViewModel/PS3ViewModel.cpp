@@ -261,21 +261,44 @@ void UPS3ViewModel::HandleLifeCount_UI(int32 InCurrentLifeCount, int32 InMaxLife
 	RequestUpdateLifeCount(InCurrentLifeCount, InMaxLifeCount);
 }
 
-void UPS3ViewModel::HandleButtonEnabled_UI(EControlDoorType DoorType, bool bEnabled)
+void UPS3ViewModel::HandleButtonEnabled_UI(EControlDoorType DoorType, bool)
 {
 	switch (DoorType)
 	{
+	case EControlDoorType::None:
+		SetIsDoor1Unlocked(true);
+		SetIsDoor2Unlocked(true);
+		SetIsDoor3Unlocked(true);
+		SetIsDoor4Unlocked(true);
+		RequestSetDoorPressedFilters(false, false, false, false);
+		break;
 	case EControlDoorType::Door_A:
-		SetIsDoor1Unlocked(bEnabled);
+		SetIsDoor1Unlocked(false);
+		SetIsDoor2Unlocked(true);
+		SetIsDoor3Unlocked(true);
+		SetIsDoor4Unlocked(true);
+		RequestSetDoorPressedFilters(true, false, false, false);
 		break;
 	case EControlDoorType::Door_B:
-		SetIsDoor2Unlocked(bEnabled);
+		SetIsDoor1Unlocked(true);
+		SetIsDoor2Unlocked(false);
+		SetIsDoor3Unlocked(true);
+		SetIsDoor4Unlocked(true);
+		RequestSetDoorPressedFilters(false, true, false, false);
 		break;
 	case EControlDoorType::Door_C:
-		SetIsDoor3Unlocked(bEnabled);
+		SetIsDoor1Unlocked(true);
+		SetIsDoor2Unlocked(true);
+		SetIsDoor3Unlocked(false);
+		SetIsDoor4Unlocked(true);
+		RequestSetDoorPressedFilters(false, false, true, false);
 		break;
 	case EControlDoorType::Door_D:
-		SetIsDoor4Unlocked(bEnabled);
+		SetIsDoor1Unlocked(true);
+		SetIsDoor2Unlocked(true);
+		SetIsDoor3Unlocked(true);
+		SetIsDoor4Unlocked(false);
+		RequestSetDoorPressedFilters(false, false, false, true);
 		break;
 	default:
 		break;
@@ -524,6 +547,19 @@ void UPS3ViewModel::RequestSetDoorOpenButtonVisible(bool bVisible)
 	if (PlayerHUD)
 	{
 		PlayerHUD->SetDoorOpenButtonVisible(bVisible);
+	}
+}
+
+void UPS3ViewModel::RequestSetDoorPressedFilters(
+	bool bDoor1Pressed,
+	bool bDoor2Pressed,
+	bool bDoor3Pressed,
+	bool bDoor4Pressed
+)
+{
+	if (PlayerHUD)
+	{
+		PlayerHUD->SetDoorPressedFilters(bDoor1Pressed, bDoor2Pressed, bDoor3Pressed, bDoor4Pressed);
 	}
 }
 

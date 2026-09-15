@@ -322,6 +322,26 @@ void APlayerHUD::UpdateDoorOpenButtons(
 	);
 }
 
+void APlayerHUD::SetDoorPressedFilters(
+	bool bDoor1Pressed,
+	bool bDoor2Pressed,
+	bool bDoor3Pressed,
+	bool bDoor4Pressed
+)
+{
+	if (!Widgets.DoorOpenButtonWidget)
+	{
+		return;
+	}
+
+	Widgets.DoorOpenButtonWidget->SetDoorPressedFilters(
+		bDoor1Pressed,
+		bDoor2Pressed,
+		bDoor3Pressed,
+		bDoor4Pressed
+	);
+}
+
 void APlayerHUD::RequestDoorActivation(int32 InDoorIndex, bool bIsActive)
 {
 	if (!ViewModel)
