@@ -12,6 +12,15 @@ class ADoor;
 class UInputMappingContext;
 class UInputAction;
 
+
+UENUM()
+enum class EDeBugType : uint8
+{
+	OriginController,
+	TestController
+	
+};
+
 UCLASS()
 class PUZZLESTAY3_API APS3ScreenPlayerController : public APS3PlayerControllerBase
 {
@@ -31,6 +40,8 @@ protected:
 	virtual void SetupInputComponent() override;
 	virtual void ReceivedPlayer() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+	
+	virtual void ConfigureViewModelBindings(UPS3ViewModel* InViewModel) override;
 	
 	
 	EControlDoorType CurrentOpenedDoorType = EControlDoorType::None;
@@ -72,9 +83,12 @@ protected:
 	void ShowToCeiling();
 	void HideToCeiling();
 	
-	
 	void OnScreenPlayerUI_Show() const;
 	
+private:
+	UPROPERTY(EditAnywhere, Category = "DeBugSetting")
+	EDeBugType DeBugType = EDeBugType::OriginController;
 	
+	void TestToggledDoor(const FInputActionInstance& Instance);
 	
 };

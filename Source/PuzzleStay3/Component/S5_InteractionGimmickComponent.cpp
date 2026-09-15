@@ -145,7 +145,7 @@ bool US5_InteractionGimmickComponent::CheckCanDisplayedUI()
 void US5_InteractionGimmickComponent::OnCharacterEndOverlapForUI(UPrimitiveComponent* OverlappedComp,
                                                                  AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
-	if (bIsInteractionGimmick == false) return;
+	//if (bIsInteractionGimmick == false) return;
 	
 	if (GetOwner() == nullptr) return;
 	

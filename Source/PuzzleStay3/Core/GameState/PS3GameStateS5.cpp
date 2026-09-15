@@ -53,7 +53,6 @@ void APS3GameStateS5::OnSpawnScreenPlayerUIReAssign()
 void APS3GameStateS5::NetMultiRPC_OnSpawnScreenPlayerUIReAssign_Implementation()
 {
 	PS3_BROADCAST_TO_MVVM_OneParams(OnFieldPlayer_UI, true);
-	
 }
 
 
