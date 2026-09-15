@@ -5,6 +5,8 @@
 #include "Components/BoxComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "Animation/AnimInstance.h"
+#include "Animation/AnimMontage.h"
 #include "Core/GameMode/PS3GameModeS4.h"
 #include "Core/GameState/PS3GameStateBase.h"
 #include "Core/GameState/PS3GameStateS4.h"
@@ -319,7 +321,6 @@ void AJeoul::Multicast_PlayTiltAnimation_Implementation(EJeoulTiltState TiltStat
 	}
 	else if (TiltState == EJeoulTiltState::Balanced)
 	{
-		// 정답이거나 리셋 상태일 경우 진행 중인 몽타주 중단 (원위치 평형 유지)
 		AnimInstance->Montage_Stop(0.2f);
 	}
 }
@@ -392,7 +393,7 @@ void AJeoul::Server_CheckBalance_Implementation()
 	}
 
 	Multicast_PlayTiltAnimation(CurrentTiltState);
-	
+
 	UE_LOG(LogTemp, Warning, TEXT("[Jeoul] 무게 차이: %f, 현재 무게: %f, 목표 무게: %f"), WeightDifference, TotalWeight, JudgeWeight);
 
 	FTimerHandle ResultTimer;
@@ -431,6 +432,8 @@ void AJeoul::Server_CheckBalance_Implementation()
 			{
 				CurrentTiltState = EJeoulTiltState::Balanced;
 				CurrentState = EJeoulState::Idle;
+				
+				Multicast_PlayTiltAnimation(EJeoulTiltState::Balanced);
 				Multicast_OnJeoulCheckFinished(false);
 			}, ResetBeamTime, false);
 		}

@@ -11,6 +11,7 @@ class UInteractionSwitchComponent;
 class UCameraComponent;
 class ADumbbell;
 class UBoxComponent;
+class UAnimMontage;
 
 DECLARE_MULTICAST_DELEGATE(FOnJeoulCheckStarted);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnJeoulCheckFinished, bool);
@@ -26,9 +27,9 @@ enum class EJeoulState : uint8
 UENUM(BlueprintType)
 enum class EJeoulTiltState : uint8
 {
-	Balanced,   // 수평
-	TiltLeft,   // 왼쪽 기울음
-	TiltRight   // 오른쪽 기울음
+	Balanced,   // 수평 (움직임 없음)
+	TiltLeft,   // 왼쪽으로 기울음
+	TiltRight   // 오른쪽으로 기울음
 };
 
 UCLASS()
@@ -72,13 +73,13 @@ protected:
 
 	UPROPERTY(EditInstanceOnly, BlueprintReadWrite, Category = "Jeoul Settings")
 	TObjectPtr<AActor> ExternalSwitchActor;
-	
+
 	UPROPERTY(EditAnywhere, Category = "Jeoul Settings|Animation")
 	TObjectPtr<UAnimMontage> LeftTiltMontage;
 
 	UPROPERTY(EditAnywhere, Category = "Jeoul Settings|Animation")
 	TObjectPtr<UAnimMontage> RightTiltMontage;
-	
+
 private:
 	UPROPERTY()
 	TObjectPtr<UInteractionSwitchComponent> ExternalSwitch;
@@ -107,7 +108,7 @@ public:
 
 	UFUNCTION(NetMulticast, Reliable)
 	void Multicast_PlayTiltAnimation(EJeoulTiltState TiltState);
-	
+
 	void RequestCutsceneReturn(APS3PlayerController* RequestingController);
 	void AlignPlayersAndDumbbells();
 
