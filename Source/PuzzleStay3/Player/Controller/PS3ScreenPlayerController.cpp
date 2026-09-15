@@ -25,10 +25,6 @@ void APS3ScreenPlayerController::ReceivedPlayer()
 	if (IsValid(World) == false) return;
 	World->GetTimerManager().SetTimer(PS3CameraTimerHandle, this, &ThisClass::SetCameraView, 0.1f, false);
 	
-	if (IsLocalPlayerController() == true)
-	{
-		OnScreenPlayerUI_Show();
-	}
 }
 
 
@@ -40,20 +36,26 @@ void APS3ScreenPlayerController::EndPlay(const EEndPlayReason::Type EndPlayReaso
 }
 
 
-void APS3ScreenPlayerController::BeginPlay()
+void APS3ScreenPlayerController::ConfigureViewModelBindings(UPS3ViewModel* InViewModel)
 {
-	Super::BeginPlay();
-	
+	Super::ConfigureViewModelBindings(InViewModel);
+		
 	if (IsLocalPlayerController() == true)
 	{
 		OnScreenPlayerUI_Show();
 	}
+	
+}
 
+
+void APS3ScreenPlayerController::BeginPlay()
+{
+	Super::BeginPlay();
+	
 	
 	checkf(IsValid(InputMappingContext) == true, TEXT("스크린 컨트롤러 IMC 할당 안됨"));
 	
 	ContainDoorArray();
-	
 
 }
 
@@ -65,6 +67,8 @@ void APS3ScreenPlayerController::OnScreenPlayerUI_Show() const
 		PS3_UIDELEGATE_TIMER_FOR_MACRO(PS3_BROADCAST_TO_MVVM_OneParams(OnScreenPlayer_UI, true));
 	}
 }
+
+
 
 
 void APS3ScreenPlayerController::ContainDoorArray()
@@ -91,26 +95,62 @@ void APS3ScreenPlayerController::SetupInputComponent()
 	UEnhancedInputComponent* EIC = Cast<UEnhancedInputComponent>(InputComponent);
 	if (IsValid(EIC) == false) return;
 	
-	checkf(IsValid(Button_A) == true,TEXT("스크린 컨트롤러 버튼A 할당 안됨"));
+	if (DeBugType == EDeBugType::OriginController)
 	{
-		EIC->BindAction(Button_A, ETriggerEvent::Started, this, &ThisClass::OpenDoor);
-		EIC->BindAction(Button_A, ETriggerEvent::Completed, this, &ThisClass::CloseDoor);
+		checkf(IsValid(Button_A) == true,TEXT("스크린 컨트롤러 버튼A 할당 안됨"));
+		{
+			EIC->BindAction(Button_A, ETriggerEvent::Started, this, &ThisClass::OpenDoor);
+			EIC->BindAction(Button_A, ETriggerEvent::Completed, this, &ThisClass::CloseDoor);
+		}
+		checkf(IsValid(Button_B) == true,TEXT("스크린 컨트롤러 버튼B 할당 안됨"));
+		{
+			EIC->BindAction(Button_B, ETriggerEvent::Started, this, &ThisClass::OpenDoor);
+			EIC->BindAction(Button_B, ETriggerEvent::Completed, this, &ThisClass::CloseDoor);
+		}
+		checkf(IsValid(Button_C) == true,TEXT("스크린 컨트롤러 버튼C 할당 안됨"));
+		{
+			EIC->BindAction(Button_C, ETriggerEvent::Started, this, &ThisClass::OpenDoor);
+			EIC->BindAction(Button_C, ETriggerEvent::Completed, this, &ThisClass::CloseDoor);
+		}
+		checkf(IsValid(Button_D) == true,TEXT("스크린 컨트롤러 버튼D 할당 안됨"));
+		{
+			EIC->BindAction(Button_D, ETriggerEvent::Started, this, &ThisClass::OpenDoor);
+			EIC->BindAction(Button_D, ETriggerEvent::Completed, this, &ThisClass::CloseDoor);
+		}
 	}
-	checkf(IsValid(Button_B) == true,TEXT("스크린 컨트롤러 버튼B 할당 안됨"));
+	
+	if (DeBugType == EDeBugType::TestController)
 	{
-		EIC->BindAction(Button_B, ETriggerEvent::Started, this, &ThisClass::OpenDoor);
-		EIC->BindAction(Button_B, ETriggerEvent::Completed, this, &ThisClass::CloseDoor);
+		checkf(IsValid(Button_A) == true,TEXT("스크린 컨트롤러 버튼A 할당 안됨"));
+		{
+			EIC->BindAction(Button_A, ETriggerEvent::Started, this, &ThisClass::TestToggledDoor);
+		}
+		checkf(IsValid(Button_B) == true,TEXT("스크린 컨트롤러 버튼B 할당 안됨"));
+		{
+			EIC->BindAction(Button_B, ETriggerEvent::Started, this, &ThisClass::TestToggledDoor);
+		}
+		checkf(IsValid(Button_C) == true,TEXT("스크린 컨트롤러 버튼C 할당 안됨"));
+		{
+			EIC->BindAction(Button_C, ETriggerEvent::Started, this, &ThisClass::TestToggledDoor);
+		}
+		checkf(IsValid(Button_D) == true,TEXT("스크린 컨트롤러 버튼D 할당 안됨"));
+		{
+			EIC->BindAction(Button_D, ETriggerEvent::Started, this, &ThisClass::TestToggledDoor);
+		}
 	}
-	checkf(IsValid(Button_C) == true,TEXT("스크린 컨트롤러 버튼C 할당 안됨"));
-	{
-		EIC->BindAction(Button_C, ETriggerEvent::Started, this, &ThisClass::OpenDoor);
-		EIC->BindAction(Button_C, ETriggerEvent::Completed, this, &ThisClass::CloseDoor);
-	}
-	checkf(IsValid(Button_D) == true,TEXT("스크린 컨트롤러 버튼D 할당 안됨"));
-	{
-		EIC->BindAction(Button_D, ETriggerEvent::Started, this, &ThisClass::OpenDoor);
-		EIC->BindAction(Button_D, ETriggerEvent::Completed, this, &ThisClass::CloseDoor);
-	}
+	
+}
+
+
+void APS3ScreenPlayerController::TestToggledDoor(const FInputActionInstance& Instance)
+{
+	EControlDoorType PressedDoorType = GetDoorTypeFromAction(Instance.GetSourceAction());
+	if (PressedDoorType == EControlDoorType::None) return;
+
+	// 닫는 로직(CloseDoor 및 이전 문 닫기)을 모두 제거하고 열기만 수행
+	CurrentOpenedDoorType = PressedDoorType;
+	PS3_BROADCAST_TO_MVVM_TwoParams(OnButtonEnabled_UI, PressedDoorType, true);
+	ServerRPC_OperateDoor(PressedDoorType, true);
 }
 
 
