@@ -166,6 +166,9 @@ void UPS3ViewModel::BindGameplayUIDelegates()
 	UIDelegatesSubsystem->OnTextNotify_UI.AddUObject(
 		this,
 		&ThisClass::HandleTextNotify_UI);
+	
+	UIDelegatesSubsystem->OnVoiceChatSpeaking_UI.RemoveAll(this);
+	UIDelegatesSubsystem->OnVoiceChatSpeaking_UI.AddUObject(this,&ThisClass::RequestVoiceChatSpeaking);
 }
 
 void UPS3ViewModel::UnbindGameplayUIDelegates()
@@ -197,6 +200,7 @@ void UPS3ViewModel::UnbindGameplayUIDelegates()
 	UIDelegatesSubsystem->OnInteractRequestS5_UI.RemoveAll(this);
 	UIDelegatesSubsystem->OnTextNotifyVisible_UI.RemoveAll(this);
 	UIDelegatesSubsystem->OnTextNotify_UI.RemoveAll(this);
+	UIDelegatesSubsystem->OnVoiceChatSpeaking_UI.RemoveAll(this);
 }
 
 void UPS3ViewModel::HandleStageType_UI(EPS3StageType StageType)
