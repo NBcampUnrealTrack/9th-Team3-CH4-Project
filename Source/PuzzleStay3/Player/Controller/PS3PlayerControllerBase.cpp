@@ -49,17 +49,32 @@ void APS3PlayerControllerBase::ConfigureInputMapping()
 	
 	auto* HUD = Cast<APlayerHUD>(GetHUD());
 	if (HUD == nullptr) return;
+	
+	ConfigureViewModelBindings(HUD->GetViewModel());
+}
 
-	PS3ViewModel = Cast<UPS3ViewModel>(HUD->GetViewModel());
-	if (PS3ViewModel == nullptr) return;
 
+void APS3PlayerControllerBase::ConfigureViewModelBindings(UPS3ViewModel* InViewModel)
+{
+	if (IsLocalController() == false) return;
 	
-	PS3ViewModel->OnGameRestartRequested_UI.RemoveDynamic(this, &ThisClass::OnClickedRestartGameButton);
-	PS3ViewModel->OnExitToMainRequested_UI.RemoveDynamic(this, &ThisClass::OnClickedTitleMenuButton);
-	
-	PS3ViewModel->OnGameRestartRequested_UI.AddDynamic(this, &ThisClass::OnClickedRestartGameButton);
-	PS3ViewModel->OnExitToMainRequested_UI.AddDynamic(this, &ThisClass::OnClickedTitleMenuButton);
-	
+	if (IsValid(InViewModel) == false) return;
+
+	if (IsValid(PS3ViewModel) && (PS3ViewModel.Get() == InViewModel) == false)
+	{
+		PS3ViewModel->OnGameRestartRequested_UI.RemoveDynamic(this,&ThisClass::OnClickedRestartGameButton);
+		PS3ViewModel->OnExitToMainRequested_UI.RemoveDynamic(this,&ThisClass::OnClickedTitleMenuButton);
+	}
+
+	PS3ViewModel = InViewModel;
+
+	PS3ViewModel->OnGameRestartRequested_UI.AddUniqueDynamic(this,&ThisClass::OnClickedRestartGameButton);
+	PS3ViewModel->OnExitToMainRequested_UI.AddUniqueDynamic(this,&ThisClass::OnClickedTitleMenuButton);
+
+	if (UWorld* World = GetWorld())
+	{
+		World->GetTimerManager().ClearTimer(InitTimerHandle);
+	}
 }
 
 
