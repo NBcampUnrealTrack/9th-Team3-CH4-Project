@@ -53,6 +53,23 @@ void UInteractionNotifyWidget::HideAllInteractionNotifies()
 	RefreshInteractionImage();
 }
 
+void UInteractionNotifyWidget::SetInteractionNotifyS5(EPS3InteractionNotifyType NotifyType, bool bVisible)
+{
+	switch (NotifyType)
+	{
+	case EPS3InteractionNotifyType::Interact:
+		bS5InteractVisible = bVisible;
+		break;
+	case EPS3InteractionNotifyType::Drop:
+		bS5DropVisible = bVisible;
+		break;
+	default:
+		break;
+	}
+
+	RefreshInteractionImage();
+}
+
 void UInteractionNotifyWidget::RefreshInteractionImage()
 {
 	if (!InteractionImage)
@@ -60,8 +77,11 @@ void UInteractionNotifyWidget::RefreshInteractionImage()
 		return;
 	}
 
-	UTexture2D* TextureToShow = DropCount > 0 ? GInteractionTexture : nullptr;
-	if (!TextureToShow && InteractCount > 0)
+	const bool bDropVisible = DropCount > 0 || bS5DropVisible;
+	const bool bInteractVisible = InteractCount > 0 || bS5InteractVisible;
+
+	UTexture2D* TextureToShow = bDropVisible ? GInteractionTexture : nullptr;
+	if (!TextureToShow && bInteractVisible)
 	{
 		TextureToShow = FInteractionTexture;
 	}

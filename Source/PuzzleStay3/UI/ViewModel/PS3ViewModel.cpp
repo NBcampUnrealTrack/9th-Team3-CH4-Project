@@ -8,6 +8,7 @@
 namespace
 {
 	constexpr float DefaultTimerMaxTime = 7.0f;
+	constexpr float InteractionSwitchTimerMaxTime = 20.0f;
 }
 
 void UPS3ViewModel::SetPlayerHUD(APlayerHUD* InPlayerHUD)
@@ -151,6 +152,11 @@ void UPS3ViewModel::BindGameplayUIDelegates()
 		this,
 		&ThisClass::HandleInteractionNotifyResetRequested_UI);
 
+	UIDelegatesSubsystem->OnInteractRequestS5_UI.RemoveAll(this);
+	UIDelegatesSubsystem->OnInteractRequestS5_UI.AddUObject(
+		this,
+		&ThisClass::HandleInteractRequestS5_UI);
+
 	UIDelegatesSubsystem->OnTextNotifyVisible_UI.RemoveAll(this);
 	UIDelegatesSubsystem->OnTextNotifyVisible_UI.AddUObject(
 		this,
@@ -188,6 +194,7 @@ void UPS3ViewModel::UnbindGameplayUIDelegates()
 	UIDelegatesSubsystem->OnInteractionNotifyAddRequested_UI.RemoveAll(this);
 	UIDelegatesSubsystem->OnInteractionNotifyRemoveRequested_UI.RemoveAll(this);
 	UIDelegatesSubsystem->OnInteractionNotifyResetRequested_UI.RemoveAll(this);
+	UIDelegatesSubsystem->OnInteractRequestS5_UI.RemoveAll(this);
 	UIDelegatesSubsystem->OnTextNotifyVisible_UI.RemoveAll(this);
 	UIDelegatesSubsystem->OnTextNotify_UI.RemoveAll(this);
 }
@@ -347,6 +354,11 @@ void UPS3ViewModel::HandleInteractionNotifyResetRequested_UI()
 	RequestHideAllInteractionNotifies();
 }
 
+void UPS3ViewModel::HandleInteractRequestS5_UI(EPS3InteractionNotifyType NotifyType, bool bVisible)
+{
+	RequestSetInteractionNotifyS5(NotifyType, bVisible);
+}
+
 void UPS3ViewModel::HandleTextNotifyVisible_UI(bool bVisible)
 {
 	bTextNotifyEnabled = bVisible;
@@ -369,6 +381,14 @@ void UPS3ViewModel::HandleTextNotify_UI(EPS3TextNotifyType NotifyType)
 
 float UPS3ViewModel::ResolveTimerMaxTime(EPS3TimerUIType TimerUIType) const
 {
+	if (TimerUIType == EPS3TimerUIType::GimmickB_1 ||
+		TimerUIType == EPS3TimerUIType::GimmickB_2 ||
+		TimerUIType == EPS3TimerUIType::GimmickB_3 ||
+		TimerUIType == EPS3TimerUIType::GimmickB_4)
+	{
+		return InteractionSwitchTimerMaxTime;
+	}
+
 	const UWorld* World = GetWorld();
 	if (!World)
 	{
@@ -499,6 +519,14 @@ void UPS3ViewModel::RequestHideAllInteractionNotifies()
 	if (PlayerHUD)
 	{
 		PlayerHUD->HideAllInteractionNotifies();
+	}
+}
+
+void UPS3ViewModel::RequestSetInteractionNotifyS5(EPS3InteractionNotifyType NotifyType, bool bVisible)
+{
+	if (PlayerHUD)
+	{
+		PlayerHUD->SetInteractionNotifyS5(NotifyType, bVisible);
 	}
 }
 
