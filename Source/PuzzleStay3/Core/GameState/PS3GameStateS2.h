@@ -20,4 +20,14 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "GameRule")
 	TObjectPtr<class US2_GameRuleDataAsset> S2_GameRuleDataAsset;
 
+public:
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	virtual void NotifyPlayerDeadGameOver() override;
+
+protected:
+	UPROPERTY(ReplicatedUsing = OnRep_PlayerDeadGameOver)
+	bool bPlayerDeadGameOver = false;
+
+	UFUNCTION()
+	void OnRep_PlayerDeadGameOver();
 };
