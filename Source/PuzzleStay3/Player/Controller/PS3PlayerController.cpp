@@ -16,6 +16,7 @@
 #include "Player/Online/PS3LobbySubsystem.h"
 #include "TimerManager.h"
 #include "Core/GameMode/PS3GameModeS3.h"
+#include "Data/Delegates/UIDelegatesSubsystem.h"
 #include "UI/HUD/PlayerHUD.h"
 #include "UI/ViewModel/PS3ViewModel.h"
 
@@ -67,7 +68,8 @@ void APS3PlayerController::BeginPlay()
 			0.5f,
 			false);
 	}
-
+	
+	PS3_BROADCAST_TO_MVVM_OneParams(OnFieldPlayer_UI, true);
 }
 
 void APS3PlayerController::EndPlay(const EEndPlayReason::Type EndPlayReason)
