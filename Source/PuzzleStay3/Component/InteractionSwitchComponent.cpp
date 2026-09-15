@@ -39,6 +39,7 @@ void UInteractionSwitchComponent::EndPlay(const EEndPlayReason::Type EndPlayReas
 		if (UWorld* World = GetWorld())
 		{
 			World->GetTimerManager().ClearTimer(AutoDisableTimerHandle);
+			StopAutoDisableUITimer(false);
 
 			if (bRegisterToGameMode)
 			{
@@ -152,6 +153,7 @@ bool UInteractionSwitchComponent::TryInteract(AActor* Requestor)
 		{
 			World->GetTimerManager().ClearTimer(AutoDisableTimerHandle);
 		}
+		StopAutoDisableUITimer(true);
 
 		UE_LOG(LogTemp, Warning, TEXT("[InteractionSwitch] OFF: %s 님이 [%s] 스위치를 껐습니다."),
 			*Requestor->GetName(), *GetOwner()->GetName());
@@ -174,6 +176,7 @@ void UInteractionSwitchComponent::StartDisableTimer()
 			AutoDisableTime,
 			false
 		);
+		StartAutoDisableUITimer();
 
 		UE_LOG(LogTemp, Warning, TEXT("[InteractionSwitch] 타이머 시작: [%s] 스위치가 %.1f초 후 자동으로 꺼집니다."),
 			*GetOwner()->GetName(), AutoDisableTime);
@@ -188,6 +191,7 @@ void UInteractionSwitchComponent::ResetSwitch()
 		{
 			World->GetTimerManager().ClearTimer(AutoDisableTimerHandle);
 		}
+		StopAutoDisableUITimer(true);
 
 		if (!bMultiInteractionState && IsValid(InteractingActor))
 		{
@@ -207,6 +211,93 @@ void UInteractionSwitchComponent::ResetSwitch()
 		InteractingActor = nullptr;
 		OnRep_IsActivated();
 	}
+}
+
+void UInteractionSwitchComponent::StartAutoDisableUITimer()
+{
+	if (AutoDisableTimerUIType == EPS3TimerUIType::None)
+	{
+		return;
+	}
+
+	if (!GetOwner() || !GetOwner()->HasAuthority())
+	{
+		return;
+	}
+
+	if (UWorld* World = GetWorld())
+	{
+		World->GetTimerManager().ClearTimer(AutoDisableUITimerHandle);
+		BroadcastAutoDisableTimerRemaining();
+		World->GetTimerManager().SetTimer(
+			AutoDisableUITimerHandle,
+			this,
+			&UInteractionSwitchComponent::BroadcastAutoDisableTimerRemaining,
+			0.1f,
+			true
+		);
+	}
+}
+
+void UInteractionSwitchComponent::StopAutoDisableUITimer(bool bBroadcastFinished)
+{
+	bool bWasUITimerActive = false;
+
+	if (UWorld* World = GetWorld())
+	{
+		bWasUITimerActive = World->GetTimerManager().IsTimerActive(AutoDisableUITimerHandle);
+		World->GetTimerManager().ClearTimer(AutoDisableUITimerHandle);
+	}
+
+	if (bBroadcastFinished && bWasUITimerActive && AutoDisableTimerUIType != EPS3TimerUIType::None)
+	{
+		NetMultiRPC_FinishAutoDisableTimerUI(AutoDisableTimerUIType);
+	}
+}
+
+void UInteractionSwitchComponent::BroadcastAutoDisableTimerRemaining()
+{
+	if (AutoDisableTimerUIType == EPS3TimerUIType::None)
+	{
+		return;
+	}
+
+	if (!GetOwner() || !GetOwner()->HasAuthority())
+	{
+		return;
+	}
+
+	if (UWorld* World = GetWorld())
+	{
+		const float RemainingTime = FMath::Max(
+			0.0f,
+			World->GetTimerManager().GetTimerRemaining(AutoDisableTimerHandle)
+		);
+
+		NetMultiRPC_BroadcastAutoDisableTimerUI(AutoDisableTimerUIType, RemainingTime);
+	}
+}
+
+void UInteractionSwitchComponent::NetMultiRPC_BroadcastAutoDisableTimerUI_Implementation(
+	EPS3TimerUIType TimerUIType,
+	float RemainingTime)
+{
+	if (TimerUIType == EPS3TimerUIType::None)
+	{
+		return;
+	}
+
+	PS3_BROADCAST_TO_MVVM_TwoParams(OnGameTimer_UI, TimerUIType, RemainingTime);
+}
+
+void UInteractionSwitchComponent::NetMultiRPC_FinishAutoDisableTimerUI_Implementation(EPS3TimerUIType TimerUIType)
+{
+	if (TimerUIType == EPS3TimerUIType::None)
+	{
+		return;
+	}
+
+	PS3_BROADCAST_TO_MVVM_TwoParams(OnGameTimer_UI, TimerUIType, 0.0f);
 }
 
 void UInteractionSwitchComponent::SetLocked(bool bNewLocked)

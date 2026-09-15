@@ -8,6 +8,7 @@
 namespace
 {
 	constexpr float DefaultTimerMaxTime = 7.0f;
+	constexpr float InteractionSwitchTimerMaxTime = 20.0f;
 }
 
 void UPS3ViewModel::SetPlayerHUD(APlayerHUD* InPlayerHUD)
@@ -369,6 +370,14 @@ void UPS3ViewModel::HandleTextNotify_UI(EPS3TextNotifyType NotifyType)
 
 float UPS3ViewModel::ResolveTimerMaxTime(EPS3TimerUIType TimerUIType) const
 {
+	if (TimerUIType == EPS3TimerUIType::GimmickB_1 ||
+		TimerUIType == EPS3TimerUIType::GimmickB_2 ||
+		TimerUIType == EPS3TimerUIType::GimmickB_3 ||
+		TimerUIType == EPS3TimerUIType::GimmickB_4)
+	{
+		return InteractionSwitchTimerMaxTime;
+	}
+
 	const UWorld* World = GetWorld();
 	if (!World)
 	{

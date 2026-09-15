@@ -4,6 +4,7 @@
 #include "Components/ActorComponent.h"
 #include "Player/Interaction/PS3InteractableInterface.h"
 #include "Data/Delegates/CosmeticDelegates.h"
+#include "Data/Enum/TimerUIType.h"
 #include "InteractionSwitchComponent.generated.h"
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnSwitchActivatedChanged, bool);
@@ -89,8 +90,23 @@ protected:
 		meta = (EditCondition = "bUseAutoDisableTimer"))
 	float AutoDisableTime = 20.0f;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gimmick|Timer",
+		meta = (EditCondition = "bUseAutoDisableTimer"))
+	EPS3TimerUIType AutoDisableTimerUIType = EPS3TimerUIType::None;
+
 private:
 	FTimerHandle AutoDisableTimerHandle;
+	FTimerHandle AutoDisableUITimerHandle;
+
+	void StartAutoDisableUITimer();
+	void StopAutoDisableUITimer(bool bBroadcastFinished);
+	void BroadcastAutoDisableTimerRemaining();
+
+	UFUNCTION(NetMulticast, Unreliable)
+	void NetMultiRPC_BroadcastAutoDisableTimerUI(EPS3TimerUIType TimerUIType, float RemainingTime);
+
+	UFUNCTION(NetMulticast, Reliable)
+	void NetMultiRPC_FinishAutoDisableTimerUI(EPS3TimerUIType TimerUIType);
 
 	UFUNCTION()
 	void OnRep_IsActivated();
