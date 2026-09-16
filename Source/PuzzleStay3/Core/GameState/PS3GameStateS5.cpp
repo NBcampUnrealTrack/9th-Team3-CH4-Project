@@ -51,6 +51,7 @@ void APS3GameStateS5::OnSpawnScreenPlayerUIReAssign()
 	if(HasAuthority() == true)
 	{
 		NetMultiRPC_OnSpawnScreenPlayerUIReAssign();
+		NetMulti_ScreenPlayerVisibleToArrow(false);
 	}
 }
 
@@ -148,17 +149,17 @@ void APS3GameStateS5::OnGameStart(bool bIsGameStart)
 {
 	bIsGameStarted = bIsGameStart;
 	
-	if (bIsGameStarted == true)
+	if (HasAuthority() == true)
 	{
+		if (bIsGameStarted == false) return;
+		
 		FTimerHandle ArrowDelayTimerHandle;
 		GetWorldTimerManager().SetTimer(ArrowDelayTimerHandle, [this]()
 		{
-			NetMulti_ScreenPlayerVisibleToArrow();
+			NetMulti_ScreenPlayerVisibleToArrow(true);
 			NetMulti_StageNotifyUI();
 		}, 0.3f, false);
 	}
-	
-	
 }
 
 
@@ -237,7 +238,7 @@ void APS3GameStateS5::NetMulti_StageNotifyUI_Implementation()
 }
 
 
-void APS3GameStateS5::NetMulti_ScreenPlayerVisibleToArrow_Implementation()
+void APS3GameStateS5::NetMulti_ScreenPlayerVisibleToArrow_Implementation(bool bIsVisible)
 {
 	APlayerController* LocalPC = nullptr;
 	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
@@ -259,7 +260,7 @@ void APS3GameStateS5::NetMulti_ScreenPlayerVisibleToArrow_Implementation()
 		APS3PlayerCharacter* FieldPlayer = *It;
 		if (IsValid(FieldPlayer) && IsValid(FieldPlayer->PlayerArrowComp))
 		{
-			FieldPlayer->PlayerArrowComp->SetVisibility(true);
+			FieldPlayer->PlayerArrowComp->SetVisibility(bIsVisible);
 		}
 	}
 }
