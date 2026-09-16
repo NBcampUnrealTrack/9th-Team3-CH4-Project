@@ -47,7 +47,9 @@ public:
 	void RegisterRandomCollisionTrapCompo(URandomCollisionTrapComponent* TrapComponent);
 	void UnregisterRandomCollisionTrapCompo(URandomCollisionTrapComponent* TrapComponent);
 
-	TArray<bool> GetRandomCollisionLayoutResults();
+	//CheatManager start
+	TArray<bool> GetRandomCollisionLayoutResults() const;
+	//CheatManager end
 };
 
 
