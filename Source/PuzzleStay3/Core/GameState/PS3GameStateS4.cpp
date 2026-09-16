@@ -29,7 +29,7 @@ void APS3GameStateS4::InitializeToDataAssets()
 {
 	Super::InitializeToDataAssets();
 	
-	checkf(IsValid(S4_GameRuleDataAsset) == true, TEXT("[APS3GameModeS4]의 데이터에셋이 비어있습니다."));
+	checkf(IsValid(S4_GameRuleDataAsset) == true, TEXT("[APS3GameStateS4]의 데이터에셋이 비어있습니다."));
 }
 
 void APS3GameStateS4::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
