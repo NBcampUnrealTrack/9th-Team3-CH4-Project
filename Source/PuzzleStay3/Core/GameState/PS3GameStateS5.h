@@ -78,6 +78,9 @@ private:
 	void NoneReceivedDecalFloor();
 	
 	UFUNCTION(NetMulticast, Reliable)
+	void NetMulti_FieldPlayerVisibleToArrow(bool bIsVisible);
+	
+	UFUNCTION(NetMulticast, Reliable)
 	void NetMulti_ScreenPlayerVisibleToArrow(bool bIsVisible);
 	
 	UFUNCTION(NetMulticast, Reliable)
