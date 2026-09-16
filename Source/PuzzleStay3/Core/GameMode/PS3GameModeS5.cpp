@@ -46,7 +46,9 @@ void APS3GameModeS5::BeginPlay()
 	Super::BeginPlay();
 	
 	//InitializeToDataAssets();
-	GetWorld()->GetTimerManager().SetTimer(InitTimerHandle, this, &ThisClass::InitializeGimmick, 0.1f, false);
+	
+		GetWorld()->GetTimerManager().SetTimer(InitTimerHandle, this, &ThisClass::InitializeGimmick, 0.1f, false);
+	
 }
 
 
@@ -72,9 +74,13 @@ void APS3GameModeS5::InitializeGimmick()
 {
 	GetWorld()->GetTimerManager().ClearTimer(InitTimerHandle);
 	
-	UnResistEscapeGimmick();
-	RandomShuffleFakeGimmick();
-	BindInteractionGimmick();
+	if (S5_GameRuleDataAsset->bIsTestGameRule == false)
+	{
+		UnResistEscapeGimmick();
+		RandomShuffleFakeGimmick();
+		BindInteractionGimmick();
+	}
+	
 	ResistEscapeGimmick();
 	
 	UE_LOG(LogTemp, Warning, TEXT("활성화 해야 할 스크린플레이어 스폰 조건 %d개"), TargetCountForSpawnScreenPlayer);
