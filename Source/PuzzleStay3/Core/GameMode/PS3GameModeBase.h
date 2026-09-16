@@ -127,5 +127,6 @@ protected:
 	FString TitleLevelPath;
 public:
 	void GotoTitleLevel();
+	void GoToNextStageForCheat();
 #pragma endregion
 };
