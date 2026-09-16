@@ -70,6 +70,10 @@ protected:
 		meta = (EditCondition = "EffectType == ECosmeticEffectType::BlueLight || EffectType == ECosmeticEffectType::RedLight || EffectType == ECosmeticEffectType::ColorJudgement", ClampMin = "0.0"))
 	float LightAttenuationRadius = 300.0f;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Cosmetic|Light",
+		meta = (EditCondition = "EffectType == ECosmeticEffectType::BlueLight"))
+	FLinearColor BlueLightColor = FLinearColor::Blue;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Cosmetic|Smoke",
 		meta = (EditCondition = "EffectType == ECosmeticEffectType::Smoke"))
 	TObjectPtr<UParticleSystem> SmokeTemplate;
