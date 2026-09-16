@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "Player/Interaction/PS3InteractableInterface.h"
+#include "Data/Enum/PS3TextNotifyType.h" // UI 노티파이 Enum 포함
 #include "Jeoul.generated.h"
 
 class APS3PlayerCharacter;
@@ -120,6 +121,10 @@ public:
 
 	UFUNCTION(NetMulticast, Reliable)
 	void Multicast_PlayTiltAnimation(EJeoulTiltState TiltState);
+
+	// UI 알림 브로드캐스트용 NetMulticast RPC
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_ShowTextNotify(EPS3TextNotifyType NotifyType);
 
 	void RequestCutsceneReturn(APS3PlayerController* RequestingController);
 	void AlignPlayersAndDumbbells();
