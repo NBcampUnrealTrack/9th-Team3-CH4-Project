@@ -1235,3 +1235,6 @@ Content/PuzzleStay3/Dev/Asset/PS3_ArrowMesh/Mesh/ArrowCompMesh.uasset
 Content/PuzzleStay3/Dev/Asset/PS3_ArrowMesh/Texture/cc0_arrow_5_texture_0.uasset
 Content/PuzzleStay3/Dev/Asset/PS3_ArrowMesh/Texture/cc0_arrow_5_texture_1.uasset
 Content/PuzzleStay3/Dev/Asset/PS3_ArrowMesh/Texture/cc0_arrow_5_texture_2.uasset
+
+# Local archive exports should not be committed.
+*.zip
