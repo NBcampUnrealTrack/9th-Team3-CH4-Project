@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
 #include "Data/Enum/VoiceChatState.h"
+#include "Interfaces/OnlineIdentityInterface.h"
 #include "VoicePluginControlComponent.generated.h"
 
 class IVoiceChatUser;
@@ -50,6 +51,7 @@ protected:
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 private:
+	bool HasLiveVoiceUser() const;
 	void SetConversionEnabled(bool bEnabled);
 	void ApplyConversionToPlugin(bool bEnabled);
 	void HandleChannelJoined(const FString& ChannelName);
@@ -59,6 +61,10 @@ private:
 	void HandleCapturedAudio(TArrayView<int16> PcmSamples, int32 SampleRate, int32 NumChannels);
 
 	IVoiceChatUser* VoiceChatUser = nullptr;
+	FName VoiceSubsystemIdentifier;
+	TWeakPtr<IOnlineIdentity, ESPMode::ThreadSafe> VoiceIdentity;
+	TSharedPtr<const FUniqueNetId> VoiceUserId;
+	int32 VoiceLocalUserNum = INDEX_NONE;
 
 	FDelegateHandle ChannelJoinedHandle;
 	FDelegateHandle ChannelExitedHandle;
