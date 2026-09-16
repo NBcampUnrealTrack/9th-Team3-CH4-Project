@@ -63,7 +63,7 @@ void UCosmeticComponent::InitializeEffect()
 	switch (EffectType)
 	{
 	case ECosmeticEffectType::BlueLight:
-		CreateLightEffect(FLinearColor::Blue);
+		CreateLightEffect(BlueLightColor);
 		break;
 	case ECosmeticEffectType::RedLight:
 		CreateLightEffect(FLinearColor::Red);
