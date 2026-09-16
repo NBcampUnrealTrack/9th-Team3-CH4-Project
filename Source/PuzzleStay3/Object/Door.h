@@ -89,9 +89,11 @@ protected:
 
 	void BroadcastExitDoorOpenIfNeeded(bool bOpened); // 현준 수정
 	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Door|Movement")
+	float MinSpeed = 80.0f;
 #pragma endregion
 
-private:
+private:	
 	FVector InitialRelativeLocation;
 	
 };

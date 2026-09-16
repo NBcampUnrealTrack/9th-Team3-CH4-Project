@@ -157,17 +157,34 @@ void ADoor::OnLinkedSwitchStateChanged(bool bIsActivated)
 void ADoor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
-	// 열림/닫힘 목표 위치 계산
+	
+	// 1. 목표 상대 위치 계산 (InitialRelativeLocation 및 TargetRelativeLocation 기반)
 	FVector TargetPos = bIsOpen ? (InitialRelativeLocation + TargetRelativeLocation) : InitialRelativeLocation;
 	FVector CurrentPos = DoorMesh->GetRelativeLocation();
 
-	// Smooth Interp 문 이동 (열림 & 닫힘 모두 작동)
-	if (!CurrentPos.Equals(TargetPos, 1.0f))
+	FVector DeltaVec = TargetPos - CurrentPos;
+	float RemainingDistance = DeltaVec.Size();
+
+	// 2. 오차 범위 이내 도달 시 최종 위치 고정
+	if (RemainingDistance <= KINDA_SMALL_NUMBER)
 	{
-		FVector NewPos = FMath::VInterpTo(CurrentPos, TargetPos, DeltaTime, OpenSpeed);
-		DoorMesh->SetRelativeLocation(NewPos);
+		DoorMesh->SetRelativeLocation(TargetPos);
+		return;
 	}
+
+	FVector Direction = DeltaVec / RemainingDistance;
+
+	// 3. VInterpTo 기반 지수 감속 이동량 계산
+	float VInterpStep = RemainingDistance * FMath::Min(DeltaTime * OpenSpeed, 1.0f);
+
+	// 4. 후반부 최소 보장 속도 
+	float MinStep = MinSpeed * DeltaTime;
+
+	// 5. 지수 감속과 최소 속도 중 더 큰 속도 채택 후 남은 거리 제한
+	float FinalStep = FMath::Min(RemainingDistance, FMath::Max(VInterpStep, MinStep));
+
+	// 6. 상대 위치 업데이트
+	DoorMesh->SetRelativeLocation(CurrentPos + Direction * FinalStep);
 }
 
 void ADoor::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
