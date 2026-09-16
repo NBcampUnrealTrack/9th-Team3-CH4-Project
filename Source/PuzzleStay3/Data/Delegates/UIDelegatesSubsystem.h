@@ -147,6 +147,19 @@ public:
 		0.1f, false);\
 	}
 
+#define PS3_UIDELEGATE_TIMER_FOR_MACRO_TIME_RANGE_EDITABLE(PS3_UIDelegateMacro, TimeRange)\
+	{\
+		FTimerHandle TempTimerHandle;\
+		\
+		GetWorld()->GetTimerManager().SetTimer(\
+		TempTimerHandle,\
+		FTimerDelegate::CreateLambda([this]()\
+	{\
+		PS3_UIDelegateMacro;\
+		}),\
+		TimeRange, false);\
+	}
+
 #pragma endregion 
 	
 

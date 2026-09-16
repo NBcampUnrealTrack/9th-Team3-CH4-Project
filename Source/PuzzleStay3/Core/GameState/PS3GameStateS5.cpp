@@ -24,7 +24,7 @@ void APS3GameStateS5::BeginPlay()
 	
 	InitializeToDataAssets();
 	
-	PS3_UIDELEGATE_TIMER_FOR_MACRO(PS3_BROADCAST_TO_MVVM_OneParams(OnStageType_UI, S5_GameRuleDataAsset->StageType_S5));
+	
 	
 	NoneReceivedDecalFloor();
 	
@@ -234,6 +234,7 @@ void APS3GameStateS5::NoneReceivedDecalFloor()
 
 void APS3GameStateS5::NetMulti_StageNotifyUI_Implementation()
 {
+	PS3_BROADCAST_TO_MVVM_OneParams(OnStageType_UI, S5_GameRuleDataAsset->StageType_S5);
 	PS3_UIDELEGATE_TIMER_FOR_MACRO(PS3_BROADCAST_TO_MVVM_OneParams(OnTextNotify_UI, EPS3TextNotifyType::Stage5));
 }
 
