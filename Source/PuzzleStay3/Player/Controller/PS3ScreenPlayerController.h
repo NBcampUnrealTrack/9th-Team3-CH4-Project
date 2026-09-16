@@ -89,4 +89,7 @@ private:
 	UPROPERTY(EditAnywhere, Category = "ScreenController|TestControllerSetting")
 	EDeBugType DeBugType = EDeBugType::OriginController;
 	
+	
+	void TestToggledDoor(const FInputActionInstance& Instance);
+	
 };

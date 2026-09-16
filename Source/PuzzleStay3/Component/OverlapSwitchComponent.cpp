@@ -25,8 +25,8 @@ void UOverlapSwitchComponent::BeginPlay()
 		{
 			if (PrimComp)
 			{
-				// test dnjsqls 원빈
-				PrimComp->SetHiddenInGame(false);
+				// // test dnjsqls
+				// PrimComp->SetHiddenInGame(false);
 
 				// C++ 이벤트 바인딩 (AddDynamic)
 				PrimComp->OnComponentBeginOverlap.AddDynamic(this, &UOverlapSwitchComponent::OnOwnerBeginOverlap);
