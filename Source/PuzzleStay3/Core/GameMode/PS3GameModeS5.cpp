@@ -67,6 +67,9 @@ void APS3GameModeS5::InitializeToDataAssets()
 	MaxEscapeDoorCount = S5_GameRuleDataAsset->MaxEscapeDoorCount;
 	MaxInteractionGimmickCount = S5_GameRuleDataAsset->MaxInteractionGimmickCount;
 	WaitingTime = S5_GameRuleDataAsset->WaitingTime;
+	
+	if (S5_GameRuleDataAsset->NextStageLevel.IsNull()) return;
+	NextStageLevelPath = S5_GameRuleDataAsset->NextStageLevel.ToSoftObjectPath().GetLongPackageName();
 }
 
 
