@@ -115,6 +115,8 @@ private:
 	int32 InteractionGimmickCount = 0;
 	bool bIsInteracted = false;
 	
+	
+	
 	void OnInteractedGimmick(bool bIsInteractedGimmick);
 	virtual void InitializeToDataAssets() override;
 	void InitializeGimmick();
