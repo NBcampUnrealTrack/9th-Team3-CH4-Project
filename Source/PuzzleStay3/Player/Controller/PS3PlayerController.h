@@ -33,29 +33,29 @@ public:
 	void Client_ReceiveStage3Visibility(const TArray<int32>& TrapIds, const TArray<bool>& Results);
 
 	// 서버가 시점을 전환할 플레이어의 Controller에 호출합니다.
-	UFUNCTION(Client, Reliable, BlueprintCallable, Category = "PS3|Cutscene")
+	UFUNCTION(Client, Reliable, BlueprintCallable, Category = "PlayerController|Cutscene")
 	void Client_BeginJeoulCutscene(AJeoul* Jeoul);
 
 	UFUNCTION(Client, Reliable)
 	void Client_EndJeoulCutscene(AJeoul* Jeoul);
 
-	UFUNCTION(BlueprintCallable, Category = "PS3|Cutscene")
+	UFUNCTION(BlueprintCallable, Category = "PlayerController|Cutscene")
 	void EndJeoulCutscene();
 
-	UFUNCTION(BlueprintPure, Category = "PS3|Cutscene")
+	UFUNCTION(BlueprintPure, Category = "PlayerController|Cutscene")
 	bool IsJeoulCutsceneActive() const { return JeoulCutsceneState != EJeoulCutsceneState::Inactive; }
 
-	UFUNCTION(BlueprintPure, Category = "PS3|Cutscene")
+	UFUNCTION(BlueprintPure, Category = "PlayerController|Cutscene")
 	EJeoulCutsceneState GetJeoulCutsceneState() const { return JeoulCutsceneState; }
 
 	UFUNCTION(Client, Reliable)
 	void Client_ShowTextNotify(EPS3TextNotifyType NotifyType);
 	
 protected:
-	UPROPERTY(EditDefaultsOnly, Category = "PS3|Cutscene", meta = (ClampMin = "0.0"))
+	UPROPERTY(EditDefaultsOnly, Category = "PlayerController|Cutscene", meta = (ClampMin = "0.0"))
 	float JeoulCameraBlendTime = 0.35f;
 
-	UPROPERTY(EditDefaultsOnly, Category = "PS3|Cutscene", meta = (ClampMin = "0.0"))
+	UPROPERTY(EditDefaultsOnly, Category = "PlayerController|Cutscene", meta = (ClampMin = "0.0"))
 	float JeoulCharacterTurnTime = 0.35f;
 
 	virtual void PlayerTick(float DeltaTime) override;
@@ -66,27 +66,27 @@ protected:
 	virtual void SetupInputComponent() override;
 	virtual void OnRep_PlayerState() override;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PS3|Player Controller|Input")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PlayerController|Input")
 	TObjectPtr<UInputMappingContext> InputMappingContext;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PS3|Player Controller|Input")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PlayerController|Input")
 	TObjectPtr<UInputAction> MoveAction;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PS3|Player Controller|Input")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PlayerController|Input")
 	TObjectPtr<UInputAction> LookAction;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PS3|Player Controller|Input")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PlayerController|Input")
 	TObjectPtr<UInputAction> JumpAction;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PS3|Player Controller|Input")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PlayerController|Input")
 	TObjectPtr<UInputAction> InteractAction;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PS3|Player Controller|Input")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PlayerController|Input")
 	TObjectPtr<UInputAction> DropAction;
 	
 	//말하기 입력 액션
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly,
-		Category = "PS3|Player Controller|Input")
+		Category = "PlayerController|Input")
 	TObjectPtr<UInputAction> PushToTalkAction;
 	
 	UPROPERTY(VisibleAnywhere,BlueprintReadOnly,Category = "Voice",meta = (AllowPrivateAccess = "true"))
@@ -95,20 +95,20 @@ protected:
 	UPROPERTY(VisibleAnywhere,BlueprintReadOnly,Category = "Voice",meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UVoicePluginControlComponent> VoicePluginControlComponent;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PS3|Player Controller|UI", meta = (ClampMin = "1"))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PlayerController|UI", meta = (ClampMin = "1"))
 	int32 MaxLifeCountForUI = 4;
 
 	// 맵 이동으로 Controller가 다시 생성됐을 때 EOS 로비 음성을 다시 연결합니다.
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PS3|Player Controller|Voice", meta = (ClampMin = "0.1"))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PlayerController|Voice", meta = (ClampMin = "0.1"))
 	float VoiceRestoreRetryInterval = 0.5f;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PS3|Player Controller|Voice", meta = (ClampMin = "1"))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PlayerController|Voice", meta = (ClampMin = "1"))
 	int32 MaxVoiceRestoreAttempts = 20;
 	
-	UFUNCTION(BlueprintCallable, Category = "PS3|Player Controller|Voice")
+	UFUNCTION(BlueprintCallable, Category = "PlayerController|Voice")
 	bool InitializeVoiceSystem(int32 LocalUserNum = 0);
 
-	UFUNCTION(BlueprintCallable, Category = "PS3|Player Controller|Voice")
+	UFUNCTION(BlueprintCallable, Category = "PlayerController|Voice")
 	void ShutdownVoiceSystem();
 
 private:

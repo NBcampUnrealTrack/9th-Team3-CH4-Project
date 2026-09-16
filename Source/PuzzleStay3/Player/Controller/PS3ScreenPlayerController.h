@@ -46,19 +46,19 @@ protected:
 	
 	EControlDoorType CurrentOpenedDoorType = EControlDoorType::None;
 	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PS3|Screen Controller|Input")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "ScreenController|Input")
 	TObjectPtr<UInputMappingContext> InputMappingContext;
 	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PS3|Screen Player Controller|Input")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "ScreenController|Input")
 	TObjectPtr<UInputAction> Button_A;
 	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PS3|Screen Player Controller|Input")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "ScreenController|Input")
 	TObjectPtr<UInputAction> Button_B;
 	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PS3|Screen Player Controller|Input")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "ScreenController|Input")
 	TObjectPtr<UInputAction> Button_C;
 	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PS3|Screen Player Controller|Input")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "ScreenController|Input")
 	TObjectPtr<UInputAction> Button_D;
 	
 	UPROPERTY()
@@ -86,9 +86,7 @@ protected:
 	void OnScreenPlayerUI_Show() const;
 	
 private:
-	UPROPERTY(EditAnywhere, Category = "DeBugSetting")
+	UPROPERTY(EditAnywhere, Category = "ScreenController|TestControllerSetting")
 	EDeBugType DeBugType = EDeBugType::OriginController;
-	
-	void TestToggledDoor(const FInputActionInstance& Instance);
 	
 };
