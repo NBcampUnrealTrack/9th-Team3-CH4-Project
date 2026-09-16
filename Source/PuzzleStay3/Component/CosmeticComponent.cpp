@@ -605,14 +605,8 @@ void UCosmeticComponent::HandleJudgementFinished(bool bIsSuccess)
 
 void UCosmeticComponent::HandleDoorOpenStateChanged(bool bIsOpen)
 {
-	if (EffectType == ECosmeticEffectType::BlueLight) // 현준 수정
-	{ // 현준 수정
-		SetCosmeticActive(bIsOpen); // 현준 수정
-		return; // 현준 수정
-	} // 현준 수정
-
 	AActor* Owner = GetOwner(); // 현준 수정
-	if (IsValid(Owner) && IsValid(Cast<ADoor>(Owner)) && GetNetMode() != NM_DedicatedServer) // 현준 수정
+	if (IsValid(Owner) && (IsValid(Cast<ADoor>(Owner)) || IsValid(Cast<AControlDoor>(Owner))) && GetNetMode() != NM_DedicatedServer) // 현준 수정
 	{
 		USoundBase* DoorSound = bIsOpen ? DoorOpenSound : DoorCloseSound; // 현준 수정
 		if (IsValid(DoorSound)) // 현준 수정
@@ -620,6 +614,12 @@ void UCosmeticComponent::HandleDoorOpenStateChanged(bool bIsOpen)
 			UGameplayStatics::PlaySoundAtLocation(this, DoorSound, Owner->GetActorLocation()); // 현준 수정
 		}
 	}
+
+	if (EffectType == ECosmeticEffectType::BlueLight) // 현준 수정
+	{ // 현준 수정
+		SetCosmeticActive(bIsOpen); // 현준 수정
+		return; // 현준 수정
+	} // 현준 수정
 
 	DoorTravelDuration = FMath::Max(0.0f, DoorTravelDuration);
 	UpdateDoorProgressToNow();

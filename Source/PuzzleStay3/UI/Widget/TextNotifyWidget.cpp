@@ -51,6 +51,15 @@ void UTextNotifyWidget::ShowTextNotify(EPS3TextNotifyType NotifyType)
 	case EPS3TextNotifyType::S5Collision:
 		ShowTextNotifyInternal(FText::FromString(TEXT("가짜 석상이었다. 잠시 기절했던 것 같다.")), DefaultTextNotifyFontSize, StageTextNotifyDuration);
 		break;
+	case EPS3TextNotifyType::ScaleNone:
+		ShowTextNotifyInternal(FText::FromString(TEXT("이것을 작동하려면 친구가 필요할 것 같다.")), DefaultTextNotifyFontSize, StageTextNotifyDuration);
+		break;
+	case EPS3TextNotifyType::ScaleFail:
+		ShowTextNotifyInternal(FText::FromString(TEXT("저울의 균형이 맞지 않는 것 같다. press[F]")), DefaultTextNotifyFontSize, StageTextNotifyDuration);
+		break;
+	case EPS3TextNotifyType::ScaleSuccess:
+		ShowTextNotifyInternal(FText::FromString(TEXT("저울이 균형이 맞춰지며 문이 열리는 소리가 들렸다. press[F]")), DefaultTextNotifyFontSize, StageTextNotifyDuration);
+		break;
 	case EPS3TextNotifyType::None:
 	default:
 		break;
