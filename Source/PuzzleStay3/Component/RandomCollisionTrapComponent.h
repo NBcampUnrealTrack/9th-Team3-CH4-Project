@@ -56,12 +56,13 @@ protected:
 		const FHitResult& SweepResult);
 
 private:
-	void ApplyCollisionFromStage2GameMode();
+	
 	void UpdateCollisionState();
 
 	bool bRegisteredToStage2GameMode = false;
 
 public:
+	void ApplyCollisionFromStage2GameMode();
 	virtual void GetLifetimeReplicatedProps(
 		TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 };
