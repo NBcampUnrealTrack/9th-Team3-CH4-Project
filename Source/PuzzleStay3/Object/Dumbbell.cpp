@@ -143,11 +143,7 @@ bool ADumbbell::TryDrop(APS3PlayerCharacter* Requestor)
 		if (DumbbellMesh)
 		{
 			float HalfHeight = DumbbellMesh->Bounds.BoxExtent.Z;
-	
-			// ★ GroundZOffset에 액터의 Z 스케일을 곱해 크기 비율에 맞게 자동 보정
-			float ScaledOffset = GroundZOffset * GetActorScale3D().Z;
-			
-			DropLocation.Z += (HalfHeight + ScaledOffset);
+			DropLocation.Z += (HalfHeight + GroundZOffset);
 		}
 
 		SetActorLocationAndRotation(DropLocation, FRotator::ZeroRotator);

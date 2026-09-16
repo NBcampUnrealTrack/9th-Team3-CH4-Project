@@ -260,7 +260,7 @@ void UCosmeticComponent::BindActivationDelegates()
 		}
 		break;
 	case ECosmeticActivationType::DoorProgress:
-		if (EffectType == ECosmeticEffectType::Smoke || EffectType == ECosmeticEffectType::BlueLight) // 현준 수정
+		if (EffectType == ECosmeticEffectType::Smoke)
 		{
 			BindOwnerDoorDelegate();
 		}
@@ -427,7 +427,7 @@ void UCosmeticComponent::BindOwnerDoorDelegate()
 	}
 
 	ADoor* DoorOwner = Cast<ADoor>(Owner);
-	if (IsValid(DoorOwner) && EffectType == ECosmeticEffectType::Smoke) // 현준 수정
+	if (IsValid(DoorOwner))
 	{
 		DoorOwner->OnIsDoorOpen.AddUObject(
 			this,
@@ -605,12 +605,6 @@ void UCosmeticComponent::HandleJudgementFinished(bool bIsSuccess)
 
 void UCosmeticComponent::HandleDoorOpenStateChanged(bool bIsOpen)
 {
-	if (EffectType == ECosmeticEffectType::BlueLight) // 현준 수정
-	{ // 현준 수정
-		SetCosmeticActive(bIsOpen); // 현준 수정
-		return; // 현준 수정
-	} // 현준 수정
-
 	AActor* Owner = GetOwner(); // 현준 수정
 	if (IsValid(Owner) && IsValid(Cast<ADoor>(Owner)) && GetNetMode() != NM_DedicatedServer) // 현준 수정
 	{

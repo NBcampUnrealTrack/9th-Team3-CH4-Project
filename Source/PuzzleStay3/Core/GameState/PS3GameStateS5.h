@@ -76,7 +76,6 @@ private:
 	APS3GameModeS5* GetCastPS3GameModeS5();
 	
 	void NoneReceivedDecalFloor();
-	void ScreenPlayerVisibleToArrow();
 	
 public:
 	FOnSpawnedScreenPlayerUIReAssign OnSpawnedScreenPlayerUIReAssign;
