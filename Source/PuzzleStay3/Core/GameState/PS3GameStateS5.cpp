@@ -5,7 +5,10 @@
 #include "Data/Delegates/UIDelegatesSubsystem.h"
 #include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
+#include "Player/Character/PS3PlayerCharacter.h"
+#include "Player/Controller/PS3PlayerController.h"
 #include "Player/Controller/PS3PlayerControllerBase.h"
+#include "Player/Controller/PS3ScreenPlayerController.h"
 
 
 APS3GameStateS5::APS3GameStateS5()
@@ -27,8 +30,6 @@ void APS3GameStateS5::BeginPlay()
 	auto* PS3GameModeS5 = Cast<APS3GameModeS5>(GetWorld()->GetAuthGameMode());
 	if (IsValid(PS3GameModeS5) == false) return;
 	PS3GameModeS5->OnIsGameStart.AddUObject(this, &ThisClass::OnGameStart);
-	
-	
 }
 
 
@@ -142,6 +143,8 @@ void APS3GameStateS5::SetDeductGameLimitTime_AuthorityOnRep(float TimeToDeducted
 void APS3GameStateS5::OnGameStart(bool bIsGameStart)
 {
 	bIsGameStarted = bIsGameStart;
+	
+	ScreenPlayerVisibleToArrow();
 }
 
 
@@ -212,6 +215,26 @@ void APS3GameStateS5::NoneReceivedDecalFloor()
 		
 		FloorMeshComp->SetReceivesDecals(false);
 	}		
+}
+
+void APS3GameStateS5::ScreenPlayerVisibleToArrow()
+{
+	auto* PC = GetWorld()->GetFirstPlayerController();
+	if (IsValid(PC) == false) return;
+	
+	auto* PS3FieldPlayerController = Cast<APS3PlayerController>(PC);
+	if (IsValid(PS3FieldPlayerController) == false) return;
+	
+	auto* PS3FieldPlayer = Cast<APS3PlayerCharacter>(PS3FieldPlayerController->GetPawn());
+	if (IsValid(PS3FieldPlayer) == false) return;
+	
+	auto* PS3ScreenPlayerController = Cast<APS3ScreenPlayerController>(PC);
+	if (IsValid(PS3ScreenPlayerController) == false) return;
+	
+	if (PS3ScreenPlayerController->IsLocalPlayerController() == true)
+	{
+		PS3FieldPlayer->ArrowMeshComp->SetVisibility(true);
+	}
 }
 
 

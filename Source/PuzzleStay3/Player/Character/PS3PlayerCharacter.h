@@ -21,6 +21,9 @@ class PUZZLESTAY3_API APS3PlayerCharacter : public ACharacter
 
 public:
 	APS3PlayerCharacter();
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "PS3|Character|Components")
+	TObjectPtr<UStaticMeshComponent> ArrowMeshComp;
 
 	UFUNCTION(BlueprintPure, Category = "PS3|Character")
 	bool CanUseFieldControls() const;
@@ -68,7 +71,7 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "PS3|Character|Components")
 	TObjectPtr<UCameraComponent> Camera;
-
+	
 	// 플레이어 전방에 생성할 상호작용 구체의 반경
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PS3|Character|Interaction", meta = (ClampMin = "0.0"))
 	float InteractionSphereRadius = 70.0f;
