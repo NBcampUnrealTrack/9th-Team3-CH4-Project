@@ -20,19 +20,7 @@ void UFinalTreasureComponent::GetLifetimeReplicatedProps(TArray<FLifetimePropert
 
 bool UFinalTreasureComponent::CanInteract_Implementation(AActor* Requestor) const
 {
-	const APawn* Pawn = Cast<APawn>(Requestor);
-	if (!IsValid(Pawn)){return false;}
-
-	APlayerState* PS = Pawn->GetPlayerState();
-	if (!IsValid(PS)){return false;}
-
-	const UWorld* World = GetWorld();
-	if (!IsValid(World)){return false;}
-
-	APS3GameModeEnd* GM = World->GetAuthGameMode<APS3GameModeEnd>();
-	if (!IsValid(GM)){return false;}
-
-	return GM->CanInteractFinalTreasure(PS);
+	return true;
 }
 
 bool UFinalTreasureComponent::Interact_Implementation(AActor* Requestor)
@@ -48,7 +36,8 @@ bool UFinalTreasureComponent::Interact_Implementation(AActor* Requestor)
 
 	APS3GameModeEnd* GM = GetWorld()->GetAuthGameMode<APS3GameModeEnd>();
 	if (!IsValid(GM)){return false;}
-
+	
+	GM->CanInteractFinalTreasure(PS);
 	return GM->RegisterFinalTreasureInteraction(PS);
 }
 
