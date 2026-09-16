@@ -124,34 +124,22 @@ void APS3ScreenPlayerController::SetupInputComponent()
 	{
 		checkf(IsValid(Button_A) == true,TEXT("스크린 컨트롤러 버튼A 할당 안됨"));
 		{
-			EIC->BindAction(Button_A, ETriggerEvent::Started, this, &ThisClass::TestToggledDoor);
+			EIC->BindAction(Button_A, ETriggerEvent::Started, this, &ThisClass::OpenDoor);
 		}
 		checkf(IsValid(Button_B) == true,TEXT("스크린 컨트롤러 버튼B 할당 안됨"));
 		{
-			EIC->BindAction(Button_B, ETriggerEvent::Started, this, &ThisClass::TestToggledDoor);
+			EIC->BindAction(Button_B, ETriggerEvent::Started, this, &ThisClass::OpenDoor);
 		}
 		checkf(IsValid(Button_C) == true,TEXT("스크린 컨트롤러 버튼C 할당 안됨"));
 		{
-			EIC->BindAction(Button_C, ETriggerEvent::Started, this, &ThisClass::TestToggledDoor);
+			EIC->BindAction(Button_C, ETriggerEvent::Started, this, &ThisClass::OpenDoor);
 		}
 		checkf(IsValid(Button_D) == true,TEXT("스크린 컨트롤러 버튼D 할당 안됨"));
 		{
-			EIC->BindAction(Button_D, ETriggerEvent::Started, this, &ThisClass::TestToggledDoor);
+			EIC->BindAction(Button_D, ETriggerEvent::Started, this, &ThisClass::OpenDoor);
 		}
 	}
 	
-}
-
-
-void APS3ScreenPlayerController::TestToggledDoor(const FInputActionInstance& Instance)
-{
-	EControlDoorType PressedDoorType = GetDoorTypeFromAction(Instance.GetSourceAction());
-	if (PressedDoorType == EControlDoorType::None) return;
-
-	// 닫는 로직(CloseDoor 및 이전 문 닫기)을 모두 제거하고 열기만 수행
-	CurrentOpenedDoorType = PressedDoorType;
-	PS3_BROADCAST_TO_MVVM_TwoParams(OnButtonEnabled_UI, PressedDoorType, true);
-	ServerRPC_OperateDoor(PressedDoorType, true);
 }
 
 

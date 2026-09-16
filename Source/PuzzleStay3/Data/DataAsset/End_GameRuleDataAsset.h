@@ -3,6 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Data/Enum/PS3StageType.h"
+#include "Data/Enum/PS3TextNotifyType.h"
 #include "Engine/DataAsset.h"
 #include "End_GameRuleDataAsset.generated.h"
 
@@ -20,4 +22,10 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "GameRule")
 	TSoftObjectPtr<UWorld> EndingVideoLevel;
+	
+	UPROPERTY(EditAnywhere, Category = "GameRule")
+	EPS3StageType StageType_End = EPS3StageType::StageEnd;
+	
+	UPROPERTY(EditAnywhere, Category = "GameRule")
+	EPS3TextNotifyType TextNotifyTypeForUI_End = EPS3TextNotifyType::TreasureDiscovery;
 };

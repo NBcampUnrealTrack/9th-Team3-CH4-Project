@@ -31,19 +31,19 @@ protected:
 	UPROPERTY()
 	TObjectPtr<UPS3ViewModel> PS3ViewModel; // 현준 수정
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PS3|Player Controller|Input") // 현준 수정
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PlayerControllerBase|Input") // 현준 수정
 	TObjectPtr<UInputMappingContext> OptionMappingContext; // 현준 수정
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PS3|Player Controller|Input") // 현준 수정
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PlayerControllerBase|Input") // 현준 수정
 	TObjectPtr<UInputAction> OptionAction; // 현준 수정
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Audio|Volume") // 현준 수정
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PlayerControllerBase|Audio") // 현준 수정
 	TObjectPtr<USoundMix> MasterSoundMix; // 현준 수정
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Audio|Volume") // 현준 수정
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PlayerControllerBase|Audio") // 현준 수정
 	TObjectPtr<USoundClass> MasterSoundClass; // 현준 수정
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Audio|Volume") // 현준 수정
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PlayerControllerBase|Audio") // 현준 수정
 	TObjectPtr<USoundClass> SFXSoundClass; // 현준 수정
 	
 	UFUNCTION()
