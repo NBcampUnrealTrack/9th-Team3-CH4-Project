@@ -80,6 +80,9 @@ private:
 	UFUNCTION(NetMulticast, Reliable)
 	void NetMulti_ScreenPlayerVisibleToArrow();
 	
+	UFUNCTION(NetMulticast, Reliable)
+	void NetMulti_StageNotifyUI();
+	
 public:
 	FOnSpawnedScreenPlayerUIReAssign OnSpawnedScreenPlayerUIReAssign;
 
