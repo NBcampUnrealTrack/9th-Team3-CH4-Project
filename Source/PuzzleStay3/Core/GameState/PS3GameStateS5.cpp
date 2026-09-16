@@ -1,5 +1,6 @@
 ﻿#include "PS3GameStateS5.h"
 
+#include "EngineUtils.h"
 #include "Core/GameMode/PS3GameModeS5.h"
 #include "Data/DataAsset/S5_GameRuleDataAsset.h"
 #include "Data/Delegates/UIDelegatesSubsystem.h"
@@ -142,9 +143,19 @@ void APS3GameStateS5::SetDeductGameLimitTime_AuthorityOnRep(float TimeToDeducted
 	
 }
 
+
 void APS3GameStateS5::OnGameStart(bool bIsGameStart)
 {
 	bIsGameStarted = bIsGameStart;
+	
+	if (bIsGameStarted == true)
+	{
+		FTimerHandle ArrowDelayTimerHandle;
+		GetWorldTimerManager().SetTimer(ArrowDelayTimerHandle, [this]()
+		{
+			NetMulti_ScreenPlayerVisibleToArrow();
+		}, 0.3f, false);
+	}
 }
 
 
@@ -217,23 +228,31 @@ void APS3GameStateS5::NoneReceivedDecalFloor()
 	}		
 }
 
-void APS3GameStateS5::ScreenPlayerVisibleToArrow()
+
+void APS3GameStateS5::NetMulti_ScreenPlayerVisibleToArrow_Implementation()
 {
-	auto* PC = GetWorld()->GetFirstPlayerController();
-	if (IsValid(PC) == false) return;
+	APlayerController* LocalPC = nullptr;
+	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
+	{
+		APlayerController* PC = It->Get();
+		if (IsValid(PC) == true && PC->IsLocalController() == true)
+		{
+			LocalPC = PC;
+			break;
+		}
+	}
+	if (IsValid(LocalPC) == false) return;
 	
-	auto* FieldPlayerController = Cast<APS3PlayerController>(PC);
-	if (IsValid(FieldPlayerController) == false) return;
-	
-	auto* FieldPlayer = Cast<APS3PlayerCharacter>(PC->GetPawn());
-	if (IsValid(FieldPlayer) == false) return;
-	
-	auto* ScreenPlayerController = Cast<APS3ScreenPlayerController>(PC);
+	auto* ScreenPlayerController = Cast<APS3ScreenPlayerController>(LocalPC);
 	if (IsValid(ScreenPlayerController) == false) return;
 	
-	if (ScreenPlayerController->IsLocalPlayerController() == true)
+	for (TActorIterator<APS3PlayerCharacter> It(GetWorld()); It; ++It)
 	{
-		FieldPlayer->PlayerArrowComp->SetVisibility(true);
+		APS3PlayerCharacter* FieldPlayer = *It;
+		if (IsValid(FieldPlayer) && IsValid(FieldPlayer->PlayerArrowComp))
+		{
+			FieldPlayer->PlayerArrowComp->SetVisibility(true);
+		}
 	}
 }
 
