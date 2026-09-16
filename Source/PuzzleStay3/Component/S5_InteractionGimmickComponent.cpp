@@ -24,8 +24,6 @@ void US5_InteractionGimmickComponent::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	TestGameRule();
-	
 	this->OnComponentBeginOverlap.AddDynamic(this, &ThisClass::OnCharacterBeginOverlapForUI);
 	this->OnComponentEndOverlap.AddDynamic(this, &ThisClass::OnCharacterEndOverlapForUI);
 	
@@ -125,21 +123,6 @@ void US5_InteractionGimmickComponent::CheckCanDisplayedUIForTimer()
 	{
 		PS3_BROADCAST_TO_MVVM_TwoParams(OnInteractRequestS5_UI,EPS3InteractionNotifyType::Interact, false);
 		bIsUIVisible = false;
-	}
-}
-
-void US5_InteractionGimmickComponent::TestGameRule()
-{
-	bIsTestGameRule = S5_GameRuleDataAsset->bIsTestGameRule;
-	
-	if (bIsTestGameRule == false)
-	{
-		bIsActivateTestGimmick = false;
-	}
-	
-	if (bIsActivateTestGimmick == true)
-	{
-		bIsInteractionGimmick = bIsActivateTestGimmick;
 	}
 }
 

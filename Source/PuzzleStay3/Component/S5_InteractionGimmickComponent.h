@@ -69,16 +69,6 @@ protected:
 	
 	bool bIsUIVisible = false;
 	
-private:
-	UPROPERTY(EditAnywhere, Category = "GameRule")
-	bool bIsActivateTestGimmick = false;
-	
-	bool bIsTestGameRule = false;	
-	
-	UPROPERTY(EditAnywhere, Category = "GameRule")
-	TObjectPtr<US5_GameRuleDataAsset> S5_GameRuleDataAsset;
-	
-	void TestGameRule();
 };
 
 

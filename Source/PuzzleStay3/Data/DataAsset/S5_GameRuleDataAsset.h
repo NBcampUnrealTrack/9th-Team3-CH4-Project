@@ -21,11 +21,6 @@ class PUZZLESTAY3_API US5_GameRuleDataAsset : public UDataAsset
 	
 public:	
 	UPROPERTY(EditAnywhere, Category = "GameRule")
-	bool bIsTestGameRule = false;
-	
-	
-	
-	UPROPERTY(EditAnywhere, Category = "GameRule")
 	EPS3StageType StageType_S5 = EPS3StageType::Stage5;
 	
 	UPROPERTY(EditAnywhere, Category = "GameRule")

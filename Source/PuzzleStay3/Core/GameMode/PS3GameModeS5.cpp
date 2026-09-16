@@ -74,12 +74,11 @@ void APS3GameModeS5::InitializeGimmick()
 {
 	GetWorld()->GetTimerManager().ClearTimer(InitTimerHandle);
 	
-	if (S5_GameRuleDataAsset->bIsTestGameRule == false)
-	{
-		UnResistEscapeGimmick();
-		RandomShuffleFakeGimmick();
-		BindInteractionGimmick();
-	}
+	
+	UnResistEscapeGimmick();
+	RandomShuffleFakeGimmick();
+	BindInteractionGimmick();
+
 	
 	ResistEscapeGimmick();
 	
