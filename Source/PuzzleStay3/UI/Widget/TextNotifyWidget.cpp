@@ -60,6 +60,9 @@ void UTextNotifyWidget::ShowTextNotify(EPS3TextNotifyType NotifyType)
 	case EPS3TextNotifyType::ScaleSuccess:
 		ShowTextNotifyInternal(FText::FromString(TEXT("저울이 균형이 맞춰지며 문이 열리는 소리가 들렸다. press[F]")), DefaultTextNotifyFontSize, StageTextNotifyDuration);
 		break;
+	case EPS3TextNotifyType::TreasureDiscovery:
+		ShowTextNotifyInternal(FText::FromString(TEXT("목표로 했던 황금의 보물을 발견 했다. 가까히 가보자.")), DefaultTextNotifyFontSize, StageTextNotifyDuration);
+		break;
 	case EPS3TextNotifyType::None:
 	default:
 		break;
