@@ -27,7 +27,7 @@ void APS3GameStateBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 
 void APS3GameStateBase::InitializeToDataAssets()
 {
-	checkf(IsValid(Base_GameRuleDataAsset) == true, TEXT("[APS3GameModeS1]의 데이터에셋이 비어있습니다."));
+	checkf(IsValid(Base_GameRuleDataAsset) == true, TEXT("[APS3GameStateBase]의 데이터에셋이 비어있습니다."));
 	
 	
 	StageType_UI_DelayTime = Base_GameRuleDataAsset->StageType_UI_DelayTime;

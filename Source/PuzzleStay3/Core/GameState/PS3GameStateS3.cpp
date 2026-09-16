@@ -28,7 +28,7 @@ void APS3GameStateS3::InitializeToDataAssets()
 {
 	Super::InitializeToDataAssets();
 	
-	checkf(IsValid(S3_GameRuleDataAsset) == true, TEXT("[APS3GameModeS3]의 데이터에셋이 비어있습니다."));
+	checkf(IsValid(S3_GameRuleDataAsset) == true, TEXT("[APS3GameStateS3]의 데이터에셋이 비어있습니다."));
 	
 }
 
