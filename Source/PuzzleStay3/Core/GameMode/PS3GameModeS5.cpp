@@ -46,7 +46,9 @@ void APS3GameModeS5::BeginPlay()
 	Super::BeginPlay();
 	
 	//InitializeToDataAssets();
-	GetWorld()->GetTimerManager().SetTimer(InitTimerHandle, this, &ThisClass::InitializeGimmick, 0.1f, false);
+	
+		GetWorld()->GetTimerManager().SetTimer(InitTimerHandle, this, &ThisClass::InitializeGimmick, 0.1f, false);
+	
 }
 
 
@@ -65,6 +67,9 @@ void APS3GameModeS5::InitializeToDataAssets()
 	MaxEscapeDoorCount = S5_GameRuleDataAsset->MaxEscapeDoorCount;
 	MaxInteractionGimmickCount = S5_GameRuleDataAsset->MaxInteractionGimmickCount;
 	WaitingTime = S5_GameRuleDataAsset->WaitingTime;
+	
+	if (S5_GameRuleDataAsset->NextStageLevel.IsNull()) return;
+	NextStageLevelPath = S5_GameRuleDataAsset->NextStageLevel.ToSoftObjectPath().GetLongPackageName();
 }
 
 
@@ -72,9 +77,12 @@ void APS3GameModeS5::InitializeGimmick()
 {
 	GetWorld()->GetTimerManager().ClearTimer(InitTimerHandle);
 	
+	
 	UnResistEscapeGimmick();
 	RandomShuffleFakeGimmick();
 	BindInteractionGimmick();
+
+	
 	ResistEscapeGimmick();
 	
 	UE_LOG(LogTemp, Warning, TEXT("활성화 해야 할 스크린플레이어 스폰 조건 %d개"), TargetCountForSpawnScreenPlayer);
