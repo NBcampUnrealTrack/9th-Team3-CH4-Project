@@ -53,7 +53,7 @@ bool UVoicePluginControlComponent::InitializeEOSVoice(const int32 LocalUserNum)
 	{
 		return false;
 	}
-	if (VoiceChatUser == NewVoiceChatUser)
+	if (VoiceChatUser == NewVoiceChatUser && HasLiveVoiceUser())
 	{
 		// BP에서 초기화를 다시 호출해도 콜백을 중복 등록하지 않습니다.
 		OnVoiceReadyChanged.Broadcast(bVoiceReady);
@@ -65,6 +65,13 @@ bool UVoicePluginControlComponent::InitializeEOSVoice(const int32 LocalUserNum)
 	}
 
 	VoiceChatUser = NewVoiceChatUser;
+	VoiceSubsystemIdentifier = EOS_SUBSYSTEM;
+#if UE_EDITOR
+	VoiceSubsystemIdentifier = Online::GetUtils()->GetOnlineIdentifier(GetWorld(), EOS_SUBSYSTEM);
+#endif
+	VoiceIdentity = Identity;
+	VoiceUserId = UserId;
+	VoiceLocalUserNum = LocalUserNum;
 
 	ChannelJoinedHandle = VoiceChatUser->OnVoiceChatChannelJoined().AddUObject(this, &ThisClass::HandleChannelJoined);
 	ChannelExitedHandle = VoiceChatUser->OnVoiceChatChannelExited().AddUObject(this, &ThisClass::HandleChannelExited);
@@ -79,6 +86,21 @@ bool UVoicePluginControlComponent::InitializeEOSVoice(const int32 LocalUserNum)
 	return true;
 }
 
+bool UVoicePluginControlComponent::HasLiveVoiceUser() const
+{
+	// 종료된 OSS를 재생성하지 않고, 빌린 음성 사용자의 소유자가 여전히 유효한지 확인한다.
+	if (!VoiceChatUser || !VoiceUserId.IsValid() ||
+		!IOnlineSubsystem::DoesInstanceExist(VoiceSubsystemIdentifier)) return false;
+	IOnlineSubsystem* Subsystem = IOnlineSubsystem::Get(VoiceSubsystemIdentifier);
+	if (!Subsystem) return false;
+	const IOnlineIdentityPtr Identity = Subsystem->GetIdentityInterface();
+	if (!Identity.IsValid() || Identity != VoiceIdentity.Pin() ||
+		Identity->GetLoginStatus(VoiceLocalUserNum) != ELoginStatus::LoggedIn) return false;
+	const TSharedPtr<const FUniqueNetId> CurrentId = Identity->GetUniquePlayerId(VoiceLocalUserNum);
+	if (!CurrentId.IsValid() || *CurrentId != *VoiceUserId) return false;
+	return static_cast<IOnlineSubsystemEOS*>(Subsystem)->GetVoiceChatUserInterface(*CurrentId) == VoiceChatUser;
+}
+
 void UVoicePluginControlComponent::ShutdownEOSVoice()
 {
 	if (UWorld* World = GetWorld())
@@ -88,45 +110,52 @@ void UVoicePluginControlComponent::ShutdownEOSVoice()
 	PendingVoiceChannelName.Reset();
 	PendingVoicePlayerName.Reset();
 
-	if (VoiceChatUser == nullptr)
+	if (HasLiveVoiceUser())
 	{
-		return;
-	}
+		VoiceChatUser->TransmitToNoChannels();
 
-	VoiceChatUser->TransmitToNoChannels();
+		if (ChannelJoinedHandle.IsValid())
+		{
+			VoiceChatUser->OnVoiceChatChannelJoined().Remove(ChannelJoinedHandle);
+			ChannelJoinedHandle.Reset();
+		}
 
-	if (ChannelJoinedHandle.IsValid())
-	{
-		VoiceChatUser->OnVoiceChatChannelJoined().Remove(ChannelJoinedHandle);
-		ChannelJoinedHandle.Reset();
-	}
+		if (ChannelExitedHandle.IsValid())
+		{
+			VoiceChatUser->OnVoiceChatChannelExited().Remove(ChannelExitedHandle);
+			ChannelExitedHandle.Reset();
+		}
 
-	if (ChannelExitedHandle.IsValid())
-	{
-		VoiceChatUser->OnVoiceChatChannelExited().Remove(ChannelExitedHandle);
-		ChannelExitedHandle.Reset();
-	}
+		if (PlayerAddedHandle.IsValid())
+		{
+			VoiceChatUser->OnVoiceChatPlayerAdded().Remove(PlayerAddedHandle);
+			PlayerAddedHandle.Reset();
+		}
 
-	if (PlayerAddedHandle.IsValid())
-	{
-		VoiceChatUser->OnVoiceChatPlayerAdded().Remove(PlayerAddedHandle);
-		PlayerAddedHandle.Reset();
-	}
-
-	if (CapturedAudioHandle.IsValid())
-	{
-		VoiceChatUser->UnregisterOnVoiceChatAfterCaptureAudioReadDelegate(CapturedAudioHandle);
-		CapturedAudioHandle.Reset();
+		if (CapturedAudioHandle.IsValid())
+		{
+			VoiceChatUser->UnregisterOnVoiceChatAfterCaptureAudioReadDelegate(CapturedAudioHandle);
+			CapturedAudioHandle.Reset();
+		}
 	}
 
 	VoiceChatUser = nullptr;
+	VoiceIdentity.Reset();
+	VoiceUserId.Reset();
+	VoiceSubsystemIdentifier = NAME_None;
+	VoiceLocalUserNum = INDEX_NONE;
+	ChannelJoinedHandle.Reset();
+	ChannelExitedHandle.Reset();
+	PlayerAddedHandle.Reset();
+	CapturedAudioHandle.Reset();
+	const bool bWasReady = bVoiceReady;
 	bVoiceReady = false;
-	OnVoiceReadyChanged.Broadcast(false);
+	if (bWasReady) OnVoiceReadyChanged.Broadcast(false);
 }
 
 void UVoicePluginControlComponent::SetTransmitEnabled(const bool bEnabled)
 {
-	if (VoiceChatUser == nullptr)
+	if (!HasLiveVoiceUser())
 	{
 		return;
 	}
@@ -143,7 +172,7 @@ void UVoicePluginControlComponent::SetTransmitEnabled(const bool bEnabled)
 
 void UVoicePluginControlComponent::SetMicrophoneMuted(const bool bMuted)
 {
-	if (VoiceChatUser != nullptr)
+	if (HasLiveVoiceUser())
 	{
 		VoiceChatUser->SetAudioInputDeviceMuted(bMuted);
 	}
@@ -169,7 +198,7 @@ void UVoicePluginControlComponent::ApplyConversionToPlugin(const bool bEnabled)
 
 void UVoicePluginControlComponent::HandleChannelJoined(const FString& ChannelName)
 {
-	if (VoiceChatUser == nullptr)
+	if (!HasLiveVoiceUser())
 	{
 		return;
 	}
@@ -184,7 +213,7 @@ void UVoicePluginControlComponent::HandleChannelExited(
 	const FString& ChannelName,
 	const FVoiceChatResult& Reason)
 {
-	bVoiceReady = VoiceChatUser != nullptr && !VoiceChatUser->GetChannels().IsEmpty();
+	bVoiceReady = HasLiveVoiceUser() && !VoiceChatUser->GetChannels().IsEmpty();
 	OnVoiceReadyChanged.Broadcast(bVoiceReady);
 	UE_LOG(
 		LogTemp,
@@ -199,7 +228,7 @@ void UVoicePluginControlComponent::HandlePlayerAdded(
 	const FString& ChannelName,
 	const FString& PlayerName)
 {
-	if (VoiceChatUser == nullptr || ChannelName.IsEmpty() || PlayerName.IsEmpty())
+	if (!HasLiveVoiceUser() || ChannelName.IsEmpty() || PlayerName.IsEmpty())
 	{
 		return;
 	}
@@ -223,7 +252,7 @@ void UVoicePluginControlComponent::HandlePlayerAdded(
 
 void UVoicePluginControlComponent::ReapplyPlayerReceiving()
 {
-	if (VoiceChatUser == nullptr || PendingVoiceChannelName.IsEmpty() || PendingVoicePlayerName.IsEmpty())
+	if (!HasLiveVoiceUser() || PendingVoiceChannelName.IsEmpty() || PendingVoicePlayerName.IsEmpty())
 	{
 		return;
 	}
