@@ -1127,13 +1127,7 @@ Content/PuzzleStay3/Dev/Asset/PS3_PlayerCharacterMesh/Meshes/SK_Luige_Character.
 Content/PuzzleStay3/Dev/Asset/PS3_PlayerCharacterMesh/Meshes/SK_Mario_Character.uasset
 Content/PuzzleStay3/Dev/Asset/PS3_StonePillar/Mesh/SM_MERGED_StaticMeshActor_UAID_50EBF6436B20B90103_1944244370.uasset
 Content/PuzzleStay3/Dev/Asset/PS3_Wall/Material/M_Plains_Floors_Block_Inst.uasset
-Content/PuzzleStay3/Dev/Asset/PS3_ArrowMesh/Material/Arrow5.uasset
-Content/PuzzleStay3/Dev/Asset/PS3_ArrowMesh/Material/Basic_Arrow.uasset
-Content/PuzzleStay3/Dev/Asset/PS3_ArrowMesh/Material/Basic_Arrow_Inst.uasset
-Content/PuzzleStay3/Dev/Asset/PS3_ArrowMesh/Mesh/ArrowCompMesh.uasset
-Content/PuzzleStay3/Dev/Asset/PS3_ArrowMesh/Texture/cc0_arrow_5_texture_0.uasset
-Content/PuzzleStay3/Dev/Asset/PS3_ArrowMesh/Texture/cc0_arrow_5_texture_1.uasset
-Content/PuzzleStay3/Dev/Asset/PS3_ArrowMesh/Texture/cc0_arrow_5_texture_2.uasset
+
 
 # Local archive exports should not be committed.
 *.zip
