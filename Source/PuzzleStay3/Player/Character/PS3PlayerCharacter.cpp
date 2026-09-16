@@ -64,6 +64,15 @@ void APS3PlayerCharacter::OnRep_PlayerState()
 	RefreshPlayerIdentityVisual();
 }
 
+void APS3PlayerCharacter::BeginPlay()
+{
+	Super::BeginPlay();
+	
+	checkf(IsValid(PlayerArrowComp) == true, TEXT("[BP_APS3PlayerCharacter]의 [PlayerArrowComp] 컴포넌트가 비어있습니다."));
+	checkf(IsValid(PlayerArrowComp->GetStaticMesh()) == true, TEXT("[BP_APS3PlayerCharacter]의 [PlayerArrowComp] 스태틱 메쉬가 비어있습니다."));
+	
+}
+
 void APS3PlayerCharacter::RefreshPlayerIdentityVisual()
 {
 	const APS3PlayerState* PS3PlayerState = GetPlayerState<APS3PlayerState>();
