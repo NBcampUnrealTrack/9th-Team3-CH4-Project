@@ -63,6 +63,7 @@ protected:
 	void ServerRPC_OnClickedTitleButton();
 	
 public:
+	void SetGameOverInputMode(bool bVisible); //준현 수정
 	void ConfigureInputMapping();
 	
 	virtual void ConfigureViewModelBindings(UPS3ViewModel* InViewModel);
@@ -77,6 +78,7 @@ private:
 
 	FTimerHandle InitTimerHandle;
 	bool bOptionInputConfigured = false; // 현준 수정
+	bool bGameOverInputActive = false; // 준현 수정
 	bool bIsOptionPopupOpenByInput = false; // 현준 수정
 	
 };

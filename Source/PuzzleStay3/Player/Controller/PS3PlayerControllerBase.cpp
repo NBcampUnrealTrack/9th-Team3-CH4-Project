@@ -131,6 +131,7 @@ void APS3PlayerControllerBase::RemoveOptionMappingContext() // 현준 수정
 
 void APS3PlayerControllerBase::HandleOptionStarted() // 현준 수정
 { // 현준 수정
+	if (bGameOverInputActive) return; //준현 수정
 	if (IsLocalController() == false || GetNetMode() == NM_DedicatedServer) return; // 현준 수정
  // 현준 수정
 	if (IsValid(PS3ViewModel)) // 현준 수정
@@ -150,9 +151,25 @@ void APS3PlayerControllerBase::HandleOptionStarted() // 현준 수정
 	ApplyOptionPopupInputMode(bIsOptionPopupOpenByInput); // 현준 수정
 } // 현준 수정
 
+void APS3PlayerControllerBase::SetGameOverInputMode(bool bVisible)
+{
+	if (!IsLocalController()) return;
+	if (!bVisible && !bGameOverInputActive) return;
+	bGameOverInputActive = bVisible;
+	ApplyOptionPopupInputMode(bIsOptionPopupOpenByInput);
+} // 준현 수정
+
 void APS3PlayerControllerBase::ApplyOptionPopupInputMode(bool bOpen) // 현준 수정
 { // 현준 수정
 	if (IsLocalController() == false) return; // 현준 수정
+	if (bGameOverInputActive)
+	{
+		FInputModeUIOnly InputMode;
+		InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+		SetInputMode(InputMode);
+		bShowMouseCursor = true;
+		return;
+	} //준현 수정
  // 현준 수정
 	if (bOpen) // 현준 수정
 	{ // 현준 수정
