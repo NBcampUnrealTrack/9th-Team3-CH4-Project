@@ -3,6 +3,7 @@
 
 #include "PS3PlayerControllerBase.h"
 
+#include "CheatManager/PS3CheatManager.h"
 #include "Core/GameMode/PS3GamemodeBase.h"
 #include "Core/GameState/PS3GameStateS5.h"
 #include "EnhancedInputComponent.h" // 현준 수정
@@ -17,7 +18,21 @@
 #include "Sound/SoundMix.h" // 현준 수정
 #include "UI/HUD/PlayerHUD.h"
 #include "UI/ViewModel/PS3ViewModel.h"
+//CheatManager Start
+#include "Core/GameMode/PS3GameModeS2.h"
+#include "Core/GameMode/PS3GameModeS5.h"
+#include "Core/GameState/PS3GameStateS4.h"
+#include "Engine/Engine.h"
+#include "Engine/World.h"
+#include "InputCoreTypes.h"
+//CheatManager End
 
+//CheatManager start
+APS3PlayerControllerBase::APS3PlayerControllerBase()
+{
+	CheatClass = UPS3CheatManager::StaticClass();
+}
+//CheatManager end
 
 void APS3PlayerControllerBase::BeginPlay()
 {
@@ -58,6 +73,215 @@ void APS3PlayerControllerBase::SetupInputComponent() // 현준 수정
 	EnhancedInputComponent->BindAction(OptionAction, ETriggerEvent::Started, this, &ThisClass::HandleOptionStarted); // 현준 수정
 } // 현준 수정
 
+//CheatManager Start
+bool APS3PlayerControllerBase::InputKey(const FInputKeyParams& Params)
+{
+	if (Params.Event == IE_Pressed && TryHandleShippingCheatHotKey(Params.Key))
+	{
+		return true;
+	}
+
+	return Super::InputKey(Params);
+}
+
+void APS3PlayerControllerBase::PS3NextStage()
+{
+	RequestShippingCheatCommand(TEXT("NextStage"));
+}
+
+void APS3PlayerControllerBase::PS3RestartStage()
+{
+	RequestShippingCheatCommand(TEXT("RestartStage"));
+}
+
+void APS3PlayerControllerBase::PS3ShowStage2Layout()
+{
+	RequestShippingCheatCommand(TEXT("ShowStage2Layout"));
+}
+
+void APS3PlayerControllerBase::PS3ShowStage4WeightAnswer()
+{
+	RequestShippingCheatCommand(TEXT("ShowStage4WeightAnswer"));
+}
+
+void APS3PlayerControllerBase::PS3ShowStage5RealSwitches()
+{
+	RequestShippingCheatCommand(TEXT("ShowStage5RealSwitches"));
+}
+
+void APS3PlayerControllerBase::RequestShippingCheatCommand(const FString& Command)
+{
+	if (HasAuthority())
+	{
+		ExecuteShippingCheatCommand(Command);
+		return;
+	}
+
+	ServerRPC_RunShippingCheatCommand(Command);
+}
+
+void APS3PlayerControllerBase::ExecuteShippingCheatCommand(const FString& Command)
+{
+	if (Command == TEXT("NextStage"))
+	{
+		APS3GameModeBase* GameMode = GetWorld() ? GetWorld()->GetAuthGameMode<APS3GameModeBase>() : nullptr;
+		if (!IsValid(GameMode))
+		{
+			PrintShippingCheatMessage(TEXT("[Cheat] GameMode 권한이 없어 다음 스테이지로 이동할 수 없습니다."));
+			return;
+		}
+
+		PrintShippingCheatMessage(TEXT("[Cheat] 다음 스테이지로 이동합니다."));
+		GameMode->GoToNextStageForCheat();
+		return;
+	}
+
+	if (Command == TEXT("RestartStage"))
+	{
+		APS3GameModeBase* GameMode = GetWorld() ? GetWorld()->GetAuthGameMode<APS3GameModeBase>() : nullptr;
+		if (!IsValid(GameMode))
+		{
+			PrintShippingCheatMessage(TEXT("[Cheat] GameMode 권한이 없어 현재 스테이지를 재시작할 수 없습니다."));
+			return;
+		}
+
+		PrintShippingCheatMessage(TEXT("[Cheat] 현재 스테이지를 재시작합니다."));
+		GameMode->StageRestart();
+		return;
+	}
+
+	if (Command == TEXT("ShowStage2Layout"))
+	{
+		const APS3GameModeS2* GameMode = GetWorld() ? GetWorld()->GetAuthGameMode<APS3GameModeS2>() : nullptr;
+		if (!IsValid(GameMode))
+		{
+			PrintShippingCheatMessage(TEXT("[Cheat] 현재 GameMode가 Stage2가 아닙니다."));
+			return;
+		}
+
+		const TArray<bool> Results = GameMode->GetRandomCollisionLayoutResults();
+		if (Results.IsEmpty())
+		{
+			PrintShippingCheatMessage(TEXT("[Cheat] Stage2 랜덤 배열이 비어있습니다."));
+			return;
+		}
+
+		TArray<FString> ResultTexts;
+		ResultTexts.Reserve(Results.Num());
+
+		for (int32 Index = 0; Index < Results.Num(); ++Index)
+		{
+			ResultTexts.Add(FString::Printf(
+				TEXT("%d:%s"),
+				Index + 1,
+				Results[Index] ? TEXT("BlockAll") : TEXT("NoCollision")));
+		}
+
+		PrintShippingCheatMessage(FString::Printf(TEXT("[Cheat] Stage2 랜덤 배열: %s"), *FString::Join(ResultTexts, TEXT(", "))));
+		return;
+	}
+
+	if (Command == TEXT("ShowStage4WeightAnswer"))
+	{
+		const APS3GameStateS4* GameState = GetWorld() ? GetWorld()->GetGameState<APS3GameStateS4>() : nullptr;
+		if (!IsValid(GameState))
+		{
+			PrintShippingCheatMessage(TEXT("[Cheat] 현재 GameState가 Stage4가 아닙니다."));
+			return;
+		}
+
+		PrintShippingCheatMessage(FString::Printf(
+			TEXT("[Cheat] Stage4 무게 정답: 고정 무게 %.0f, 맞춰야 할 덤벨 합계 %.0f"),
+			GameState->GetFixedObjectWeight(),
+			GameState->GetTargetBalancedWeight()));
+		return;
+	}
+
+	if (Command == TEXT("ShowStage5RealSwitches"))
+	{
+		const APS3GameModeS5* GameMode = GetWorld() ? GetWorld()->GetAuthGameMode<APS3GameModeS5>() : nullptr;
+		if (!IsValid(GameMode))
+		{
+			PrintShippingCheatMessage(TEXT("[Cheat] 현재 GameMode가 Stage5가 아닙니다."));
+			return;
+		}
+
+		const TArray<FString> Labels = GameMode->GetRealInteractionGimmickLabelsForCheat();
+		if (Labels.IsEmpty())
+		{
+			PrintShippingCheatMessage(TEXT("[Cheat] Stage5 진짜 interaction switch를 찾지 못했습니다."));
+			return;
+		}
+
+		PrintShippingCheatMessage(FString::Printf(TEXT("[Cheat] Stage5 진짜 interaction switch 번호: %s"), *FString::Join(Labels, TEXT(", "))));
+	}
+}
+
+bool APS3PlayerControllerBase::TryHandleShippingCheatHotKey(const FKey& Key)
+{
+	const bool bCtrlDown =
+		IsInputKeyDown(EKeys::LeftControl) || IsInputKeyDown(EKeys::RightControl);
+	const bool bAltDown =
+		IsInputKeyDown(EKeys::LeftAlt) || IsInputKeyDown(EKeys::RightAlt);
+
+	if (!bCtrlDown || !bAltDown)
+	{
+		return false;
+	}
+
+	if (Key == EKeys::One || Key == EKeys::NumPadOne)
+	{
+		PS3NextStage();
+		return true;
+	}
+
+	if (Key == EKeys::Two || Key == EKeys::NumPadTwo)
+	{
+		PS3RestartStage();
+		return true;
+	}
+
+	if (Key == EKeys::Three || Key == EKeys::NumPadThree)
+	{
+		PS3ShowStage2Layout();
+		return true;
+	}
+
+	if (Key == EKeys::Four || Key == EKeys::NumPadFour)
+	{
+		PS3ShowStage4WeightAnswer();
+		return true;
+	}
+
+	if (Key == EKeys::Five || Key == EKeys::NumPadFive)
+	{
+		PS3ShowStage5RealSwitches();
+		return true;
+	}
+
+	return false;
+}
+
+void APS3PlayerControllerBase::PrintShippingCheatMessage(const FString& Message)
+{
+	UE_LOG(LogTemp, Warning, TEXT("%s"), *Message);
+
+	ClientRPC_PrintShippingCheatMessage(Message);
+}
+
+void APS3PlayerControllerBase::ServerRPC_RunShippingCheatCommand_Implementation(const FString& Command)
+{
+	ExecuteShippingCheatCommand(Command);
+}
+
+void APS3PlayerControllerBase::ClientRPC_PrintShippingCheatMessage_Implementation(const FString& Message)
+{
+	if (GEngine)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 8.0f, FColor::Yellow, Message);
+	}
+}
+//CheatManager End
 
 void APS3PlayerControllerBase::ConfigureInputMapping()
 {

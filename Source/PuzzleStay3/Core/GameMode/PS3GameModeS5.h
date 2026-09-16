@@ -60,6 +60,10 @@ public:
 	void ReSpawnPlayer(APlayerController* TargetPlayerController);
 	void UnPossessedAndDestroyOldPawn(APlayerController* OldPlayerController);
 	
+	//CheatManager start
+	TArray<FString> GetRealInteractionGimmickLabelsForCheat() const;
+	//CheatManager end
+	
 	void OnTimerForGameStart();
 	void OnGameStart();
 	void OnGameOver();

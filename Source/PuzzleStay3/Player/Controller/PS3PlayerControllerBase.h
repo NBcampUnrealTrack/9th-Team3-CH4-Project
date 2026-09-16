@@ -19,13 +19,21 @@ UCLASS()
 class PUZZLESTAY3_API APS3PlayerControllerBase : public APlayerController
 {
 	GENERATED_BODY()
-	
+
+	//CheatManager start
+public:
+	APS3PlayerControllerBase();
+	//CheatManager end
 protected:
 	
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 	virtual void ReceivedPlayer() override;
 	virtual void SetupInputComponent() override; // 현준 수정
+	
+	//CheatManager start
+	virtual bool InputKey(const FInputKeyParams& Params) override;
+	//CheatManager End
 	
 protected:
 	UPROPERTY()
@@ -67,8 +75,36 @@ public:
 	void ConfigureInputMapping();
 	
 	virtual void ConfigureViewModelBindings(UPS3ViewModel* InViewModel);
+
+	//CheatManager Start	
+	UFUNCTION(Exec)
+	void PS3NextStage();
+
+	UFUNCTION(Exec)
+	void PS3RestartStage();
+
+	UFUNCTION(Exec)
+	void PS3ShowStage2Layout();
+
+	UFUNCTION(Exec)
+	void PS3ShowStage4WeightAnswer();
+
+	UFUNCTION(Exec)
+	void PS3ShowStage5RealSwitches();
 	
 private:
+	void RequestShippingCheatCommand(const FString& Command);
+	void ExecuteShippingCheatCommand(const FString& Command);
+	bool TryHandleShippingCheatHotKey(const FKey& Key);
+	void PrintShippingCheatMessage(const FString& Message);
+
+	UFUNCTION(Server, Reliable)
+	void ServerRPC_RunShippingCheatCommand(const FString& Command);
+
+	UFUNCTION(Client, Reliable)
+	void ClientRPC_PrintShippingCheatMessage(const FString& Message);
+	//CheatManager End
+		
 	void AddOptionMappingContext(); // 현준 수정
 	void RemoveOptionMappingContext(); // 현준 수정
 	void HandleOptionStarted(); // 현준 수정
