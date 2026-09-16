@@ -98,6 +98,12 @@ void APS3GameStateS5::ReSpawnPlayer(APlayerController* TargetPlayerController)
 		if (IsValid(GetCastPS3GameModeS5()) == false) return;
 		
 		CastPS3GameModeS5->ReSpawnPlayer(TargetPlayerController);
+		
+		FTimerHandle ArrowDelayTimerHandle;
+		GetWorldTimerManager().SetTimer(ArrowDelayTimerHandle, [this]()
+		{
+			NetMulti_ScreenPlayerVisibleToArrow(true);
+		}, 0.2f, false);
 	}
 }
 
@@ -158,7 +164,7 @@ void APS3GameStateS5::OnGameStart(bool bIsGameStart)
 		{
 			NetMulti_ScreenPlayerVisibleToArrow(true);
 			NetMulti_StageNotifyUI();
-		}, 0.3f, false);
+		}, 0.2f, false);
 	}
 }
 
@@ -232,10 +238,40 @@ void APS3GameStateS5::NoneReceivedDecalFloor()
 	}		
 }
 
+
+
 void APS3GameStateS5::NetMulti_StageNotifyUI_Implementation()
 {
 	PS3_BROADCAST_TO_MVVM_OneParams(OnStageType_UI, S5_GameRuleDataAsset->StageType_S5);
 	PS3_UIDELEGATE_TIMER_FOR_MACRO(PS3_BROADCAST_TO_MVVM_OneParams(OnTextNotify_UI, EPS3TextNotifyType::Stage5));
+}
+
+
+void APS3GameStateS5::NetMulti_FieldPlayerVisibleToArrow_Implementation(bool bIsVisible)
+{
+	APlayerController* LocalPC = nullptr;
+	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
+	{
+		APlayerController* PC = It->Get();
+		if (IsValid(PC) == true && PC->IsLocalController() == true)
+		{
+			LocalPC = PC;
+			break;
+		}
+	}
+	if (IsValid(LocalPC) == false) return;
+	
+	auto* FieldPlayerController = Cast<APS3PlayerController>(LocalPC);
+	if (IsValid(FieldPlayerController) == false) return;
+	
+	for (TActorIterator<APS3PlayerCharacter> It(GetWorld()); It; ++It)
+	{
+		APS3PlayerCharacter* FieldPlayer = *It;
+		if (IsValid(FieldPlayer) && IsValid(FieldPlayer->PlayerArrowComp))
+		{
+			FieldPlayer->PlayerArrowComp->SetVisibility(bIsVisible);
+		}
+	}
 }
 
 

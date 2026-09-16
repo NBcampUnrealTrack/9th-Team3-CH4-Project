@@ -22,5 +22,10 @@ enum class EPS3TextNotifyType : uint8
 	ScaleNone,
 	ScaleFail,
 	ScaleSuccess,
-	TreasureDiscovery
+	TreasureDiscovery,
+	LobbyFirst,
+	LobbyLogin,
+	LobbyAlreadyLogin,
+	LobbyCreated,
+	FindLobby
 };

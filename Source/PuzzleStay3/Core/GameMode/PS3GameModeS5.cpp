@@ -339,6 +339,38 @@ void APS3GameModeS5::UnPossessedAndDestroyOldPawn(APlayerController* OldPlayerCo
 	}
 }
 
+//CheatManager start
+TArray<FString> APS3GameModeS5::GetRealInteractionGimmickLabelsForCheat() const
+{
+	TArray<TObjectPtr<AGimmickBase>> SortedGimmicks = GimmickBaseArray;
+	SortedGimmicks.Sort([](const TObjectPtr<AGimmickBase>& A, const TObjectPtr<AGimmickBase>& B)
+	{
+		const FString ALabel = IsValid(A) && A->Tags.Num() > 0 ? A->Tags[0].ToString() : GetNameSafe(A.Get());
+		const FString BLabel = IsValid(B) && B->Tags.Num() > 0 ? B->Tags[0].ToString() : GetNameSafe(B.Get());
+		return ALabel < BLabel;
+	});
+
+	TArray<FString> RealGimmickLabels;
+
+	for (int32 Index = 0; Index < SortedGimmicks.Num(); ++Index)
+	{
+		const AGimmickBase* Gimmick = SortedGimmicks[Index];
+		if (!IsValid(Gimmick)) continue;
+
+		const US5_InteractionGimmickComponent* InteractionGimmickComp =
+			Gimmick->FindComponentByClass<US5_InteractionGimmickComponent>();
+		if (!IsValid(InteractionGimmickComp) || !InteractionGimmickComp->bIsInteractionGimmick) continue;
+
+		const FString Label = Gimmick->Tags.Num() > 0
+			? Gimmick->Tags[0].ToString()
+			: FString::Printf(TEXT("%d(%s)"), Index + 1, *Gimmick->GetName());
+
+		RealGimmickLabels.Add(Label);
+	}
+
+	return RealGimmickLabels;
+}
+//CheatManager end
 
 void APS3GameModeS5::StageRestart()
 {

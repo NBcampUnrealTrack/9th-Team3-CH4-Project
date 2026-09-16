@@ -132,7 +132,7 @@ void APS3GameModeS2::UnregisterRandomCollisionTrapCompo(URandomCollisionTrapComp
 	RandomCollisionTrapComponent.Remove(TrapComponent);
 }
 
-TArray<bool> APS3GameModeS2::GetRandomCollisionLayoutResults()
+TArray<bool> APS3GameModeS2::GetRandomCollisionLayoutResults() const
 {
 	return RandomCollisionLayoutResults;
 }

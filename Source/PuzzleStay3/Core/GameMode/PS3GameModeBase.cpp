@@ -321,4 +321,10 @@ void APS3GameModeBase::GotoTitleLevel()
 
 	GetWorld()->ServerTravel(TitleLevelPath);
 }
+//CheatManager start
+void APS3GameModeBase::GoToNextStageForCheat()
+{
+	StageClear();
+}
+//CheatManager end
 
