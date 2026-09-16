@@ -20,5 +20,5 @@ public:
 
 	virtual bool CanInteract_Implementation(AActor* Requestor) const override;
 	virtual bool Interact_Implementation(AActor* Requestor) override;
-	
+
 };
