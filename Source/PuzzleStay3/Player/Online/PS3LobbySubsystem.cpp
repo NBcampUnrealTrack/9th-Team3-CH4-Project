@@ -6,6 +6,7 @@
 #include "GameFramework/PlayerController.h"
 #include "Component/VoicePluginControlComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "UI/HUD/PlayerHUD.h"
 
 bool UPS3LobbySubsystem::Prepare(FName Operation, bool bRequireLogin)
 {
@@ -43,11 +44,52 @@ void UPS3LobbySubsystem::Complete(FName Operation, bool bSuccess, const FString&
 	OnOperationCompleted.Broadcast(Operation, bSuccess, Message);
 }
 
+//민웅 수정 시작
+void UPS3LobbySubsystem::BroadcastTextNotify(EPS3TextNotifyType NotifyType) const
+{
+	if (NotifyType == EPS3TextNotifyType::None)
+	{
+		return;
+	}
+
+	if (const UWorld* World = GetWorld())
+	{
+		for (FConstPlayerControllerIterator It = World->GetPlayerControllerIterator(); It; ++It)
+		{
+			APlayerController* PlayerController = It->Get();
+			if (!IsValid(PlayerController) || !PlayerController->IsLocalController())
+			{
+				continue;
+			}
+
+			APlayerHUD* PlayerHUD = Cast<APlayerHUD>(PlayerController->GetHUD());
+			if (!IsValid(PlayerHUD) || !PlayerHUD->IsUIReady())
+			{
+				continue;
+			}
+
+			PlayerHUD->SetTextNotifyVisible(true);
+			PlayerHUD->ShowTextNotify(NotifyType);
+		}
+	}
+}
+
+EPS3TextNotifyType UPS3LobbySubsystem::ConsumePendingTextNotify()
+{
+	const EPS3TextNotifyType NotifyType = PendingTextNotify;
+	PendingTextNotify = EPS3TextNotifyType::None;
+	return NotifyType;
+}
+//민웅 수정 끝
+
 void UPS3LobbySubsystem::Login()
 {
 	if (!Prepare(TEXT("Login"), false)) return;
 	if (Identity->GetLoginStatus(0) == ELoginStatus::LoggedIn)
 	{
+		////민웅 수정 시작
+		BroadcastTextNotify(EPS3TextNotifyType::LobbyAlreadyLogin);
+		//민웅 수정 끝
 		Complete(TEXT("Login"), true, TEXT("Already logged in."));
 		return;
 	}
@@ -62,6 +104,12 @@ void UPS3LobbySubsystem::Login()
 void UPS3LobbySubsystem::HandleLogin(int32 UserNum, bool bSuccess, const FUniqueNetId& UserId, const FString& Error)
 {
 	Identity->ClearOnLoginCompleteDelegate_Handle(UserNum, LoginHandle);
+	//민웅 수정 시작
+	if (bSuccess)
+	{
+		BroadcastTextNotify(EPS3TextNotifyType::LobbyLogin);
+	}
+	//민웅 수정 끝
 	Complete(TEXT("Login"), bSuccess, bSuccess ? TEXT("Logged in.") : Error);
 }
 
@@ -106,6 +154,10 @@ void UPS3LobbySubsystem::HandleCreate(FName SessionName, bool bSuccess)
 		return;
 	}
 
+	//민웅 수정시작
+	PendingTextNotify = EPS3TextNotifyType::LobbyCreated;
+	//민웅 수정 끝
+
 	// 생성한 EOS 로비를 유지한 채 호스트의 대기방을 리슨 서버로 엽니다.
 	// UI에서는 생성 성공 이벤트를 받아 OpenLevel을 중복 호출하지 않습니다.
 	UGameplayStatics::OpenLevel(
@@ -117,7 +169,6 @@ void UPS3LobbySubsystem::HandleCreate(FName SessionName, bool bSuccess)
 	// 맵 로딩 및 서버 준비 완료가 아닌, 로비 생성과 이동 요청 완료입니다.
 	Complete(TEXT("CreateLobby"), true, TEXT("Lobby created. Opening waiting room as listen server..."));
 }
-
 void UPS3LobbySubsystem::FindLobbies()
 {
 	if (!Prepare(TEXT("FindLobbies"), true)) return;
@@ -148,6 +199,10 @@ void UPS3LobbySubsystem::HandleFind(bool bSuccess)
 			FoundLobbies.Add(Info);
 		}
 	}
+	//민웅 수정 시작
+	PendingTextNotify = EPS3TextNotifyType::FindLobby;
+	BroadcastTextNotify(EPS3TextNotifyType::FindLobby);
+	//민웅 수정 끝
 	Complete(TEXT("FindLobbies"), bSuccess, FString::Printf(TEXT("Found %d lobbies."), FoundLobbies.Num()));
 }
 
@@ -210,12 +265,13 @@ void UPS3LobbySubsystem::HandleJoin(FName SessionName, EOnJoinSessionCompleteRes
 
 	LocalController->ClientTravel(ConnectString, TRAVEL_Absolute);
 
+	
+
 	Complete(
 		TEXT("JoinLobby"),
 		true,
 		TEXT("Joined lobby. Connecting to host..."));
 }
-
 bool UPS3LobbySubsystem::InitializeLocalVoice()
 {
 	IOnlineSubsystem* EOS =
