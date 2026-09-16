@@ -6,6 +6,7 @@
 #include "Components/DecalComponent.h"
 #include "Components/TimelineComponent.h"
 #include "Core/GameMode/PS3GameModeS5.h"
+#include "Data/DataAsset/S5_GameRuleDataAsset.h"
 #include "Net/UnrealNetwork.h"
 
 
@@ -108,6 +109,11 @@ void AControlDoor::OnGameStart(bool CurrentGameState)
 	
 		bIsGameStart = CurrentGameState;
 	}
+}
+
+void AControlDoor::InitializeToDataAsset()
+{
+	DoorTimeLineCurve = S5_GameRuleDataAsset->DoorTimeLineCurve;
 }
 
 
