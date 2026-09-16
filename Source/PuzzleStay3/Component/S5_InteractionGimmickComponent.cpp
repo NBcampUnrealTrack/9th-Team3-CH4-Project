@@ -120,7 +120,8 @@ void US5_InteractionGimmickComponent::CheckCanDisplayedUIForTimer()
 		PS3_BROADCAST_TO_MVVM_TwoParams(OnInteractRequestS5_UI,EPS3InteractionNotifyType::Interact, true);
 		bIsUIVisible = true;
 	}
-	else if (bIsCanDisplayedUI == false  && bIsUIVisible == true)
+	
+	if (bIsCanDisplayedUI == false  && bIsUIVisible == true)
 	{
 		PS3_BROADCAST_TO_MVVM_TwoParams(OnInteractRequestS5_UI,EPS3InteractionNotifyType::Interact, false);
 		bIsUIVisible = false;
