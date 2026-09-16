@@ -21,5 +21,6 @@ enum class EPS3TextNotifyType : uint8
 	S5Collision,
 	ScaleNone,
 	ScaleFail,
-	ScaleSuccess
+	ScaleSuccess,
+	TreasureDiscovery
 };
