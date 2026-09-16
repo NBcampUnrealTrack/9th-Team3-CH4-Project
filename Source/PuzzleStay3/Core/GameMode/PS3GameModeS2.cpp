@@ -14,6 +14,14 @@ void APS3GameModeS2::BeginPlay()
 	Super::BeginPlay();
 	
 	MakeRandomCollisionResults();
+
+	for (URandomCollisionTrapComponent* TrapComponent : RandomCollisionTrapComponent)
+	{
+		if (IsValid(TrapComponent))
+		{
+			TrapComponent->ApplyCollisionFromStage2GameMode();
+		}
+	}
 	
 	//로그용 시작
 	FString ResultString;
@@ -109,7 +117,11 @@ void APS3GameModeS2::RegisterRandomCollisionTrapCompo(URandomCollisionTrapCompon
 	if (!TrapComponent) return;
 
 	RandomCollisionTrapComponent.AddUnique(TrapComponent);
-
+	
+	if (RandomCollisionLayoutResults.Num() > 0)
+	{
+		TrapComponent->ApplyCollisionFromStage2GameMode();
+	}
 	//UE_LOG(LogTemp, Warning, TEXT("Registered TrapCompo. Count: %d"), RandomCollisionTrapComponent.Num());
 }
 
