@@ -83,8 +83,15 @@ protected:
 
 private:
 	void InitializeResolutionOptions();
+	void SyncDisplaySettingsToUI(); // 현준 수정
+	void ApplyFullscreenSetting(bool bFullscreen); // 현준 수정
+	void ApplyResolutionSetting(const FString& Resolution); // 현준 수정
+	bool TryResolveResolution(const FString& Resolution, FIntPoint& OutResolution) const; // 현준 수정
+	FString MakeResolutionOptionText(const FIntPoint& Resolution) const; // 현준 수정
 	void BindOptionPopupDelegates();
 	void UnbindOptionPopupDelegates();
+
+	bool bIsUpdatingDisplaySettingsUI = false; // 현준 수정
 
 	UFUNCTION()
 	void HandleBGMValueChanged(float Value);
