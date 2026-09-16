@@ -5,7 +5,6 @@
 
 #include "Core/GameState/PS3GameStateS4.h"
 #include "Data/DataAsset/S4_GameRuleDataAsset.h"
-#include "Data/Enum/DoorType.h"
 
 void APS3GameModeS4::BeginPlay()
 {
