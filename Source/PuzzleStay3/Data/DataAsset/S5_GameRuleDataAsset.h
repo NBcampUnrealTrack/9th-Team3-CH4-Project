@@ -56,6 +56,9 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "SwapController")
 	TSubclassOf<APlayerController> SpawnScreenControllerClass;
 	
-	UPROPERTY(EditAnywhere, Category = "GameRule")
+	UPROPERTY(EditAnywhere, Category = "SetDoorTimeLineCurve")
+	TObjectPtr<UCurveFloat> DoorTimeLineCurve;
+	
+	UPROPERTY(EditAnywhere, Category = "SetNextLevel")
 	TSoftObjectPtr<UWorld> NextStageLevel;
 };

@@ -7,7 +7,7 @@
 #include "ControlDoor.generated.h"
 
 
-
+class US5_GameRuleDataAsset;
 enum class EControlDoorType : uint8;
 class UBoxComponent;
 class UTimelineComponent;
@@ -40,6 +40,9 @@ public:
 	void NetMulti_OnOperateDoor(EControlDoorType PressedButtonType, bool bIsOpen);
 	
 protected:
+	UPROPERTY(EditAnywhere, Category = "ControlDoor|Settings")
+	TObjectPtr<US5_GameRuleDataAsset> S5_GameRuleDataAsset;
+	
 	UPROPERTY(EditAnywhere, ReplicatedUsing = OnRep_ControlDoorType, Category = "ControlDoor|Settings")
 	EControlDoorType ControlDoorType = EControlDoorType::None;
 	
@@ -54,16 +57,14 @@ protected:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly,  Category = "ControlDoor|Settings")
 	TObjectPtr<UDecalComponent> DecalComp_D;
-	
-	
+		
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<UBoxComponent> BlockingVolumeComp;
-	
 	
 	UPROPERTY(EditAnywhere, Category = "ControlDoor")
 	TObjectPtr<UTimelineComponent> DoorTimelineComp;
 
-	UPROPERTY(EditAnywhere, Category = "ControlDoor|Settings")
+	UPROPERTY()
 	TObjectPtr<UCurveFloat> DoorTimeLineCurve;
 	
 	UPROPERTY(EditAnywhere, Category = "ControlDoor|Settings")
@@ -109,6 +110,7 @@ protected:
 		
 	
 private:
+	void InitializeToDataAsset();
 	void InitializeRandomControlDoorType();
 	void InitializeBindFunction();
 	void TimeLineCurveBind();
