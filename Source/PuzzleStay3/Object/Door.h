@@ -5,9 +5,11 @@
 #include "Data/Enum/DoorType.h"
 #include "Door.generated.h"
 
+
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnIsDoorOpen, bool);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnIsExitDoorOpen, bool); // 현준 수정
 
+class UDoorBlockingVolumeComponent;// 민웅 수정
 class UOverlapSwitchComponent;
 class UInteractionSwitchComponent;
 
@@ -96,4 +98,6 @@ protected:
 private:	
 	FVector InitialRelativeLocation;
 	
+	UPROPERTY()
+	UDoorBlockingVolumeComponent* DoorBlockingVolumeComponent; //민웅 수정
 };

@@ -5,6 +5,7 @@
 #include "GameFramework/PlayerState.h"
 #include "Kismet/GameplayStatics.h"
 #include "Component/InteractionSwitchComponent.h"
+#include "Core/GameInstance/PS3GameInstance.h"
 #include "Core/GameState/PS3GameStateBase.h"
 #include "Data/DataAsset/Base_GameRuleDataAsset.h"
 #include "Data/Delegates/UIDelegatesSubsystem.h"
@@ -60,31 +61,83 @@ void APS3GameModeBase::InitializeToDataAssets()
 
 void APS3GameModeBase::SetPlayerIdentity(APS3PlayerState* NewPlayerState)
 {
-	bool bPlayer1Taken = false;
+	// bool bPlayer1Taken = false;
+	//
+	// if (NewPlayerState->GetPlayerIdentity() != EPS3PlayerIdentity::Unassigned) return;
+	//
+	// for (APlayerState* PlayerState : GameState->PlayerArray)
+	// {
+	// 	APS3PlayerState* PS3PlayerState = Cast<APS3PlayerState>(PlayerState);
+	//
+	// 	if (!IsValid(PS3PlayerState)) continue;
+	//
+	// 	if (PS3PlayerState == NewPlayerState) continue;
+	//
+	// 	if (PS3PlayerState->GetPlayerIdentity() != EPS3PlayerIdentity::Player1) continue;
+	//
+	// 	bPlayer1Taken = true;
+	// 	break;
+	// }
+	// if (bPlayer1Taken)
+	// {
+	// 	NewPlayerState->SetPlayerIdentity(EPS3PlayerIdentity::Player2);
+	// }
+	// else
+	// {
+	// 	NewPlayerState->SetPlayerIdentity(EPS3PlayerIdentity::Player1);
+	// }	
+	if (!IsValid(NewPlayerState)) return;
 
 	if (NewPlayerState->GetPlayerIdentity() != EPS3PlayerIdentity::Unassigned) return;
+	
+	FString PlayerKey;
 
-	for (APlayerState* PlayerState : GameState->PlayerArray)
+	if (NewPlayerState->GetUniqueId().IsValid())
 	{
-		APS3PlayerState* PS3PlayerState = Cast<APS3PlayerState>(PlayerState);
-
-		if (!IsValid(PS3PlayerState)) continue;
-
-		if (PS3PlayerState == NewPlayerState) continue;
-
-		if (PS3PlayerState->GetPlayerIdentity() != EPS3PlayerIdentity::Player1) continue;
-
-		bPlayer1Taken = true;
-		break;
-	}
-	if (bPlayer1Taken)
-	{
-		NewPlayerState->SetPlayerIdentity(EPS3PlayerIdentity::Player2);
+		PlayerKey = NewPlayerState->GetUniqueId()->ToString();
 	}
 	else
 	{
-		NewPlayerState->SetPlayerIdentity(EPS3PlayerIdentity::Player1);
-	}	
+		PlayerKey = NewPlayerState->GetPlayerName();
+	}
+
+	UPS3GameInstance* PS3GameInstance = GetGameInstance<UPS3GameInstance>();
+	if (!IsValid(PS3GameInstance) || PlayerKey.IsEmpty()) return;
+
+	EPS3PlayerIdentity CachedIdentity = EPS3PlayerIdentity::Unassigned;
+	if (PS3GameInstance->TryGetCachedPlayerIdentity(PlayerKey, CachedIdentity))
+	{
+		NewPlayerState->SetPlayerIdentity(CachedIdentity);
+		return;
+	}
+
+	bool bPlayer1Taken = false;
+
+	for (APlayerState* PlayerState : GameState->PlayerArray)
+	{
+		const APS3PlayerState* PS3PlayerState = Cast<APS3PlayerState>(PlayerState);
+		if (!IsValid(PS3PlayerState) || PS3PlayerState == NewPlayerState) continue;
+
+		if (PS3PlayerState->GetPlayerIdentity() == EPS3PlayerIdentity::Player1)
+		{
+			bPlayer1Taken = true;
+			break;
+		}
+	}
+
+	EPS3PlayerIdentity NewIdentity = EPS3PlayerIdentity::Unassigned;
+
+	if (bPlayer1Taken)
+	{
+		NewIdentity = EPS3PlayerIdentity::Player2;
+	}
+	else
+	{
+		NewIdentity = EPS3PlayerIdentity::Player1;
+	}
+
+	NewPlayerState->SetPlayerIdentity(NewIdentity);
+	PS3GameInstance->CachePlayerIdentity(PlayerKey, NewIdentity);
 }
 
 AActor* APS3GameModeBase::FindPlayerStart_Implementation(AController* Player, const FString& IncomingName)
