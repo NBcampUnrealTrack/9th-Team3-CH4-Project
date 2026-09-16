@@ -55,5 +55,7 @@ public:
 	
 	UPROPERTY(EditDefaultsOnly, Category = "SwapController")
 	TSubclassOf<APlayerController> SpawnScreenControllerClass;
-
+	
+	UPROPERTY(EditAnywhere, Category = "GameRule")
+	TSoftObjectPtr<UWorld> NextStageLevel;
 };

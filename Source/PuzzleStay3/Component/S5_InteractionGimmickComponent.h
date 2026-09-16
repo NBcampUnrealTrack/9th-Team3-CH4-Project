@@ -6,6 +6,7 @@
 #include "Player/Interaction/PS3InteractableInterface.h"
 #include "S5_InteractionGimmickComponent.generated.h"
 
+class US5_GameRuleDataAsset;
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnInteractionGimmick_S5, bool);
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
@@ -67,7 +68,6 @@ protected:
 	FTimerHandle CheckPlayerTimerHandle;
 	
 	bool bIsUIVisible = false;
-	
 	
 };
 

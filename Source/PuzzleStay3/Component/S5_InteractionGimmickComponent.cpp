@@ -3,6 +3,7 @@
 #include "Components/BoxComponent.h"
 #include "Core/GameMode/PS3GameModeS5.h"
 #include "Core/GameState/PS3GameStateS5.h"
+#include "Data/DataAsset/S5_GameRuleDataAsset.h"
 #include "Data/Delegates/UIDelegatesSubsystem.h"
 #include "Data/Enum/PS3InteractionNotifyType.h"
 #include "Net/UnrealNetwork.h"
@@ -156,8 +157,6 @@ bool US5_InteractionGimmickComponent::CheckCanDisplayedUI()
 void US5_InteractionGimmickComponent::OnCharacterEndOverlapForUI(UPrimitiveComponent* OverlappedComp,
                                                                  AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
-	//if (bIsInteractionGimmick == false) return;
-	
 	if (GetOwner() == nullptr) return;
 	
 	auto* PS3PlayerCharacter = Cast<APS3PlayerCharacter>(OtherActor);
