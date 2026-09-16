@@ -5,6 +5,7 @@
 #include "Core/GameMode/PS3GameModeBase.h"
 #include "Core/GameState/PS3GameStateBase.h"
 #include "EngineUtils.h"
+#include "Component/DoorBlockingVolumeComponent.h"
 #include "Core/GameState/PS3GameStateS4.h"
 #include "Net/UnrealNetwork.h"
 
@@ -24,6 +25,8 @@ void ADoor::BeginPlay()
 {
 	Super::BeginPlay();
 
+	DoorBlockingVolumeComponent = FindComponentByClass<UDoorBlockingVolumeComponent>(); //민웅 수정
+	
 	InitialRelativeLocation = DoorMesh->GetRelativeLocation();
 
 	if (HasAuthority())
@@ -139,6 +142,17 @@ void ADoor::EvaluateDoorState()
 	if (bIsOpen != bShouldBeOpen)
 	{
 		bIsOpen = bShouldBeOpen;
+		
+		// 민웅 수정
+		if (!bIsOpen)
+		{
+			if (DoorBlockingVolumeComponent)
+			{
+				DoorBlockingVolumeComponent->SetDoorFullyOpened(false);
+			}
+		}
+		// 민웅 수정 끝
+		
 		OnIsDoorOpen.Broadcast(bIsOpen); // << 추가
 		BroadcastExitDoorOpenIfNeeded(bIsOpen); // 현준 수정
 		
@@ -169,6 +183,16 @@ void ADoor::Tick(float DeltaTime)
 	if (RemainingDistance <= KINDA_SMALL_NUMBER)
 	{
 		DoorMesh->SetRelativeLocation(TargetPos);
+		
+		//민웅 수정
+		if (bIsOpen)
+		{
+			if (DoorBlockingVolumeComponent)
+			{
+				DoorBlockingVolumeComponent->SetDoorFullyOpened(true);
+			}
+		}
+		//민웅 수정 끝
 		return;
 	}
 
@@ -198,6 +222,17 @@ void ADoor::OnOpenDoor(bool bOpened)
 {
 	if (!HasAuthority()) return;
 	bIsOpen = bOpened;
+	
+	//민웅 수정
+	if (!bIsOpen)
+	{
+		if (DoorBlockingVolumeComponent)
+		{
+			DoorBlockingVolumeComponent->SetDoorFullyOpened(false);
+		}
+	}
+	//민웅 수정 끝
+	
 	OnIsDoorOpen.Broadcast(bIsOpen); 
 	BroadcastExitDoorOpenIfNeeded(bIsOpen); // 현준 수정
 
@@ -207,6 +242,16 @@ void ADoor::OnOpenDoor(bool bOpened)
 
 void ADoor::OnRep_bIsOpen()
 {
+	//민웅 수정
+	if (!bIsOpen)
+	{
+		if (DoorBlockingVolumeComponent)
+		{
+			DoorBlockingVolumeComponent->SetDoorFullyOpened(false);
+		}
+	}
+	//민웅 수정 끝
+	
 	// 클라이언트 지점: Replication 수신 시 방송
 	OnIsDoorOpen.Broadcast(bIsOpen); 
 	BroadcastExitDoorOpenIfNeeded(bIsOpen); // 현준 수정
