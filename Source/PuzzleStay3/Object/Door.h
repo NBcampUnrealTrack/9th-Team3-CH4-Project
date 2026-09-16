@@ -6,6 +6,7 @@
 #include "Door.generated.h"
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnIsDoorOpen, bool);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnIsExitDoorOpen, bool); // 현준 수정
 
 class UOverlapSwitchComponent;
 class UInteractionSwitchComponent;
@@ -19,6 +20,7 @@ public:
 	ADoor();
 	
 	FOnIsDoorOpen OnIsDoorOpen;
+	FOnIsExitDoorOpen OnIsExitDoorOpen; // 현준 수정
 	
 protected:
 	virtual void BeginPlay() override;
@@ -39,6 +41,9 @@ protected:
 	// 문 식별 ID (스위치의 SwitchID와 동일한 것만 연동)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Door|Settings")
 	int32 DoorID = 1;
+
+	UPROPERTY(EditInstanceOnly, BlueprintReadWrite, Category = "Door|Settings") // 현준 수정
+	bool bIsExitDoor = false; // 현준 수정
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Door|Movement")
 	FVector TargetRelativeLocation = FVector(0.f, 0.f, -250.f);
@@ -81,6 +86,8 @@ protected:
 	// 단일 bool 전달형 문 열림 콜백 (최종 탈출문, Stage4 등)
 	UFUNCTION()
 	void OnOpenDoor(bool bOpened);
+
+	void BroadcastExitDoorOpenIfNeeded(bool bOpened); // 현준 수정
 	
 #pragma endregion
 
