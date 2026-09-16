@@ -64,6 +64,21 @@ void UTextNotifyWidget::ShowTextNotify(EPS3TextNotifyType NotifyType)
 	case EPS3TextNotifyType::TreasureDiscovery:
 		ShowTextNotifyInternal(FText::FromString(TEXT("목표로 했던 황금의 보물을 발견 했다. 가까히 가서 [F] 키를 눌러보자.")), DefaultTextNotifyFontSize, EndStageTextNotifyDuration);
 		break;
+	case EPS3TextNotifyType::LobbyFirst:
+		ShowTextNotifyInternal(FText::FromString(TEXT("먼저 하단의 로그인 버튼을 눌러 EpicGames에 로그인하세요.")), DefaultTextNotifyFontSize, EndStageTextNotifyDuration);
+		break;
+	case EPS3TextNotifyType::LobbyLogin:
+		ShowTextNotifyInternal(FText::FromString(TEXT("EpicGames에 로그인 되었습니다. 새 방을 만들거나 방에 참가해보세요.")), DefaultTextNotifyFontSize, EndStageTextNotifyDuration);
+		break;
+	case EPS3TextNotifyType::LobbyAlreadyLogin:
+		ShowTextNotifyInternal(FText::FromString(TEXT("이미 로그인 되었습니다. 새 방을 만들거나 방에 참가해보세요.")), DefaultTextNotifyFontSize, EndStageTextNotifyDuration);
+		break;
+	case EPS3TextNotifyType::LobbyCreated:
+		ShowTextNotifyInternal(FText::FromString(TEXT("Listen Server로 방을 만들었습니다. 다른 플레이어를 기다리세요.")), DefaultTextNotifyFontSize, EndStageTextNotifyDuration);
+		break;
+	case EPS3TextNotifyType::FindLobby:
+		ShowTextNotifyInternal(FText::FromString(TEXT("방을 찾았습니다. 해당 방으로 참가하려면 '방 참가' 버튼을 클릭하세요.")), DefaultTextNotifyFontSize, EndStageTextNotifyDuration);
+		break;
 	case EPS3TextNotifyType::None:
 	default:
 		break;

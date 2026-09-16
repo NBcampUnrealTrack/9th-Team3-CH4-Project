@@ -2,10 +2,12 @@
 
 #include "CoreMinimal.h"
 #include "Subsystems/GameInstanceSubsystem.h"
+#include "Data/Enum/PS3TextNotifyType.h"
 #include "Interfaces/OnlineIdentityInterface.h"
 #include "Interfaces/OnlineSessionInterface.h"
 #include "OnlineSessionSettings.h"
 #include "PS3LobbySubsystem.generated.h"
+
 
 USTRUCT(BlueprintType)
 struct FPS3LobbyInfo
@@ -31,12 +33,18 @@ public:
 	UFUNCTION(BlueprintCallable, Category="PS3|EOS") void LeaveLobby();
 	// 로그인 후 현재 로컬 Controller의 Voice를 연결합니다. 로비 생성/참가 전에 자동 호출됩니다.
 	UFUNCTION(BlueprintCallable, Category="PS3|EOS") bool InitializeLocalVoice();
+	//민웅 수정 시작
+	EPS3TextNotifyType ConsumePendingTextNotify();
+	//민웅 수정 끝
 	UPROPERTY(BlueprintReadOnly, Category="PS3|EOS") TArray<FPS3LobbyInfo> FoundLobbies;
 	UPROPERTY(BlueprintReadOnly, Category="PS3|EOS") bool bBusy = false;
 	UPROPERTY(BlueprintAssignable, Category="PS3|EOS") FPS3LobbyOperationCompleted OnOperationCompleted;
 private:
 	bool Prepare(FName Operation, bool bRequireLogin);
 	void Complete(FName Operation, bool bSuccess, const FString& Message);
+	//민웅 수정 시작
+	void BroadcastTextNotify(EPS3TextNotifyType NotifyType) const;
+	//민웅 수정 끝
 	void HandleLogin(int32 UserNum, bool bSuccess, const FUniqueNetId& UserId, const FString& Error);
 	void HandleCreate(FName SessionName, bool bSuccess);
 	void HandleFind(bool bSuccess);
@@ -47,4 +55,7 @@ private:
 	IOnlineSessionPtr Sessions;
 	TSharedPtr<FOnlineSessionSearch> Search;
 	FDelegateHandle LoginHandle, CreateHandle, FindHandle, JoinHandle, DestroyHandle;
+	//민웅 수정 시작
+	EPS3TextNotifyType PendingTextNotify = EPS3TextNotifyType::None;
+	//민웅 수정 끝
 };
