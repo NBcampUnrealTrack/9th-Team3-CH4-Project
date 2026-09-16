@@ -154,8 +154,11 @@ void APS3GameStateS5::OnGameStart(bool bIsGameStart)
 		GetWorldTimerManager().SetTimer(ArrowDelayTimerHandle, [this]()
 		{
 			NetMulti_ScreenPlayerVisibleToArrow();
+			NetMulti_StageNotifyUI();
 		}, 0.3f, false);
 	}
+	
+	
 }
 
 
@@ -226,6 +229,11 @@ void APS3GameStateS5::NoneReceivedDecalFloor()
 		
 		FloorMeshComp->SetReceivesDecals(false);
 	}		
+}
+
+void APS3GameStateS5::NetMulti_StageNotifyUI_Implementation()
+{
+	PS3_UIDELEGATE_TIMER_FOR_MACRO(PS3_BROADCAST_TO_MVVM_OneParams(OnTextNotify_UI, EPS3TextNotifyType::Stage5));
 }
 
 
