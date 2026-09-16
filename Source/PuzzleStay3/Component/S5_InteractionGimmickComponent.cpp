@@ -113,6 +113,7 @@ void US5_InteractionGimmickComponent::CheckCanDisplayedUIForTimer()
 	if (bIsInteractionGimmick == false) return;
 	
 	bool bIsCanDisplayedUI = CheckCanDisplayedUI();
+	UE_LOG(LogTemp,Warning,TEXT("%d"), bIsCanDisplayedUI);
 	
 	if (bIsCanDisplayedUI == true && bIsUIVisible == false)
 	{
