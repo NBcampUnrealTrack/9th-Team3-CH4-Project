@@ -26,5 +26,4 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void SetBlockingEnabled(bool bEnabled);
-ㅈㅈㅇㅈ
 };
