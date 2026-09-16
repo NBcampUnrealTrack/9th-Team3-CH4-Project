@@ -40,6 +40,10 @@ APS3PlayerCharacter::APS3PlayerCharacter()
 	
 	CarryAnchor = CreateDefaultSubobject<USceneComponent>(TEXT("CarryAnchor"));
 	CarryAnchor->SetupAttachment(GetMesh(), TEXT("hand_r"));
+	
+	PlayerArrowComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("PlayerArrowComp"));
+	PlayerArrowComp->SetupAttachment(GetRootComponent());
+	PlayerArrowComp->SetVisibility(false);
 }
 
 void APS3PlayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

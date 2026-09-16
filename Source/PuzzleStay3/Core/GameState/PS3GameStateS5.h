@@ -77,6 +77,9 @@ private:
 	
 	void NoneReceivedDecalFloor();
 	
+	UFUNCTION(NetMulticast, Reliable)
+	void NetMulti_ScreenPlayerVisibleToArrow();
+	
 public:
 	FOnSpawnedScreenPlayerUIReAssign OnSpawnedScreenPlayerUIReAssign;
 

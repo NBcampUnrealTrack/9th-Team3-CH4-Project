@@ -53,6 +53,7 @@ void APS3ScreenPlayerController::BeginPlay()
 	Super::BeginPlay();
 	
 	
+	
 	checkf(IsValid(InputMappingContext) == true, TEXT("스크린 컨트롤러 IMC 할당 안됨"));
 	
 	ContainDoorArray();

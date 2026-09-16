@@ -21,6 +21,9 @@ class PUZZLESTAY3_API APS3PlayerCharacter : public ACharacter
 
 public:
 	APS3PlayerCharacter();
+	
+	UPROPERTY(EditAnywhere, Category = "PS3|Character|Arrow")
+	TObjectPtr<UStaticMeshComponent> PlayerArrowComp;
 
 	UFUNCTION(BlueprintPure, Category = "PS3|Character")
 	bool CanUseFieldControls() const;

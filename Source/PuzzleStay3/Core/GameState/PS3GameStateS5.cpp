@@ -1,11 +1,15 @@
 ﻿#include "PS3GameStateS5.h"
 
+#include "EngineUtils.h"
 #include "Core/GameMode/PS3GameModeS5.h"
 #include "Data/DataAsset/S5_GameRuleDataAsset.h"
 #include "Data/Delegates/UIDelegatesSubsystem.h"
 #include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
+#include "Player/Character/PS3PlayerCharacter.h"
+#include "Player/Controller/PS3PlayerController.h"
 #include "Player/Controller/PS3PlayerControllerBase.h"
+#include "Player/Controller/PS3ScreenPlayerController.h"
 
 
 APS3GameStateS5::APS3GameStateS5()
@@ -139,9 +143,19 @@ void APS3GameStateS5::SetDeductGameLimitTime_AuthorityOnRep(float TimeToDeducted
 	
 }
 
+
 void APS3GameStateS5::OnGameStart(bool bIsGameStart)
 {
 	bIsGameStarted = bIsGameStart;
+	
+	if (bIsGameStarted == true)
+	{
+		FTimerHandle ArrowDelayTimerHandle;
+		GetWorldTimerManager().SetTimer(ArrowDelayTimerHandle, [this]()
+		{
+			NetMulti_ScreenPlayerVisibleToArrow();
+		}, 0.3f, false);
+	}
 }
 
 
@@ -212,6 +226,34 @@ void APS3GameStateS5::NoneReceivedDecalFloor()
 		
 		FloorMeshComp->SetReceivesDecals(false);
 	}		
+}
+
+
+void APS3GameStateS5::NetMulti_ScreenPlayerVisibleToArrow_Implementation()
+{
+	APlayerController* LocalPC = nullptr;
+	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
+	{
+		APlayerController* PC = It->Get();
+		if (IsValid(PC) == true && PC->IsLocalController() == true)
+		{
+			LocalPC = PC;
+			break;
+		}
+	}
+	if (IsValid(LocalPC) == false) return;
+	
+	auto* ScreenPlayerController = Cast<APS3ScreenPlayerController>(LocalPC);
+	if (IsValid(ScreenPlayerController) == false) return;
+	
+	for (TActorIterator<APS3PlayerCharacter> It(GetWorld()); It; ++It)
+	{
+		APS3PlayerCharacter* FieldPlayer = *It;
+		if (IsValid(FieldPlayer) && IsValid(FieldPlayer->PlayerArrowComp))
+		{
+			FieldPlayer->PlayerArrowComp->SetVisibility(true);
+		}
+	}
 }
 
 
