@@ -25,7 +25,7 @@ void UOverlapSwitchComponent::BeginPlay()
 		{
 			if (PrimComp)
 			{
-				// test dnjsqls
+				// test dnjsqls 원빈
 				PrimComp->SetHiddenInGame(false);
 
 				// C++ 이벤트 바인딩 (AddDynamic)
