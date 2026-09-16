@@ -10,6 +10,7 @@
 #include "Core/GameMode/PS3GameModeS4.h"
 #include "Core/GameState/PS3GameStateBase.h"
 #include "Core/GameState/PS3GameStateS4.h"
+#include "Data/Delegates/UIDelegatesSubsystem.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Net/UnrealNetwork.h"
@@ -436,6 +437,10 @@ void AJeoul::Multicast_OnJeoulCheckStarted_Implementation()
 void AJeoul::Multicast_OnJeoulCheckFinished_Implementation(bool bIsSuccess)
 {
 	OnJeoulCheckFinished.Broadcast(bIsSuccess);
+
+	// 저울 판정 성공/실패에 따른 UI 노티파이 브로드캐스트 (ScaleSuccess / ScaleFail)
+	EPS3TextNotifyType NotifyType = bIsSuccess ? EPS3TextNotifyType::ScaleSuccess : EPS3TextNotifyType::ScaleFail;
+	Multicast_ShowTextNotify(NotifyType);
 }
 
 void AJeoul::Multicast_PlayTiltAnimation_Implementation(EJeoulTiltState TiltState)
@@ -459,6 +464,12 @@ void AJeoul::Multicast_PlayTiltAnimation_Implementation(EJeoulTiltState TiltStat
 	}
 }
 
+void AJeoul::Multicast_ShowTextNotify_Implementation(EPS3TextNotifyType NotifyType)
+{
+	// Subsystem 매크로를 이용해 각 클라이언트 UI 델리게이트 호출
+	PS3_BROADCAST_TO_MVVM_OneParams(OnTextNotify_UI, NotifyType);
+}
+
 void AJeoul::Server_CheckBalance_Implementation()
 {
 	if (CurrentState != EJeoulState::Idle) return;
@@ -471,9 +482,13 @@ void AJeoul::Server_CheckBalance_Implementation()
 
 	if (!CutsceneParticipants.IsEmpty()) return;
 
+	// 저울판 위에 플레이어 2명이 미달된 경우
 	if (!HasBothPlayersOnPlate())
 	{
 		UE_LOG(LogTemp, Warning, TEXT("[Jeoul] 체크 실패: 플레이어 2명이 모두 저울판 위에 올라와 있지 않습니다."));
+
+		// 2인 미달 노티파이 전송 (ScaleNone)
+		Multicast_ShowTextNotify(EPS3TextNotifyType::ScaleNone);
 
 		if (ExternalSwitch)
 		{
