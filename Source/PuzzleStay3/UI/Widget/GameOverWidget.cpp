@@ -2,6 +2,7 @@
 
 #include "../HUD/PlayerHUD.h"
 #include "Components/Button.h"
+#include "Player/Controller/PS3PlayerControllerBase.h" //준현 수정
 
 void UGameOverWidget::NativeConstruct()
 {
@@ -23,11 +24,23 @@ void UGameOverWidget::SetPlayerHUD(APlayerHUD* InPlayerHUD)
 void UGameOverWidget::ShowGameOver()
 {
 	SetVisibility(ESlateVisibility::Visible);
+	if (APS3PlayerControllerBase* PC = Cast<APS3PlayerControllerBase>(GetOwningPlayer()))
+	{
+		PC->SetGameOverInputMode(true);
+		if (PC->IsLocalController() && Button_Restart)
+		{
+			Button_Restart->SetUserFocus(PC);
+		}
+	} // 준현 수정
 }
 
 void UGameOverWidget::HideGameOver()
 {
 	SetVisibility(ESlateVisibility::Collapsed);
+	if (APS3PlayerControllerBase* PC = Cast<APS3PlayerControllerBase>(GetOwningPlayer()))
+	{
+		PC->SetGameOverInputMode(false);
+	} // 준현 수정
 }
 
 void UGameOverWidget::RequestGameRestart()
