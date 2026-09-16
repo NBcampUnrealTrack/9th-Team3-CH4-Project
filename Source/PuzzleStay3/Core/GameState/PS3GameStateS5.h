@@ -77,6 +77,8 @@ private:
 	
 	void NoneReceivedDecalFloor();
 	
+	void ScreenPlayerVisibleToArrow();
+	
 public:
 	FOnSpawnedScreenPlayerUIReAssign OnSpawnedScreenPlayerUIReAssign;
 

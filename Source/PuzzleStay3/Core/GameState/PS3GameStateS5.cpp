@@ -5,7 +5,10 @@
 #include "Data/Delegates/UIDelegatesSubsystem.h"
 #include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
+#include "Player/Character/PS3PlayerCharacter.h"
+#include "Player/Controller/PS3PlayerController.h"
 #include "Player/Controller/PS3PlayerControllerBase.h"
+#include "Player/Controller/PS3ScreenPlayerController.h"
 
 
 APS3GameStateS5::APS3GameStateS5()
@@ -212,6 +215,26 @@ void APS3GameStateS5::NoneReceivedDecalFloor()
 		
 		FloorMeshComp->SetReceivesDecals(false);
 	}		
+}
+
+void APS3GameStateS5::ScreenPlayerVisibleToArrow()
+{
+	auto* PC = GetWorld()->GetFirstPlayerController();
+	if (IsValid(PC) == false) return;
+	
+	auto* FieldPlayerController = Cast<APS3PlayerController>(PC);
+	if (IsValid(FieldPlayerController) == false) return;
+	
+	auto* FieldPlayer = Cast<APS3PlayerCharacter>(PC->GetPawn());
+	if (IsValid(FieldPlayer) == false) return;
+	
+	auto* ScreenPlayerController = Cast<APS3ScreenPlayerController>(PC);
+	if (IsValid(ScreenPlayerController) == false) return;
+	
+	if (ScreenPlayerController->IsLocalPlayerController() == true)
+	{
+		FieldPlayer->PlayerArrowComp->SetVisibility(true);
+	}
 }
 
 
