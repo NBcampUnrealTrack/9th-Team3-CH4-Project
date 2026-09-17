@@ -51,9 +51,23 @@ void APS3GameStateS5::OnSpawnScreenPlayerUIReAssign()
 	if(HasAuthority() == true)
 	{
 		NetMultiRPC_OnSpawnScreenPlayerUIReAssign();
-		NetMulti_ScreenPlayerVisibleToArrow(false);
+		
 	}
 }
+
+void APS3GameStateS5::OnSpawnScreenPlayerArrowHide()
+{
+	if(HasAuthority() == true)
+	{
+		FTimerHandle ArrowDelayTimerHandle;
+		GetWorldTimerManager().SetTimer(ArrowDelayTimerHandle, [this]()
+		{
+			NetMulti_FieldPlayerVisibleToArrow(false);
+		}, 0.2f, false);
+		
+	}
+}
+
 
 void APS3GameStateS5::NetMultiRPC_OnSpawnScreenPlayerUIReAssign_Implementation()
 {
