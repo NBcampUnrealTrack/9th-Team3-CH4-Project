@@ -41,9 +41,7 @@ APS3PlayerCharacter::APS3PlayerCharacter()
 	CarryAnchor = CreateDefaultSubobject<USceneComponent>(TEXT("CarryAnchor"));
 	CarryAnchor->SetupAttachment(GetMesh(), TEXT("hand_r"));
 	
-	PlayerArrowComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("PlayerArrowComp"));
-	PlayerArrowComp->SetupAttachment(GetRootComponent());
-	PlayerArrowComp->SetVisibility(false);
+
 }
 
 void APS3PlayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -64,14 +62,6 @@ void APS3PlayerCharacter::OnRep_PlayerState()
 	RefreshPlayerIdentityVisual();
 }
 
-void APS3PlayerCharacter::BeginPlay()
-{
-	Super::BeginPlay();
-	
-	checkf(IsValid(PlayerArrowComp) == true, TEXT("[BP_APS3PlayerCharacter]의 [PlayerArrowComp] 컴포넌트가 비어있습니다."));
-	checkf(IsValid(PlayerArrowComp->GetStaticMesh()) == true, TEXT("[BP_APS3PlayerCharacter]의 [PlayerArrowComp] 스태틱 메쉬가 비어있습니다."));
-	
-}
 
 void APS3PlayerCharacter::RefreshPlayerIdentityVisual()
 {
