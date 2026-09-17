@@ -1,11 +1,13 @@
 ﻿#include "PS3GameStateS5.h"
 
 #include "EngineUtils.h"
+#include "Component/PlayerArrowComponent.h"
 #include "Core/GameMode/PS3GameModeS5.h"
 #include "Data/DataAsset/S5_GameRuleDataAsset.h"
 #include "Data/Delegates/UIDelegatesSubsystem.h"
 #include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
+#include "Object/GimmickBase.h"
 #include "Player/Character/PS3PlayerCharacter.h"
 #include "Player/Controller/PS3PlayerController.h"
 #include "Player/Controller/PS3PlayerControllerBase.h"
@@ -253,7 +255,6 @@ void APS3GameStateS5::NoneReceivedDecalFloor()
 }
 
 
-
 void APS3GameStateS5::NetMulti_StageNotifyUI_Implementation()
 {
 	PS3_BROADCAST_TO_MVVM_OneParams(OnStageType_UI, S5_GameRuleDataAsset->StageType_S5);
@@ -281,10 +282,23 @@ void APS3GameStateS5::NetMulti_FieldPlayerVisibleToArrow_Implementation(bool bIs
 	for (TActorIterator<APS3PlayerCharacter> It(GetWorld()); It; ++It)
 	{
 		APS3PlayerCharacter* FieldPlayer = *It;
-		if (IsValid(FieldPlayer) && IsValid(FieldPlayer->PlayerArrowComp))
-		{
-			FieldPlayer->PlayerArrowComp->SetVisibility(bIsVisible);
-		}
+		if (IsValid(FieldPlayer) == false) continue;
+		
+		auto* ArrowComp = FieldPlayer->FindComponentByClass<UPlayerArrowComponent>();
+		if (IsValid(ArrowComp) == false) continue;
+		
+		ArrowComp->SetVisibility(bIsVisible);
+	}
+	
+	for (TActorIterator<AGimmickBase> It(GetWorld()); It; ++It)
+	{
+		AGimmickBase* GimmickBase = *It;
+		if (IsValid(GimmickBase) == false) continue;
+		
+		auto* ArrowComp = GimmickBase->FindComponentByClass<UPlayerArrowComponent>();
+		if (IsValid(ArrowComp) == false) continue;
+		
+		ArrowComp->SetVisibility(bIsVisible);
 	}
 }
 
@@ -309,10 +323,23 @@ void APS3GameStateS5::NetMulti_ScreenPlayerVisibleToArrow_Implementation(bool bI
 	for (TActorIterator<APS3PlayerCharacter> It(GetWorld()); It; ++It)
 	{
 		APS3PlayerCharacter* FieldPlayer = *It;
-		if (IsValid(FieldPlayer) && IsValid(FieldPlayer->PlayerArrowComp))
-		{
-			FieldPlayer->PlayerArrowComp->SetVisibility(bIsVisible);
-		}
+		if (IsValid(FieldPlayer) == false) continue;
+		
+		auto* ArrowComp = FieldPlayer->FindComponentByClass<UPlayerArrowComponent>();
+		if (IsValid(ArrowComp) == false) continue;
+		
+		ArrowComp->SetVisibility(bIsVisible);
+	}
+	
+	for (TActorIterator<AGimmickBase> It(GetWorld()); It; ++It)
+	{
+		AGimmickBase* GimmickBase = *It;
+		if (IsValid(GimmickBase) == false) continue;
+		
+		auto* ArrowComp = GimmickBase->FindComponentByClass<UPlayerArrowComponent>();
+		if (IsValid(ArrowComp) == false) continue;
+		
+		ArrowComp->SetVisibility(bIsVisible);
 	}
 }
 
