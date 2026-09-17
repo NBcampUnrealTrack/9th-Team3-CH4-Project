@@ -44,7 +44,7 @@ protected:
 	TObjectPtr<US5_GameRuleDataAsset> S5_GameRuleDataAsset;
 	
 	UPROPERTY(EditAnywhere, ReplicatedUsing = OnRep_ControlDoorType, Category = "ControlDoor|Settings")
-	EControlDoorType ControlDoorType = EControlDoorType::None;
+	EControlDoorType ControlDoorType = EControlDoorType::Random;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "ControlDoor|Settings")
 	TObjectPtr<UDecalComponent> DecalComp_A;
