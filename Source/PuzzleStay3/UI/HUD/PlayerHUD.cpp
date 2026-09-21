@@ -30,8 +30,9 @@ void APlayerHUD::BeginPlay()
 
 		if (RootHUDWidget)
 		{
-			RootHUDWidget->AddToViewport();
-
+			//RootHUDWidget->AddToViewport();
+			
+			RootHUDWidget->AddToViewport(100);
 			if (UMVVMView* MVVMView = RootHUDWidget->GetExtension<UMVVMView>())
 			{
 				const TScriptInterface<INotifyFieldValueChanged> MVVMViewModel = MVVMView->GetViewModel(TEXT("PS3ViewModel"));
