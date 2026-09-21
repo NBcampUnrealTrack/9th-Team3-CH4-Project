@@ -275,6 +275,7 @@ void APS3GameModeS5::OnInteractedGimmick(bool bIsInteractedGimmick)
 			if (IsValid(PS3GameStateS5) == false) return;
 		
 			PS3GameStateS5->OnSpawnScreenPlayerUIReAssign();
+			PS3GameStateS5->OnSpawnScreenPlayerArrowHide();
 		}
 		
 		bIsScreenPlayerSpawnReady = false;

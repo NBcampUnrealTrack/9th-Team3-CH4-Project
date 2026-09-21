@@ -36,6 +36,8 @@ public:
 	
 	void OnSpawnScreenPlayerUIReAssign();
 	
+	void OnSpawnScreenPlayerArrowHide();
+	
 	UFUNCTION(NetMulticast, Reliable)
 	void NetMultiRPC_OnSpawnScreenPlayerUIReAssign();
 	

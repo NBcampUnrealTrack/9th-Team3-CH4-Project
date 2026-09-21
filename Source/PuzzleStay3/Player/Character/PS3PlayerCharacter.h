@@ -22,8 +22,7 @@ class PUZZLESTAY3_API APS3PlayerCharacter : public ACharacter
 public:
 	APS3PlayerCharacter();
 	
-	UPROPERTY(EditAnywhere, Category = "PS3|Character|Arrow")
-	TObjectPtr<UStaticMeshComponent> PlayerArrowComp;
+
 
 	UFUNCTION(BlueprintPure, Category = "PS3|Character")
 	bool CanUseFieldControls() const;
@@ -58,7 +57,6 @@ protected:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual void PossessedBy(AController* NewController) override;
 	virtual void OnRep_PlayerState() override;
-	virtual void BeginPlay() override;
 
 	UPROPERTY(Replicated)
 	bool bCanUseFieldControls = true;
